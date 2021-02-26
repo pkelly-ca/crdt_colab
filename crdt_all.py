@@ -16,12 +16,12 @@ import shutil
 # Change the following parameters as needed
 write_sheet = True # #Make True to enable writes of csv files to the directory tree
 states = ["AK","AL","AR","CA","CT","DC","FL","GA","GU",
-          "HI","ID","IL","IN","KY","LA","MA","MD","ME","MN","MO","MS","MT",
+          "HI","IL","IN","KY","LA","MA","MD","ME","MN","MO","MS","MT",
           "NC","NE","NH","NM","NY","OR","PA","RI","TN","TX",
           "UT","VA","VT","WA","WI","WY"]
 
 #failing states - standalone run
-#states = ["DE"]
+#states = ["DE","ID"]
 
 #states using drivers
 #states = ["AK","MO","HI","ID","NC","NH","WI","WY"]

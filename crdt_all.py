@@ -17,7 +17,7 @@ import shutil
 write_sheet = True # #Make True to enable writes of csv files to the directory tree
 #Working states
 states = ["AK","AL","AR","CA","CT","DC","FL","GA","GU",
-          "HI","IL","IN","KY","LA","MA","MN","MS","MT"
+          "HI","IL","IN","KY","LA","MA","MN","MS","MT",
           "NC","NE","NH","NM","NY","OR","PA","TN","TX",
           "VA","VT","WA"]
 

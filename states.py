@@ -1071,9 +1071,9 @@ def runMD(ws,write):
   soup = BeautifulSoup(req.text, 'html.parser')
   # Find large text block which contains tables
   script = soup.find('script',attrs={'id':'site-injection'})
-  win_start = script.text.find('window.__SITE=')
+  win_start = str(script).find('window.__SITE=')
   # Convert URL codes to characters
-  win_url = unquote(script.text[win_start:-5])
+  win_url = unquote(str(script)[win_start:-5])
   race_string = win_url[re.search("By Race and Ethnicity",win_url).start():]
   race_table = race_string[race_string.find('<table'):race_string.find('</table>"')+8]
   # Clean data, move first row to column names
@@ -1088,7 +1088,7 @@ def runMD(ws,write):
   totals_string = win_url[re.search("COVID-19 Statistics in Maryland",win_url).start():]
   totals_table = totals_string[totals_string.find('<p'):]
   totals_table = totals_table[:totals_table.find('</p>')+4]
-  soup = BeautifulSoup(totals_table)
+  soup = BeautifulSoup(totals_table, 'html.parser')
   p_text = soup.find('p').text
   df_totals = pd.read_csv(StringIO(re.sub(r'\\n', '\\n', p_text)), sep=':', header=None)
   df_totals.columns = ["Metric","Value"]

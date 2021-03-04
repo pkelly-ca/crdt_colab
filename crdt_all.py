@@ -36,8 +36,15 @@ if os.path.exists(maindir):
     shutil.rmtree(maindir + '_old')
   shutil.move(maindir,maindir + '_old')
 
+failed_states_list = []
 for state in states:
   print("\n")
   display("***" + state + " Output:***")
-  func = globals()["run" + state]
-  func(None,write_sheet)
+  try:
+    func = globals()["run" + state]
+    func(None,write_sheet)
+  except Exception as e:
+    display("Skipping state %s due to error: %s" % (state, str(e)))
+    failed_states_list.append(state)
+
+display("These states failed to run: %s" % ', '.join(failed_states_list))

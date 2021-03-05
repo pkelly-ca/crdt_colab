@@ -36,6 +36,9 @@ import json
 from selenium import webdriver
 import inspect
 
+# for S3 backup
+import boto3
+
 
 # Functions
 
@@ -66,7 +69,24 @@ def writeTable(df,title,startCell):
         if file_num > highest_num:
             highest_num = file_num
   i = highest_num + 1
-  df.to_csv(statedir + "/" + inspect.stack()[1][3] + "_" + str(i) + '.csv')
+
+  # save this to a filename like: "AK-20210304-1.csv"
+  date_str = datetime.datetime.now().strftime("%Y%m%d")
+  path = '%s-%s-%d.csv' % (state, date_str, i)
+  full_path = os.path.join(statedir, path)
+  df.to_csv(full_path)
+
+  # attempt to write to S3
+  s3 = boto3.resource('s3')
+  bucket_name = 'covid-tracking-project-data'
+  s3_path = os.path.join('CRDT', state, path)
+  try:
+    s3.meta.client.upload_file(full_path, bucket_name, s3_path)
+    display('S3 upload successful to %s' % s3_path)
+  except Exception as e:
+    display('Skipping S3 upload for %s' % state)
+    
+    
 
 
 

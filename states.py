@@ -12,6 +12,7 @@ import pandas as pd
 import requests
 import numpy as np
 import urllib
+import inspect
 from urllib.parse import unquote
 from io import StringIO, BytesIO
 from bs4 import BeautifulSoup
@@ -19,16 +20,9 @@ import re
 import zipfile
 import datetime
 from datetime import date, timedelta
-try:
-  import PyPDF2
-except ImportError:
-  import PyPDF2
-try: 
-  import tabula
-except ImportError:
-  import tabula
-from IPython.display import Markdown, display
-import gspread
+import PyPDF2
+import tabula
+from IPython.display import display
 import os, time
 os.environ['TZ'] = 'America/New_York'
 time.tzset()
@@ -391,6 +385,7 @@ def runDE(ws,write):
   display(df_totals)
 
   # Find Demo Tables
+  soup = BeautifulSoup(req.text,"html5lib")
   all_script = soup.find_all('script')
 
   for scr in all_script:
@@ -1234,7 +1229,7 @@ def runMA(ws, write):
 def runMD(ws,write):
   url = 'https://coronavirus.maryland.gov/'
   req = requests.get(url)
-  soup = BeautifulSoup(req.text, 'html.parser')
+  soup = BeautifulSoup(req.text, 'html5lib')
   # Find large text block which contains tables
   script = soup.find('script',attrs={'id':'site-injection'})
   win_start = script.text.find('window.__SITE=')
@@ -1254,7 +1249,7 @@ def runMD(ws,write):
   totals_string = win_url[re.search("COVID-19 Statistics in Maryland",win_url).start():]
   totals_table = totals_string[totals_string.find('<p'):]
   totals_table = totals_table[:totals_table.find('</p>')+4]
-  soup = BeautifulSoup(totals_table)
+  soup = BeautifulSoup(totals_table,'html5lib')
   p_text = soup.find('p').text
   df_totals = pd.read_csv(StringIO(re.sub(r'\\n', '\\n', p_text)), sep=':', header=None)
   df_totals.columns = ["Metric","Value"]

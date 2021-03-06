@@ -14,12 +14,14 @@ import shutil
 #
 
 # Change the following parameters as needed
-write_sheet = True # #Make True to enable writes of csv files to the directory tree
+write_sheet = False # #Make True to enable writes of csv files to the directory tree
 #Working states
-states = ["AK","AL","AR","CA","CT","DC","FL","GA","GU",
-          "HI","IL","IN","KY","LA","MA","MN","MS","MT",
-          "NC","NE","NH","NM","NY","OR","PA","TN","TX",
-          "VA","VT","WA"]
+states = ["AK","AL","AR","CA","CT","DC","DE","FL","GA","GU",
+          "HI","ID","IL","IN","KY","LA","MA","MD","ME","MI",
+          "MO","MN","MS","MT","NC","ND","NE","NH","NM","NV",
+          "NY","OR","PA","RI","SD","TN","TX","UT","VA","VT",
+          "WA","WI","WY"]
+
 
 #failing states - standalone run
 #states = ["DE","ID","MD","ME","MO","RI","UT","WI","WY"]
@@ -47,4 +49,7 @@ for state in states:
     display("Skipping state %s due to error: %s" % (state, str(e)))
     failed_states_list.append(state)
 
-display("These states failed to run: %s" % ', '.join(failed_states_list))
+if len(failed_states_list) > 0:
+  display("These states failed to run: %s" % ', '.join(failed_states_list))
+else:
+  display("ALL STATES PASSED!!!")

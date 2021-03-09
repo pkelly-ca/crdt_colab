@@ -22,6 +22,8 @@ import datetime
 from datetime import date, timedelta
 import PyPDF2
 import tabula
+import auth
+import gspread
 from IPython.display import display
 import os, time
 os.environ['TZ'] = 'America/New_York'
@@ -2449,8 +2451,9 @@ def runRI(ws,write):
   try:
     wb_ri = gc.open_by_key(key_ri)
   except NameError:
-    auth.authenticate_user()
-    gc = gspread.authorize(GoogleCredentials.get_application_default())
+#    auth.authenticate_user()
+    gc = gspread.oauth()
+#    gc = gspread.authorize(GoogleCredentials.get_application_default())
     wb_ri = gc.open_by_key(key_ri)
 
   # Get Totals from Summary tab, discard unused rows

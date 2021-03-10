@@ -16,8 +16,8 @@ states_all = ["AK","AL","AR","CA","CT","DC","DE","FL","GA","GU",
 args_list  = sys.argv[1:]
 
 # Options
-opts = "has:"
-long_opts = ["help", "all", "state"]
+opts = "hasw:"
+long_opts = ["help", "all", "state", "write"]
 try:
     # Parsing argument
     args, vals = getopt.getopt(args_list, opts, long_opts)
@@ -30,16 +30,16 @@ try:
             sys.exit()
 
         elif arg in ("-a", "--all"):
-            print ("Displaying All")
+            print ("Running All")
             states = states_all
 
         elif arg in ("-s", "--state"):
-            print (("State = (% s)") % (sys.argv[2]))
+            print (("Running State = (% s)") % (sys.argv[2]))
             states = [str(sys.argv[2])]
 
         elif arg in ("-w", "--write"):
             print ("Writing to S3")
-            #write_sheet = True # #Make True to enable writes of csv files to the directory tree
+            write_sheet = True # #Make True to enable writes of csv files to the directory tree
 
 except getopt.error as err:
     # output error, and return with an error code

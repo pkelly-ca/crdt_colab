@@ -2632,10 +2632,10 @@ def runTX(ws,write):
 
 # UT
 def runUT(ws, write):
-  url = 'https://coronavirus-dashboard.utah.gov/#demographics'
+  url = 'https://coronavirus-dashboard.utah.gov/demographics.html'
   wd = init_driver()
   wd.get(url)
-  #time.sleep(20)
+#  time.sleep(20)
   soup = BeautifulSoup(wd.page_source, 'html.parser')
 
   # Find Table

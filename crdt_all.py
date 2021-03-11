@@ -6,6 +6,11 @@ from states import *
 from IPython.display import Markdown, display
 import shutil
 import getopt,sys
+import os
+
+# notify Slack in case of errors                                                                                                                               
+from slack import WebClient
+from slack.errors import SlackApiError
 
 write_sheet = False  #Default to not write to S3
 states = []
@@ -70,6 +75,20 @@ for state in states:
     failed_states_list.append(state)
 
 if len(failed_states_list) > 0:
-  display("These states failed to run: %s" % ', '.join(failed_states_list))
+  message = "CRDT auto data fetcher states failed to run: %s" % ', '.join(failed_states_list)
+  display(message)
+  # notify slack                                                                                                                                               
+  slack_api_token = os.environ.get('SLACK_API_TOKEN')
+  slack_channel = os.environ.get('SLACK_CHANNEL')
+  if slack_api_token and slack_channel:
+    client = WebClient(token=slack_api_token)
+    try:
+      response = client.chat_postMessage(
+        channel=slack_channel,
+        text=message)
+    except SlackApiError as e:
+      display("Could not notify Slack, received error")
+  else:
+    display('SLACK_API_TOKEN and/or SLACK_CHANNEL environment variable not set')
 else:
   display("ALL STATES PASSED!!!")

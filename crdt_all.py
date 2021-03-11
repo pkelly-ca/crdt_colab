@@ -7,7 +7,7 @@ from IPython.display import Markdown, display
 import shutil
 import getopt,sys
 
-write_sheet = False #Default to not write to S3
+write_sheet = False  #Default to not write to S3
 states = []
 states_all = ["AK","AL","AR","CA","CT","DC","DE","FL","GA","GU",
           "HI","ID","IL","IN","KY","LA","MA","MD","ME","MI",
@@ -18,7 +18,7 @@ states_all = ["AK","AL","AR","CA","CT","DC","DE","FL","GA","GU",
 args_list  = sys.argv[1:]
 
 # Options
-opts = "hasw:"
+opts = "haws:"
 long_opts = ["help", "all", "state", "write"]
 try:
     # Parsing argument
@@ -26,7 +26,6 @@ try:
 
     # checking each argument
     for arg, val in args:
-
         if arg in ("-h", "--help"):
             print ("Use:\n-a OR --all to run all states;\n-s <ST> OR --state <ST> to run a single state;\n-w OR --write to write to S3.")
             sys.exit()
@@ -36,8 +35,8 @@ try:
             states = states_all
 
         elif arg in ("-s", "--state"):
-            print (("Running State = (% s)") % (sys.argv[2]))
-            states = [str(sys.argv[2])]
+            print (("Running State = (% s)") % (val))
+            states = [str(val)]
 
         elif arg in ("-w", "--write"):
             print ("Writing to S3")

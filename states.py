@@ -2516,7 +2516,8 @@ def runSD(ws,write):
   from selenium.webdriver.support import expected_conditions as EC
   from selenium.webdriver import ActionChains
 
-  url = 'https://app.powerbigov.us/view?r=eyJrIjoiZDUwODIyNGEtODdkZC00MmI4LWFmOTctZWJjOWRkYmIzNzhhIiwidCI6IjcwYWY1NDdjLTY5YWItNDE2ZC1iNGE2LTU0M2I1Y2U1MmI5OSJ9'
+  url = 'https://app.powerbigov.us/view?r=eyJrIjoiZDE4ZTA4YzEtNjAwMC00ZDdmLWI2ZDAtNDJhNjgwZDExMjQ1IiwidCI6IjcwYWY1NDdjLTY5YWItNDE2ZC1iNGE2LTU0M2I1Y2U1MmI5OSJ9'
+#  url = 'https://app.powerbigov.us/view?r=eyJrIjoiZDUwODIyNGEtODdkZC00MmI4LWFmOTctZWJjOWRkYmIzNzhhIiwidCI6IjcwYWY1NDdjLTY5YWItNDE2ZC1iNGE2LTU0M2I1Y2U1MmI5OSJ9'
 
   def colstr2int(df,col):
     df.loc[:,col] = df.loc[:,col].replace(',','', regex=True)
@@ -2526,8 +2527,10 @@ def runSD(ws,write):
     wd = init_driver()
     wd.get(url)
     wait = WebDriverWait(wd, 60)
+    print('Got Website')
 
     wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "i[title='Next Page']"))).click()
+    print('Clicked Next Page')
   #  time.sleep(10)
     if category != 'Cases':
       wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@aria-label='" + category + "']/div"))).click()
@@ -2536,6 +2539,7 @@ def runSD(ws,write):
     ActionChains(wd).context_click(elements[0]).perform()
   #  time.sleep(10)
     wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[title='Show as a table']"))).click()
+    print('Show table')
 
     cats = []
     elements = wait.until(EC.presence_of_all_elements_located((By.XPATH, "//*[@class='pivotTableCellWrap cell-interactive ']")))

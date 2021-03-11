@@ -116,7 +116,7 @@ def runAK(ws, write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    ws.update('J17',dataToWrite)
+    #ws.update('J17',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_dem,'AK Hospitalization & Death Demographics (Residents Only)','J19')
@@ -152,7 +152,7 @@ def runAL(ws, write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    ws.update('B36',dataToWrite)
+    #ws.update('B36',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_cases_eth,'Ethnicity Cases','A38')
@@ -182,7 +182,7 @@ def runAR(ws, write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    ws.update('B33',dataToWrite)
+    #ws.update('B33',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_cases,'Case Demographics','A34')
@@ -218,7 +218,7 @@ def runCA(ws, write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    ws.update('F16',dataToWrite)
+    #ws.update('F16',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_cases,'Case & Death Totals','G18')
@@ -274,7 +274,7 @@ def runCT(ws, write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    ws.update('F19',dataToWrite)
+    #ws.update('F19',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_tot,'CT Case & Deaths Totals, Confirmed & Probables','G18')
@@ -327,7 +327,7 @@ def runDC(ws,write):
   if write == True:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    ws.update('H17',dataToWrite)
+    #ws.update('H17',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_cases,'Total Cases by Race','I16')
@@ -406,7 +406,7 @@ def runDE(ws,write):
   if write == True:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    ws.update('H14',dataToWrite)
+    #ws.update('H14',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_totals,'','G15')
@@ -459,7 +459,7 @@ def runFL(ws, write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    ws.update('L23',dataToWrite)
+    #ws.update('L23',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_hosp_totals,'Hospitalization Totals','N23')
@@ -511,7 +511,7 @@ def runGA(ws, write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    ws.update('F20',dataToWrite)
+    #ws.update('F20',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_dems,'Table for Copying to Spreadsheet Area of State Page','G18')
@@ -560,7 +560,7 @@ def runGU(ws,write):
   if write == True:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    ws.update('H19',dataToWrite)
+    #ws.update('H19',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_demo_cases,'','G21')
@@ -685,7 +685,7 @@ def runHI(ws,write):
   if write == 1:
       # Write Paste Date To Sheet
       dataToWrite = [[date.today().strftime('%m/%d')]]
-      ws.update('K13',dataToWrite)
+      #ws.update('K13',dataToWrite)
 
       # Write Data To Sheet
       writeTable(df_tots,'','J14')
@@ -800,7 +800,7 @@ def runID(ws, write):
   if write == True:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    ws.update('L14',dataToWrite)
+    #ws.update('L14',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_cases['State Total Cases Display (2)'],'','K15')
@@ -951,7 +951,7 @@ def runMI(ws,write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    ws.update('M19',dataToWrite)
+    #ws.update('M19',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df,'','L20')
@@ -1019,7 +1019,7 @@ def runIL(ws,write):
   if write == True:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    ws.update('G33',dataToWrite)
+    #ws.update('G33',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df,'','F34')
@@ -1041,7 +1041,7 @@ def runIN(ws, write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    ws.update('G21',dataToWrite)
+    #ws.update('G21',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_IN_casesRace,'Cases by Race','H22')
@@ -1126,13 +1126,13 @@ def runKY(ws, write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    ws.update('L37',dataToWrite)
+    #ws.update('L37',dataToWrite)
 
     dataToWrite = [[knownRaceCases, 'Known %', knownRaceDeaths]]
-    ws.update('J26',dataToWrite)
+    #ws.update('J26',dataToWrite)
 
     dataToWrite = [[knownEthCases, 'Known %', knownEthDeaths]]
-    ws.update('J31',dataToWrite)
+    #ws.update('J31',dataToWrite)
 
 
     # Write Data To Sheet
@@ -1165,7 +1165,7 @@ def runLA(ws,write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    ws.update('H26',dataToWrite)
+    #ws.update('H26',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_demo,'','J27')
@@ -1219,7 +1219,7 @@ def runMA(ws, write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    ws.update('F26',dataToWrite)
+    #ws.update('F26',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_cases,'Case Totals','G23')
@@ -1261,7 +1261,7 @@ def runMD(ws,write):
   if write == True:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    ws.update('F33',dataToWrite)
+    #ws.update('F33',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_demo,'','A33')
@@ -1356,7 +1356,7 @@ def runME(ws, write):
   if write == 1:
       # Write Paste Date To Sheet
       dataToWrite = [[date.today().strftime('%m/%d')]]
-      ws.update('G26',dataToWrite)
+      #ws.update('G26',dataToWrite)
       #Write Demographic Data
       #writeTable(df_totals,'Confirmed Case & Death Totals','L15')
       writeTable(df_casesRace,'','H27')
@@ -1386,7 +1386,7 @@ def runMN(ws, write):
   if write == 1:
       # Write Paste Date To Sheet
       dataToWrite = [[date.today().strftime('%m/%d')]]
-      ws.update('C48',dataToWrite)
+      #ws.update('C48',dataToWrite)
 
       # Write Data To Sheet
       writeTable(df_caseR,'','B51')
@@ -1491,7 +1491,7 @@ def runMO(ws, write):
   if write == 1:
       # Write Paste Date To Sheet
       dataToWrite = [[date.today().strftime('%m/%d')]]
-      ws.update('J16',dataToWrite)
+      #ws.update('J16',dataToWrite)
 
       # Write Data To Sheet
       writeTable(race,'Race Totals','J17')
@@ -1623,7 +1623,7 @@ def runMS(ws, write):
   if write == 1:
       # Write Paste Date To Sheet
       dataToWrite = [[date.today().strftime('%m/%d')]]
-      ws.update('B36',dataToWrite)
+      #ws.update('B36',dataToWrite)
 
       # Write Data To Sheet
       writeTable(case_tot,'','A37')
@@ -1724,7 +1724,7 @@ def runMT(ws, write):
   if write == True:
     # Write Paste Date To Sheet
      dataToWrite = [[date.today().strftime('%m/%d')]]
-     ws.update('J18',dataToWrite)
+     #ws.update('J18',dataToWrite)
 
      # Write Data To Sheet
      writeTable(raceeth,'Race Table','H19')
@@ -1816,7 +1816,7 @@ def runNC(ws, write):
   if write == 1:
       # Write Paste Date To Sheet
       dataToWrite = [[date.today().strftime('%m/%d')]]
-      ws.update('H19',dataToWrite)
+      #ws.update('H19',dataToWrite)
 
       # Write Data To Sheet
       writeTable(race,'Race Totals','G20')
@@ -1874,7 +1874,7 @@ def runND(ws,write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    ws.update('D22',dataToWrite)
+    #ws.update('D22',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df,'','C23')
@@ -1940,7 +1940,7 @@ def runNE(ws, write):
   if write == 1:
       # Write Paste Date To Sheet
       dataToWrite = [[date.today().strftime('%m/%d')]]
-      ws.update('B38',dataToWrite)
+      #ws.update('B38',dataToWrite)
 
       # Write Data To Sheet
       writeTable(df_tot,'','C39')
@@ -2184,7 +2184,7 @@ def runNH(ws, write):
   if write == 1:
       # Write Paste Date To Sheet
       dataToWrite = [[date.today().strftime('%m/%d')]]
-      ws.update('F31',dataToWrite)
+      #ws.update('F31',dataToWrite)
 
       # Write Data To Sheet
       #writeTable(df_totals,'Race & Ethnicity Totals','G32')
@@ -2225,7 +2225,7 @@ def runNM(ws, write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    ws.update('B36',dataToWrite)
+    #ws.update('B36',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_casesR,'','B37')
@@ -2276,7 +2276,7 @@ def runNV(ws,write):
   if write == True:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    ws.update('B37',dataToWrite)
+    #ws.update('B37',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df,'','A38')
@@ -2300,7 +2300,7 @@ def runNY(ws, write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    ws.update('J25',dataToWrite)
+    #ws.update('J25',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_nyc_deaths,'','J17')
@@ -2374,11 +2374,11 @@ def runOR(ws, write):
   if write == True:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    ws.update('G21',dataToWrite)
+    #ws.update('G21',dataToWrite)
 
     # Write Paste Date To Sheet
     dataToWrite = [[hosp_total]]
-    ws.update('J48',dataToWrite)
+    #ws.update('J48',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_cases_deaths,'','H21')
@@ -2434,7 +2434,7 @@ def runPA(ws, write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    ws.update('H16',dataToWrite)
+    #ws.update('H16',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_casesR, 'Cases by Race', 'H25')
@@ -2503,7 +2503,7 @@ def runRI(ws,write):
   if write == True:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    ws.update('R32',dataToWrite)
+    #ws.update('R32',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_totals,'Summary','R19')
@@ -2567,7 +2567,7 @@ def runSD(ws,write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    ws.update('J19',dataToWrite)
+    #ws.update('J19',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df,'','I20')
@@ -2601,7 +2601,7 @@ def runTN(ws, write):
   if write == True:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    ws.update('K20',dataToWrite)
+    #ws.update('K20',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df,'','J21')
@@ -2624,7 +2624,7 @@ def runTX(ws,write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    ws.update('F31',dataToWrite)
+    #ws.update('F31',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_cases,'Cases by Race','H20')
@@ -2674,7 +2674,7 @@ def runUT(ws, write):
   if write == True:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    ws.update('G34',dataToWrite)
+    #ws.update('G34',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df,'','H17')
@@ -2733,8 +2733,8 @@ def runVA(ws, write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    ws.update('B33',dataToWrite)
-    ws.update('J14',dataToWrite)
+    #ws.update('B33',dataToWrite)
+    #ws.update('J14',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_confProb,'','K15')
@@ -2782,7 +2782,7 @@ def runVT(ws, write):
   if write == True:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    ws.update('I19',dataToWrite)
+    #ws.update('I19',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_demo_cases,'','H20')
@@ -2831,7 +2831,7 @@ def runWA(ws,write):
   if write == True:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    ws.update('B33',dataToWrite)
+    #ws.update('B33',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_cases,'','A35')
@@ -3032,7 +3032,7 @@ def runWI(ws, write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    ws.update('J15',dataToWrite)
+    #ws.update('J15',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_totals,'Confirmed Case & Death Totals','L15')
@@ -3168,7 +3168,7 @@ def runWY(ws,write):
   if write == 1:
       # Write Paste Date To Sheet
       dataToWrite = [[date.today().strftime('%m/%d')]]
-      ws.update('G16',dataToWrite)
+      #ws.update('G16',dataToWrite)
 
       # Write Data To Sheet
       writeTable(df_cases,'Case Totals','M17')

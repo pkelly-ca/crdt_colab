@@ -314,12 +314,12 @@ def runDC(ws,write):
   res = requests.get(link)
 
   # Read, wrangle race cases tab
-  df_cases = pd.read_excel(BytesIO(res.content), sheet_name="Total Cases by Race", skiprows=[0,2])
+  df_cases = pd.read_excel(BytesIO(res.content), sheet_name="Total Cases by Race", skiprows=[0,2], engine='openpyxl')
   df_cases = wrangle(df_cases)
   display(df_cases)
 
   # Read, wrangle race deaths tab
-  df_deaths = pd.read_excel(BytesIO(res.content), sheet_name="Lives Lost by Race", skiprows=[1])
+  df_deaths = pd.read_excel(BytesIO(res.content), sheet_name="Lives Lost by Race", skiprows=[1], engine='openpyxl')
   df_deaths = wrangle(df_deaths)
   display(df_deaths)
 
@@ -1031,10 +1031,10 @@ def runIL(ws,write):
 def runIN(ws, write):
 
   url = 'https://hub.mph.in.gov/dataset/62ddcb15-bbe8-477b-bb2e-175ee5af8629/resource/2538d7f1-391b-4733-90b3-9e95cd5f3ea6/download/covid_report_demographics.xlsx'
-  df_IN_casesRace = pd.read_excel(url, sheet_name='Race', skiprows=0)
+  df_IN_casesRace = pd.read_excel(url, sheet_name='Race', skiprows=0, engine='openpyxl')
   print("Cases by Race")
   display(df_IN_casesRace)
-  df_IN_casesEthnicity = pd.read_excel(url, sheet_name='Ethnicity', skiprows=0)
+  df_IN_casesEthnicity = pd.read_excel(url, sheet_name='Ethnicity', skiprows=0, engine='openpyxl')
   print("\nCases by Ethnicity")
   display(df_IN_casesEthnicity)
 
@@ -1187,7 +1187,7 @@ def runMA(ws, write):
   res = requests.get(link)
 
   #Cases -
-  df_cases = pd.read_excel(BytesIO(res.content), sheet_name="Cases (Report Date)")
+  df_cases = pd.read_excel(BytesIO(res.content), sheet_name="Cases (Report Date)", engine='openpyxl')
   maxdate = df_cases['Date'].max()
   print("Case Totals")
   print(maxdate,'\n')
@@ -1195,7 +1195,7 @@ def runMA(ws, write):
   display(df_cases)
 
   #Deaths -
-  df_deaths = pd.read_excel(BytesIO(res.content), sheet_name="DeathsReported (Report Date)")
+  df_deaths = pd.read_excel(BytesIO(res.content), sheet_name="DeathsReported (Report Date)", engine='openpyxl')
   maxdate = df_deaths['Date'].max()
   print("\nDeath Totals")
   print(maxdate,'\n')
@@ -1203,7 +1203,7 @@ def runMA(ws, write):
   display(df_deaths)
 
   #Demographics
-  df_dems = pd.read_excel(BytesIO(res.content), sheet_name='RaceEthnicityLast2Weeks')
+  df_dems = pd.read_excel(BytesIO(res.content), sheet_name='RaceEthnicityLast2Weeks', engine='openpyxl')
   maxdate = df_dems['Date'].max()
   print("\nMA Demographics")
   print(maxdate,'\n')
@@ -2617,11 +2617,11 @@ def runTX(ws,write):
 
   url = 'https://dshs.texas.gov/coronavirus/TexasCOVID19Demographics.xlsx.asp'
 
-  df_cases = pd.read_excel(url, sheet_name='Cases by RaceEthnicity', skiprows=0)
+  df_cases = pd.read_excel(url, sheet_name='Cases by RaceEthnicity', skiprows=0, engine='openpyxl')
   print("Cases by Race")
   display(df_cases)
 
-  df_deaths = pd.read_excel(url, sheet_name='Fatalities by Race-Ethnicity', skiprows=0)
+  df_deaths = pd.read_excel(url, sheet_name='Fatalities by Race-Ethnicity', skiprows=0, engine='openpyxl')
   print("\nDeaths by Race")
   display(df_deaths)
 

@@ -2530,6 +2530,9 @@ def runSD(ws,write):
   #  time.sleep(10)
     if category != 'Cases':
       wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@aria-label='" + category + "']/div"))).click()
+      print('Clicked metric')
+    else:
+      time.sleep(1)
   #  time.sleep(10)
     elements = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "g[class='axisGraphicsContext columnChart']")))
     ActionChains(wd).context_click(elements[0]).perform()

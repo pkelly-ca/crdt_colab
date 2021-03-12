@@ -14,6 +14,9 @@ from datetime import date, timedelta
 from slack import WebClient
 from slack.errors import SlackApiError
 
+begin_run = time.time()
+
+
 write_sheet = False  #Default to not write to S3
 states = []
 states_all = ["AK","AL","AR","CA","CT","DC","DE","FL","GA","GU",
@@ -100,3 +103,8 @@ if len(failed_states_list) > 0:
     display('SLACK_API_TOKEN and/or SLACK_CHANNEL environment variable not set')
 else:
   display("ALL STATES PASSED!!!")
+
+end_run = time.time()
+time_run = end_run - begin_run
+print('Total run time = %.2f s' % time_run )
+

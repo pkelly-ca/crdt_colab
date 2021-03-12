@@ -7,6 +7,8 @@ from IPython.display import Markdown, display
 import shutil
 import getopt,sys
 import os
+import datetime
+from datetime import date, timedelta
 
 # notify Slack in case of errors                                                                                                                               
 from slack import WebClient
@@ -63,16 +65,22 @@ if os.path.exists(maindir):
     shutil.rmtree(maindir + '_old')
   shutil.move(maindir,maindir + '_old')
 
+
+
 failed_states_list = []
 for state in states:
   print("\n")
   display("***" + state + " Output:***")
+  start = time.time()
   try:
     func = globals()["run" + state]
     func(None,write_sheet)
   except Exception as e:
     display("Skipping state %s due to error: %s" % (state, str(e)))
     failed_states_list.append(state)
+  end = time.time()
+  duration = end - start
+  print('%s run time = %.2f s' % (state, duration))
 
 if len(failed_states_list) > 0:
   message = "CRDT auto data fetcher states failed to run: %s" % ', '.join(failed_states_list)

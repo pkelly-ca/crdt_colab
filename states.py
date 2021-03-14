@@ -2899,13 +2899,16 @@ def runWI(ws, write):
   eth_radio_xpath = "//*[@id='[Parameters].[Select a subgroup (copy)]_3']/div[2]/input"
   main_download_btn_xpath = "//*[@id='download-ToolbarButton']"
   #download form options
-  crosstab_btn_xpath = "//*[@id='DownloadDialog-Dialog-Body-Id']/div/button[3]"
+  #crosstab_btn_xpath = "//*[@id='DownloadDialog-Dialog-Body-Id']/div/button[3]"
+  crosstab_btn_xpath = "//button[text()='Crosstab']"
   csv_radio_xpath = "//*[@id='export-crosstab-options-dialog-Dialog-BodyWrapper-Dialog-Body-Id']/div/div[2]/div[2]/div/label[2]"
   fin_dwnld_xpath = "//*[@id='export-crosstab-options-dialog-Dialog-BodyWrapper-Dialog-Body-Id']/div/div[3]/button"
 
   #downloaded csv paths
-  csv_cases = "/content/Case chart.csv"
-  csv_deaths = "/content/Death chart.csv"
+  #csv_cases = "/content/Case chart.csv"
+  csv_cases = "Case chart.csv"
+  #csv_deaths = "/content/Death chart.csv"
+  csv_deaths = "Death chart.csv"
 
   #visit metric url and go to tableau src page
   def visitNextURL(url, target_string):
@@ -2917,7 +2920,7 @@ def runWI(ws, write):
     target_src = cases_src[0]
     #print(target_src) #verify link
     #print("")
-    #print("Visiting new URL")
+    print("Visiting new URL")
     wd.get(target_src)
     time.sleep(5)
 
@@ -2926,38 +2929,38 @@ def runWI(ws, write):
     #choose probable on chart
     status_radio = wd.find_element_by_xpath(status_choice)
     status_radio.click()
-    #print("clicked case status")
+    print("clicked case status")
     time.sleep(5)
     #choose demographic on chart
     demo_radio = wd.find_element_by_xpath(demo_choice)
     demo_radio.click()
-    #print("clicked demographic")
+    print("clicked demographic")
     time.sleep(5)
 
     #click download button at button of tableau to open download dialog box
     main_download_btn = wd.find_element_by_xpath(main_download_btn_xpath)
     main_download_btn.click()
-    #print("clicked download button")
+    print("clicked download button")
     time.sleep(5)
 
     #click crosstab option
     cross_btn = wd.find_element_by_xpath(crosstab_btn_xpath)
     #cross_btn.get_attribute('innerHTML') #verify element
     cross_btn.click()
-    #print("clicked crosstab button")
+    print("clicked crosstab button")
     time.sleep(3)
 
     #click csv option
     csv_radio = wd.find_element_by_xpath(csv_radio_xpath)
     csv_radio.click()
-    #print("clicked csv option")
+    print("clicked csv option")
     time.sleep(3)
 
     #download csv
     final_download = wd.find_element_by_xpath(fin_dwnld_xpath)
     #print(final_download.get_attribute('innerHTML')) #verify element
     final_download.click()
-    #print("clicked download button")
+    print("clicked download button")
     time.sleep(5) #wait for download
 
     #make df

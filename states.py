@@ -701,6 +701,7 @@ def runHI(ws,write):
       writeTable(df_race,'HI Race','J17')
 
 # ID
+#
 def runID(ws, write):
   from selenium.webdriver.common.by import By
   from selenium.webdriver.support.ui import WebDriverWait
@@ -712,7 +713,7 @@ def runID(ws, write):
     wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label[data-tb-test-id='crosstab-options-dialog-radio-csv-Label']"))).click()
     wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[title='" + csv_name + "']"))).click()
     wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Download']"))).click()
-    time.sleep(10)
+    time.sleep(2)
 
   def colstr2int(df,col):
     df.loc[:,col] = df.loc[:,col].replace(',','', regex=True)
@@ -735,7 +736,7 @@ def runID(ws, write):
   def get_page(tabZone):
     wait.until(EC.frame_to_be_available_and_switch_to_it((By.CSS_SELECTOR, "iframe[title='Data Visualization']")))
     wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='" + tabZone + "']/div/div/div/div/div"))).click()
-    time.sleep(20)
+    time.sleep(2)
 
   url = 'https://public.tableau.com/profile/idaho.division.of.public.health#!/vizhome/DPHIdahoCOVID-19Dashboard/Home'
 
@@ -743,12 +744,15 @@ def runID(ws, write):
   wd = init_driver()
   wd.get(url)
   wait = WebDriverWait(wd, 60)
+  print('Click on Demo Page')
   get_page('tabZoneId193')
+  wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "div[tb-test-id='Asymptomatic']")))
 
   df_cases = {}
 
   sheets = ['CaseRace', 'CaseEth', 'State Total Cases Display (2)']
   for sheet in sheets:
+    print('Download sheet %s' % sheet)
     download_CSV(sheet)
     if sheet == 'State Total Cases Display (2)':
       df_cases[sheet] = pd.read_csv(sheet + '.csv',sep="\t", encoding="utf-16",header=None)
@@ -761,12 +765,15 @@ def runID(ws, write):
   wd = init_driver()
   wd.get(url)
   wait = WebDriverWait(wd, 60)
+  print('Click on Demo Page')
   get_page('tabZoneId191')
+  wait.until(EC.presence_of_all_elements_located((By.XPATH, "//span[text()='Demographics of COVID-19 Related Deaths']")))
 
   df_deaths = {}
 
   sheets = ['Race', 'Race Pending', 'Ethnicity', 'Ethnicity Pending','Total Deaths (2)']
   for sheet in sheets:
+    print('Download sheet %s' % sheet)
     download_CSV(sheet)
     if (sheet == 'Race') or (sheet == 'Ethnicity'):
       df_deaths[sheet] = pd.read_csv(sheet + '.csv',sep="\t", encoding="utf-16")
@@ -807,7 +814,7 @@ def runID(ws, write):
   if write == True:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    ws.update('L14',dataToWrite)
+    #ws.update('L14',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_cases['State Total Cases Display (2)'],'','K15')

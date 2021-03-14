@@ -194,16 +194,18 @@ def runAR(ws, write):
 
 def runCA(ws, write):
   # CA Case & Deaths Totals, Confirmed & Probables"
-  url = 'https://data.ca.gov/dataset/590188d5-8545-4c93-a9a0-e230f0db7290/resource/926fd08f-cc91-4828-af38-bd45de97f8c3/download/statewide_cases.csv'
-  df_totals = pd.read_csv(url,parse_dates=['date'])
-  maxdateTot = df_totals ['date'].max()
-  print('\nCase & Death Totals')
-  print(maxdateTot,'\n')
-  df_cases = df_totals.groupby(['date'])[['totalcountconfirmed','totalcountdeaths']].sum()
-  df_cases = df_totals[df_totals['date'] == maxdateTot]
-  df_cases = df_cases.groupby(['date'])[['totalcountconfirmed','totalcountdeaths']].sum()
-  df_cases = df_cases.astype('int')
-  display(df_cases)
+  #url = 'https://data.ca.gov/dataset/590188d5-8545-4c93-a9a0-e230f0db7290/resource/926fd08f-cc91-4828-af38-bd45de97f8c3/download/statewide_cases.csv'
+  #url = 'https://data.chhs.ca.gov/dataset/f333528b-4d38-4814-bebb-12db1f10f535/resource/046cdd2b-31e5-4d34-9ed3-b48cdbc4be7a/download/covid19cases_test.csv'
+  #df_totals = pd.read_csv(url,parse_dates=['date'])
+  #maxdateTot = df_totals ['date'].max()
+  #print('\nCase & Death Totals')
+  #print(maxdateTot,'\n')
+  #display(df_totals)
+  #df_cases = df_totals.groupby(['date'])[['totalcountconfirmed','totalcountdeaths']].sum()
+  #df_cases = df_totals[df_totals['date'] == maxdateTot]
+  #df_cases = df_cases.groupby(['date'])[['totalcountconfirmed','totalcountdeaths']].sum()
+  #df_cases = df_cases.astype('int')
+  #display(df_cases)
 
   # CA Race & Ethnicity
   #url = 'https://data.ca.gov/dataset/590188d5-8545-4c93-a9a0-e230f0db7290/resource/7e477adb-d7ab-4d4b-a198-dc4c6dc634c9/download/case_demographics_ethnicity.csv'
@@ -212,9 +214,12 @@ def runCA(ws, write):
   df_raceeth = pd.read_csv(url,parse_dates=['report_date'])
 
   print ('\nCA Race and Ethnicity Totals')
-  maxdateRace = df_raceeth ['date'].max()
+  maxdateRace = df_raceeth ['report_date'].max()
+  #maxdateRace = df_raceeth ['date'].max()
   print(maxdateRace,'\n')
-  df_dem = df_raceeth[df_raceeth['date'] == maxdateRace]
+  df_dem = df_raceeth[df_raceeth['report_date'] == maxdateRace]
+  df_dem = df_dem[df_dem['demographic_category'] == 'Race Ethnicity']
+  df_dem = df_dem.drop(df_dem.columns[[0,3,5,6]],axis=1)
   display(df_dem)
 
   if write == 1:
@@ -1246,6 +1251,8 @@ def runMD(ws,write):
   df = df.fillna('')
   df.columns = df.iloc[0]
   df_demo = df.drop([0])
+  if len(df_demo['Cases']) == 7:
+      df_demo = df_demo.drop([7])
   # Convert 1st column (cases) to int (other columns fine as strings)
   df_demo['Cases']=df_demo['Cases'].astype('int')
   display(df_demo)

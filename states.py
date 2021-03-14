@@ -206,9 +206,10 @@ def runCA(ws, write):
   display(df_cases)
 
   # CA Race & Ethnicity
-  url = 'https://data.ca.gov/dataset/590188d5-8545-4c93-a9a0-e230f0db7290/resource/7e477adb-d7ab-4d4b-a198-dc4c6dc634c9/download/case_demographics_ethnicity.csv'
-  #https://data.ca.gov/dataset/covid-19-time-series-metrics-by-county-and-state/resource/4d93df07-7c4d-4583-af53-03f950fe4365
-  df_raceeth = pd.read_csv(url,parse_dates=['date'])
+  #url = 'https://data.ca.gov/dataset/590188d5-8545-4c93-a9a0-e230f0db7290/resource/7e477adb-d7ab-4d4b-a198-dc4c6dc634c9/download/case_demographics_ethnicity.csv'
+  url = 'https://data.chhs.ca.gov/dataset/f333528b-4d38-4814-bebb-12db1f10f535/resource/e2c6a86b-d269-4ce1-b484-570353265183/download/covid19casesdemographics.csv'
+  #df_raceeth = pd.read_csv(url,parse_dates=['date'])
+  df_raceeth = pd.read_csv(url,parse_dates=['report_date'])
 
   print ('\nCA Race and Ethnicity Totals')
   maxdateRace = df_raceeth ['date'].max()

@@ -116,7 +116,7 @@ def runAK(ws, write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    #ws.update('J17',dataToWrite)
+    ws.update('J17',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_dem,'AK Hospitalization & Death Demographics (Residents Only)','J19')
@@ -152,7 +152,7 @@ def runAL(ws, write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    #ws.update('B36',dataToWrite)
+    ws.update('B36',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_cases_eth,'Ethnicity Cases','A38')
@@ -182,7 +182,7 @@ def runAR(ws, write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    #ws.update('B33',dataToWrite)
+    ws.update('B33',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_cases,'Case Demographics','A34')
@@ -225,7 +225,7 @@ def runCA(ws, write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    #ws.update('F16',dataToWrite)
+    ws.update('F16',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_cases,'Case & Death Totals','G18')
@@ -281,7 +281,7 @@ def runCT(ws, write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    #ws.update('F19',dataToWrite)
+    ws.update('F19',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_tot,'CT Case & Deaths Totals, Confirmed & Probables','G18')
@@ -321,12 +321,12 @@ def runDC(ws,write):
   res = requests.get(link)
 
   # Read, wrangle race cases tab
-  df_cases = pd.read_excel(BytesIO(res.content), sheet_name="Total Cases by Race", skiprows=[0,2], engine='openpyxl')
+  df_cases = pd.read_excel(BytesIO(res.content), sheet_name="Total Cases by Race", skiprows=[0,2])
   df_cases = wrangle(df_cases)
   display(df_cases)
 
   # Read, wrangle race deaths tab
-  df_deaths = pd.read_excel(BytesIO(res.content), sheet_name="Lives Lost by Race", skiprows=[1], engine='openpyxl')
+  df_deaths = pd.read_excel(BytesIO(res.content), sheet_name="Lives Lost by Race", skiprows=[1])
   df_deaths = wrangle(df_deaths)
   display(df_deaths)
 
@@ -334,7 +334,7 @@ def runDC(ws,write):
   if write == True:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    #ws.update('H17',dataToWrite)
+    ws.update('H17',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_cases,'Total Cases by Race','I16')
@@ -413,7 +413,7 @@ def runDE(ws,write):
   if write == True:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    #ws.update('H14',dataToWrite)
+    ws.update('H14',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_totals,'','G15')
@@ -466,7 +466,7 @@ def runFL(ws, write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    #ws.update('L23',dataToWrite)
+    ws.update('L23',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_hosp_totals,'Hospitalization Totals','N23')
@@ -518,7 +518,7 @@ def runGA(ws, write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    #ws.update('F20',dataToWrite)
+    ws.update('F20',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_dems,'Table for Copying to Spreadsheet Area of State Page','G18')
@@ -567,7 +567,7 @@ def runGU(ws,write):
   if write == True:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    #ws.update('H19',dataToWrite)
+    ws.update('H19',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_demo_cases,'','G21')
@@ -576,9 +576,6 @@ def runGU(ws,write):
 # HI ************
 
 def runHI(ws,write):
-  from selenium.webdriver.common.by import By
-  from selenium.webdriver.support.ui import WebDriverWait
-  from selenium.webdriver.support import expected_conditions as EC
 
   #Tableau for Race
   src="https://public.tableau.com/views/HawaiiCOVID-19-RaceChart/Overview?:embed=y&:showVizHome=no&:host_url=https%3A%2F%2Fpublic.tableau.com%2F&:embed_code_version=3&:tabs=no&:toolbar=yes&:animate_transition=yes&:display_static_image=no&:display_spinner=no&:display_overlay=yes&:display_count=yes&null&:loadOrderID=11"
@@ -600,21 +597,34 @@ def runHI(ws,write):
   #file csvs
   csv_metric = "Table.csv"
 
-  def getCSV(metric_xpath,csv_file):
-    wait = WebDriverWait(wd, 20)
-    wait.until(EC.element_to_be_clickable((By.XPATH,metric_xpath))).click()
-    wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".tab-icon-download"))).click()
-    print("clicked download on tableau frame")
-    wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Crosstab']"))).click()
-    print("chose crosstab option")
-    wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label[data-tb-test-id='crosstab-options-dialog-radio-csv-Label']"))).click()
-    print("Chose CSV option")
-    wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[title='Table']"))).click()
-    print("Chose census file")
-    wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Download']"))).click()
-    print("Clicked dnld button")
-    time.sleep(5)
-    return pd.read_csv(csv_file,sep="\t",encoding="utf-16")
+  def getCSV(metric_xpath):
+      #Click metric xpath
+      data_btn=wd.find_element_by_xpath(metric_xpath).click()
+      #print("clicked metric button")
+      time.sleep(5)
+      #Click tableau download button
+      tab_btn=wd.find_element_by_xpath(tab_dnld_xpath).click()
+      #print("clicked download on tableau frame")
+      time.sleep(5)
+      #select crosstab
+      crosstab_btn=wd.find_element_by_xpath(crosstab_xpath).click()
+      #print("chose crosstab option")
+      time.sleep(20)
+      census_btn2=wd.find_element_by_xpath(census_xpath).click()
+      #print("Choses census file")
+      time.sleep(10)
+      #select csv option
+      csv_btn=wd.find_element_by_xpath(csv_xpath).click()
+      #print("Chose CSV option")
+      time.sleep(10)
+      #select download
+      dnld_btn=wd.find_element_by_xpath(dnld_xpath).click()
+      #print("Clicked dnld button")
+      time.sleep(60)
+      #make df
+      df=pd.read_csv(csv_metric,sep="\t", encoding="utf-16")
+      df=df.fillna('0')
+      return df
 
   #download view and convert to df
   wd=init_driver()
@@ -625,7 +635,7 @@ def runHI(ws,write):
   #Go Get the HI Race Table
   print("-" * 10)
   print("HI Race")
-  df_race=getCSV(summary_xpath,csv_metric)
+  df_race=getCSV(summary_xpath)
   df_race=df_race.fillna('0')
   #convert to integer
   tcols=list(df_race.columns)
@@ -666,7 +676,7 @@ def runHI(ws,write):
 
   #Retrieve HI Deaths
   req=requests.get(deathSrc)
-  
+  #{"MMWRyear":2021,"MMWRweek":7,"week_ending":1613779200000,"county":"State","deaths":1,"ObjectId":420,"rolling_deaths":7.42857142857143,"previous_deaths":3,"cumulative_deaths":431,"fatality_rate":1.58607492456024}}]}
   df_death=pd.json_normalize(req.json()['features'])
   df_death=df_death.rename(columns=lambda x:re.sub('properties.','',x))
   df_deaths=df_death.loc[:,['cumulative_deaths']]
@@ -682,7 +692,7 @@ def runHI(ws,write):
   if write == 1:
       # Write Paste Date To Sheet
       dataToWrite = [[date.today().strftime('%m/%d')]]
-      #ws.update('K13',dataToWrite)
+      ws.update('K13',dataToWrite)
 
       # Write Data To Sheet
       writeTable(df_tots,'','J14')
@@ -955,7 +965,7 @@ def runMI(ws,write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    #ws.update('M19',dataToWrite)
+    ws.update('M19',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df,'','L20')
@@ -1023,7 +1033,7 @@ def runIL(ws,write):
   if write == True:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    #ws.update('G33',dataToWrite)
+    ws.update('G33',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df,'','F34')
@@ -1035,17 +1045,17 @@ def runIL(ws,write):
 def runIN(ws, write):
 
   url = 'https://hub.mph.in.gov/dataset/62ddcb15-bbe8-477b-bb2e-175ee5af8629/resource/2538d7f1-391b-4733-90b3-9e95cd5f3ea6/download/covid_report_demographics.xlsx'
-  df_IN_casesRace = pd.read_excel(url, sheet_name='Race', skiprows=0, engine='openpyxl')
+  df_IN_casesRace = pd.read_excel(url, sheet_name='Race', skiprows=0)
   print("Cases by Race")
   display(df_IN_casesRace)
-  df_IN_casesEthnicity = pd.read_excel(url, sheet_name='Ethnicity', skiprows=0, engine='openpyxl')
+  df_IN_casesEthnicity = pd.read_excel(url, sheet_name='Ethnicity', skiprows=0)
   print("\nCases by Ethnicity")
   display(df_IN_casesEthnicity)
 
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    #ws.update('G21',dataToWrite)
+    ws.update('G21',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_IN_casesRace,'Cases by Race','H22')
@@ -1130,13 +1140,13 @@ def runKY(ws, write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    #ws.update('L37',dataToWrite)
+    ws.update('L37',dataToWrite)
 
     dataToWrite = [[knownRaceCases, 'Known %', knownRaceDeaths]]
-    #ws.update('J26',dataToWrite)
+    ws.update('J26',dataToWrite)
 
     dataToWrite = [[knownEthCases, 'Known %', knownEthDeaths]]
-    #ws.update('J31',dataToWrite)
+    ws.update('J31',dataToWrite)
 
 
     # Write Data To Sheet
@@ -1169,7 +1179,7 @@ def runLA(ws,write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    #ws.update('H26',dataToWrite)
+    ws.update('H26',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_demo,'','J27')
@@ -1191,7 +1201,7 @@ def runMA(ws, write):
   res = requests.get(link)
 
   #Cases -
-  df_cases = pd.read_excel(BytesIO(res.content), sheet_name="Cases (Report Date)", engine='openpyxl')
+  df_cases = pd.read_excel(BytesIO(res.content), sheet_name="Cases (Report Date)")
   maxdate = df_cases['Date'].max()
   print("Case Totals")
   print(maxdate,'\n')
@@ -1199,7 +1209,7 @@ def runMA(ws, write):
   display(df_cases)
 
   #Deaths -
-  df_deaths = pd.read_excel(BytesIO(res.content), sheet_name="DeathsReported (Report Date)", engine='openpyxl')
+  df_deaths = pd.read_excel(BytesIO(res.content), sheet_name="DeathsReported (Report Date)")
   maxdate = df_deaths['Date'].max()
   print("\nDeath Totals")
   print(maxdate,'\n')
@@ -1207,7 +1217,7 @@ def runMA(ws, write):
   display(df_deaths)
 
   #Demographics
-  df_dems = pd.read_excel(BytesIO(res.content), sheet_name='RaceEthnicityLast2Weeks', engine='openpyxl')
+  df_dems = pd.read_excel(BytesIO(res.content), sheet_name='RaceEthnicityLast2Weeks')
   maxdate = df_dems['Date'].max()
   print("\nMA Demographics")
   print(maxdate,'\n')
@@ -1223,7 +1233,7 @@ def runMA(ws, write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    #ws.update('F26',dataToWrite)
+    ws.update('F26',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_cases,'Case Totals','G23')
@@ -1267,7 +1277,7 @@ def runMD(ws,write):
   if write == True:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    #ws.update('F33',dataToWrite)
+    ws.update('F33',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_demo,'','A33')
@@ -1323,7 +1333,7 @@ def runME(ws, write):
     print("-" *10)
     return df
 
-  #Race
+ #Race
   wd=init_driver()
   wd.get(raceethsrc)
   wait = WebDriverWait(wd, 160)
@@ -1358,11 +1368,11 @@ def runME(ws, write):
   #df_casesEth=df_casesEth.drop(['Population','Recoveries'],1).fillna('0')
   #display(df_casesEth)
   #wd.quit()
-
+  
   if write == 1:
       # Write Paste Date To Sheet
       dataToWrite = [[date.today().strftime('%m/%d')]]
-      #ws.update('G26',dataToWrite)
+      ws.update('G26',dataToWrite)
       #Write Demographic Data
       #writeTable(df_totals,'Confirmed Case & Death Totals','L15')
       writeTable(df_casesRace,'','H27')
@@ -1392,7 +1402,7 @@ def runMN(ws, write):
   if write == 1:
       # Write Paste Date To Sheet
       dataToWrite = [[date.today().strftime('%m/%d')]]
-      #ws.update('C48',dataToWrite)
+      ws.update('C48',dataToWrite)
 
       # Write Data To Sheet
       writeTable(df_caseR,'','B51')
@@ -1508,10 +1518,11 @@ def runMO(ws, write):
   print("\n")
   display(ethnicity)
 
+
   if write == 1:
       # Write Paste Date To Sheet
       dataToWrite = [[date.today().strftime('%m/%d')]]
-      #ws.update('J16',dataToWrite)
+      ws.update('J16',dataToWrite)
 
       # Write Data To Sheet
       writeTable(race,'Race Totals','J17')
@@ -1643,14 +1654,13 @@ def runMS(ws, write):
   if write == 1:
       # Write Paste Date To Sheet
       dataToWrite = [[date.today().strftime('%m/%d')]]
-      #ws.update('B36',dataToWrite)
+      ws.update('B36',dataToWrite)
 
       # Write Data To Sheet
       writeTable(case_tot,'','A37')
       writeTable(death_tot,'','A40')
 
-# MT
-
+#MT
 def runMT(ws, write):
  
   #Setup Dates
@@ -1684,24 +1694,20 @@ def runMT(ws, write):
 
   hosp = tables[2]
   tcols = list(hosp.columns)
-  tcols[0] = 'Status'
-  tcols[1] = 'Cases'
-  #print("reassigned name")
+  tcols[0] = 'Hospitalization Status'
+  tcols[1] = 'Number of Cases'
   hosp.columns = tcols
 
   #Replace NaN with ''
-  totals=totals.fillna('0').drop(totals.index[0])
-  #totals=totals.fillna('0')
+  #totals=totals.fillna('0').drop(totals.index[0])
+  totals=totals.fillna('0')
 
-  hosp=hosp.fillna('0').drop(hosp.index[0])
-  #hosp=hosp.fillna('0')
-
-  #display(totals)
-  #display(hosp)
+  #hosp=hosp.fillna('0').drop(hosp.index[0])
+  hosp=hosp.fillna('0')
 
   #Remove parens from numbers
   totals['Totals']=totals['Totals'].replace("\(.*\)","",regex=True).astype(int)
-  hosp['Cases']=hosp['Cases'].str.replace(r"\(.*\)","",regex=True).astype(int)
+  hosp['Number of Cases']=hosp['Number of Cases'].replace("\(.*\)","",regex=True).astype(int)
   print('MT Totals Table\n')
   display(totals)
   print('MT Hospitalized\n')
@@ -1736,12 +1742,13 @@ def runMT(ws, write):
   if write == True:
     # Write Paste Date To Sheet
      dataToWrite = [[date.today().strftime('%m/%d')]]
-     #ws.update('J18',dataToWrite)
+     ws.update('J18',dataToWrite)
 
      # Write Data To Sheet
      writeTable(raceeth,'Race Table','H19')
-     writeTable(totals,'Totals Table','H32')
-     writeTable(hosp,'Ever Hospitalized','H38')
+     writeTable(totals,'Totals  Table','H33')
+     writeTable(hosp,'Ever Hospitalized','H39') 
+
 
 #NC
 def runNC(ws, write):
@@ -1828,7 +1835,7 @@ def runNC(ws, write):
   if write == 1:
       # Write Paste Date To Sheet
       dataToWrite = [[date.today().strftime('%m/%d')]]
-      #ws.update('H19',dataToWrite)
+      ws.update('H19',dataToWrite)
 
       # Write Data To Sheet
       writeTable(race,'Race Totals','G20')
@@ -1886,7 +1893,7 @@ def runND(ws,write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    #ws.update('D22',dataToWrite)
+    ws.update('D22',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df,'','C23')
@@ -1952,14 +1959,13 @@ def runNE(ws, write):
   if write == 1:
       # Write Paste Date To Sheet
       dataToWrite = [[date.today().strftime('%m/%d')]]
-      #ws.update('B38',dataToWrite)
+      ws.update('B38',dataToWrite)
 
       # Write Data To Sheet
       writeTable(df_tot,'','C39')
       writeTable(df_casesF,'Case Totals','C41')
 
 # NH
-
 def runNH(ws, write):
 
   #interactive equity dash
@@ -2207,7 +2213,6 @@ def runNH(ws, write):
       writeTable(totals,'Race & Ethnicity Totals','G48')
       writeTable(hosp,'Hosp by Race & Ethnicity','M31')
 
-
 # NM
 def runNM(ws, write):
 
@@ -2239,7 +2244,7 @@ def runNM(ws, write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    #ws.update('B36',dataToWrite)
+    ws.update('B36',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_casesR,'','B37')
@@ -2290,7 +2295,7 @@ def runNV(ws,write):
   if write == True:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    #ws.update('B37',dataToWrite)
+    ws.update('B37',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df,'','A38')
@@ -2314,7 +2319,7 @@ def runNY(ws, write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    #ws.update('J25',dataToWrite)
+    ws.update('J25',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_nyc_deaths,'','J17')
@@ -2388,11 +2393,11 @@ def runOR(ws, write):
   if write == True:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    #ws.update('G21',dataToWrite)
+    ws.update('G21',dataToWrite)
 
     # Write Paste Date To Sheet
     dataToWrite = [[hosp_total]]
-    #ws.update('J48',dataToWrite)
+    ws.update('J48',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_cases_deaths,'','H21')
@@ -2448,7 +2453,7 @@ def runPA(ws, write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    #ws.update('H16',dataToWrite)
+    ws.update('H16',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_casesR, 'Cases by Race', 'H25')
@@ -2517,13 +2522,13 @@ def runRI(ws,write):
   if write == True:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    #ws.update('R32',dataToWrite)
+    ws.update('R32',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_totals,'Summary','R19')
     writeTable(df_demo,'Demographics','T19')
 
-#SD
+# SD
 def runSD(ws,write):
   from selenium.webdriver.common.by import By
   from selenium.webdriver.support.ui import WebDriverWait
@@ -2622,7 +2627,7 @@ def runTN(ws, write):
   if write == True:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    #ws.update('K20',dataToWrite)
+    ws.update('K20',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df,'','J21')
@@ -2634,18 +2639,18 @@ def runTX(ws,write):
 
   url = 'https://dshs.texas.gov/coronavirus/TexasCOVID19Demographics.xlsx.asp'
 
-  df_cases = pd.read_excel(url, sheet_name='Cases by RaceEthnicity', skiprows=0, engine='openpyxl')
+  df_cases = pd.read_excel(url, sheet_name='Cases by RaceEthnicity', skiprows=0)
   print("Cases by Race")
   display(df_cases)
 
-  df_deaths = pd.read_excel(url, sheet_name='Fatalities by Race-Ethnicity', skiprows=0, engine='openpyxl')
+  df_deaths = pd.read_excel(url, sheet_name='Fatalities by Race-Ethnicity', skiprows=0)
   print("\nDeaths by Race")
   display(df_deaths)
 
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    #ws.update('F31',dataToWrite)
+    ws.update('F31',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_cases,'Cases by Race','H20')
@@ -2656,7 +2661,7 @@ def runUT(ws, write):
   url = 'https://coronavirus-dashboard.utah.gov/demographics.html'
   wd = init_driver()
   wd.get(url)
-#  time.sleep(20)
+  #time.sleep(20)
   soup = BeautifulSoup(wd.page_source, 'html.parser')
 
   # Find Table
@@ -2695,7 +2700,7 @@ def runUT(ws, write):
   if write == True:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    #ws.update('G34',dataToWrite)
+    ws.update('G34',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df,'','H17')
@@ -2754,8 +2759,8 @@ def runVA(ws, write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    #ws.update('B33',dataToWrite)
-    #ws.update('J14',dataToWrite)
+    ws.update('B33',dataToWrite)
+    ws.update('J14',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_confProb,'','K15')
@@ -2803,7 +2808,7 @@ def runVT(ws, write):
   if write == True:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    #ws.update('I19',dataToWrite)
+    ws.update('I19',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_demo_cases,'','H20')
@@ -2852,7 +2857,7 @@ def runWA(ws,write):
   if write == True:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    #ws.update('B33',dataToWrite)
+    ws.update('B33',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_cases,'','A35')
@@ -3040,7 +3045,7 @@ def runWI(ws, write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    #ws.update('J15',dataToWrite)
+    ws.update('J15',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_totals,'Confirmed Case & Death Totals','L15')
@@ -3058,6 +3063,9 @@ def runWI(ws, write):
 # WY ************
 
 def runWY(ws,write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
   #url = 'https://public.tableau.com/vizql/w/EpiCOVIDtest/v/Dashboard/tempfile/sessions/324E4F03F0184305838EC00E7A01CB86-0:0/?key=4098009697&keepfile=yes&attachment=yes'
   srcCases="https://public.tableau.com/views/EpiCOVIDtest/Dashboard?:embed=y&amp;:showVizHome=no&amp;:host_url=https%3A%2F%2Fpublic.tableau.com%2F&amp;:embed_code_version=3&amp;:tabs=no&amp;:toolbar=no&amp;:animate_transition=yes&amp;:display_static_image=no&amp;:display_spinner=no&amp;:display_overlay=yes&amp;:display_count=yes&amp;publish=yes&amp;:loadOrderID=0"
   srcDeaths="https://public.tableau.com/views/EpiCOVIDtest/COVID-19RelatedDeaths?%3Aembed=y&amp%3B%3AshowVizHome=no&amp%3B%3Ahost_url=https%3A%2F%2Fpublic.tableau.com%2F&amp%3B%3Aembed_code_version=3&amp%3B%3Atabs=no&amp%3B%3Atoolbar=no&amp%3B%3Aanimate_transition=yes&amp%3B%3Adisplay_static_image=no&amp%3B%3Adisplay_spinner=no&amp%3B%3Adisplay_overlay=yes&amp%3B%3Adisplay_count=yes&amp%3Bpublish=yes&amp%3B%3AloadOrderID=0"
@@ -3085,28 +3093,26 @@ def runWY(ws,write):
 
   #press download button
   def getCSV(metric_xpath,csv_metric):
-      data_btn=wd.find_element_by_xpath(data_btn_xpath)
-      data_btn.click()
-      print("clicked download on tableau frame")
-      time.sleep(5)
-      #select crosstab
-      crosstab_btn=wd.find_element_by_xpath(crosstab_xpath)
-      crosstab_btn.click()
-      print("chose crosstab option")
-      time.sleep(20)
-      #select csv option
-      csv_btn=wd.find_element_by_xpath(csv_xpath)
-      csv_btn.click()
-      print("Chose CSV option")
-      time.sleep(5)
-      #select xpath for metric type
-      cases_btn=wd.find_element_by_xpath(metric_xpath)
-      cases_btn.click()
-      time.sleep(5)
-      #select download
-      dnld_btn=wd.find_element_by_xpath(dnld_xpath)
-      dnld_btn.click()
-      time.sleep(5)
+      wait = WebDriverWait(wd, 20)
+      #click download button at button of tableau to open download dialog box 
+      wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".tab-icon-download"))).click()
+      print("clicked download button")
+
+      #click crosstab option
+      wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Crosstab']"))).click()
+      print("clicked crosstab button")
+
+      #click csv option
+      wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label[data-tb-test-id='crosstab-options-dialog-radio-csv-Label']"))).click()
+      print("clicked csv option")
+
+      #select metric
+      wait.until(EC.element_to_be_clickable((By.XPATH, metric_xpath))).click()
+      print("clicked metric")
+      #download csv
+      wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Download']"))).click()
+      print("clicked download button")
+      time.sleep(2) #wait for download
 
       #make df
       df=pd.read_csv(csv_metric,sep="\t", encoding="utf-16")
@@ -3117,7 +3123,7 @@ def runWY(ws,write):
   #cases
   wd=init_driver()
   wd.get(srcCases)
-  time.sleep(15)
+  time.sleep(3)
   print("\nCases, Deaths, Probables, Raceth")
   print(srcCases)
   #Cases
@@ -3128,20 +3134,20 @@ def runWY(ws,write):
   df_cases['Laboratory Confirmed Cases'] = df_cases['Laboratory Confirmed Cases'].str.replace(r",",'', 1)
   df_cases = df_cases.astype({"Laboratory Confirmed Cases": int})
   display(df_cases)
-  time.sleep(5)
+  time.sleep(3)
   #Deaths
   print("-" * 10)
   print("Deaths")
   df_deaths=getCSV(deaths_xpath,csv_deaths)
   display(df_deaths)
-  time.sleep(5)
+  time.sleep(3)
   #Probables
   print("-" * 10)
   print("Probables")
   df_probables=getCSV(probables_xpath,csv_probables)
   df_probables['Probable Cases'] = df_probables['Probable Cases'].str.replace(r",",'', 1).astype('float')
   display(df_probables)
-  time.sleep(5)
+  time.sleep(3)
   #Race Ethnicity for Cases
   print("-" * 10)
   print("Race Ethnicity for Cases")
@@ -3152,14 +3158,13 @@ def runWY(ws,write):
   df_raceth['Count']= df_raceth['Count'].str.replace(r",",'',1)
   df_raceth['Count'] = df_raceth['Count'].astype(int)
   display(df_raceth)
-  time.sleep(5)
   wd.quit()
 
   wd=init_driver()
   wd.get(srcDeaths)
   print("\nCases, Deaths, Probables, Raceth")
   print(srcDeaths)
-  time.sleep(15)
+  time.sleep(3)
   #Race Ethnicity for Deaths
   print("-" * 10)
   print("Race Ethnicity for Deaths")
@@ -3168,15 +3173,13 @@ def runWY(ws,write):
   tcols=['Race','Count','%']
   df_racethdeath.columns=tcols
   display(df_racethdeath)
-  time.sleep(5)
-
   display(df_probables)
   wd.quit()
 
   if write == 1:
       # Write Paste Date To Sheet
       dataToWrite = [[date.today().strftime('%m/%d')]]
-      #ws.update('G16',dataToWrite)
+      ws.update('G16',dataToWrite)
 
       # Write Data To Sheet
       writeTable(df_cases,'Case Totals','M17')

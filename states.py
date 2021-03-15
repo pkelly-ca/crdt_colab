@@ -2921,7 +2921,7 @@ def runWI(ws, write):
     wd.get(url)
     wait = WebDriverWait(wd, 60)
     print('waiting')
-    time.sleep(10)
+    time.sleep(20)
     soup = BeautifulSoup(wd.page_source, "html.parser")
     iframes = soup.find_all("iframe")
     #cases_src = [tag["src"] for tag in iframes if target_string in tag["src"]]

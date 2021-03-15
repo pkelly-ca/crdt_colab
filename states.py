@@ -2869,6 +2869,9 @@ def runWA(ws,write):
 #from bs4 import BeautifulSoup
 #import pandas as pd
 def runWI(ws, write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
 
   url = 'https://opendata.arcgis.com/datasets/859602b5d427456f821de3830f89301c_11.csv?outSR=%7B%22latestWkid%22%3A3857%2C%22wkid%22%3A102100%7D'
 
@@ -2913,55 +2916,52 @@ def runWI(ws, write):
   #visit metric url and go to tableau src page
   def visitNextURL(url, target_string):
     wd.get(url)
+    wait = WebDriverWait(wd, 60)
+    print('waiting')
     time.sleep(10)
     soup = BeautifulSoup(wd.page_source, "html.parser")
     iframes = soup.find_all("iframe")
-    cases_src = [tag["src"] for tag in iframes if target_string in tag["src"]]
+    #cases_src = [tag["src"] for tag in iframes if target_string in tag["src"]]
+    cases_src = []
+    for tag in iframes:
+        try:
+            if target_string in tag["src"]:
+                cases_src.append(tag["src"])
+        except Exception as e:
+            print('Got Exception')
     target_src = cases_src[0]
-    #print(target_src) #verify link
-    #print("")
-    print("Visiting new URL")
+    print("Loading new URL")
     wd.get(target_src)
-    time.sleep(5)
+    #time.sleep(3)
 
   #download view and convert to df
   def getCSV(status_choice, demo_choice, metric_csv):
-    #choose probable on chart
-    status_radio = wd.find_element_by_xpath(status_choice)
-    status_radio.click()
+    wait = WebDriverWait(wd, 20)
+    #choose confirmed/probable on chart
+    wait.until(EC.presence_of_element_located((By.XPATH, status_choice))).click()
     print("clicked case status")
-    time.sleep(5)
+    time.sleep(1)
     #choose demographic on chart
-    demo_radio = wd.find_element_by_xpath(demo_choice)
-    demo_radio.click()
+    wait.until(EC.presence_of_element_located((By.XPATH, demo_choice))).click()
     print("clicked demographic")
-    time.sleep(5)
+    time.sleep(1)
 
     #click download button at button of tableau to open download dialog box
-    main_download_btn = wd.find_element_by_xpath(main_download_btn_xpath)
-    main_download_btn.click()
+    wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".tab-icon-download"))).click()
     print("clicked download button")
-    time.sleep(5)
 
     #click crosstab option
-    cross_btn = wd.find_element_by_xpath(crosstab_btn_xpath)
-    #cross_btn.get_attribute('innerHTML') #verify element
-    cross_btn.click()
+    wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Crosstab']"))).click()
     print("clicked crosstab button")
-    time.sleep(3)
 
     #click csv option
-    csv_radio = wd.find_element_by_xpath(csv_radio_xpath)
-    csv_radio.click()
+    wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label[data-tb-test-id='crosstab-options-dialog-radio-csv-Label']"))).click()
     print("clicked csv option")
-    time.sleep(3)
 
     #download csv
-    final_download = wd.find_element_by_xpath(fin_dwnld_xpath)
-    #print(final_download.get_attribute('innerHTML')) #verify element
-    final_download.click()
+    wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Download']"))).click()
     print("clicked download button")
-    time.sleep(5) #wait for download
+    time.sleep(2) #wait for download
 
     #make df
     df = pd.read_csv(metric_csv, sep="\t", encoding="utf-16") #dumb tableau encoding
@@ -2969,93 +2969,77 @@ def runWI(ws, write):
 
   #start webdriver
   wd = init_driver()
+  visitNextURL(cases_url, cases_string)
 
   #CONFIRMED CASES
   #by race
-  visitNextURL(cases_url, cases_string)
   print("-" * 10)
-  print("CONFIRMED:")
+  print("CONFIRMED CASES:")
   df_casesConfirmRace = getCSV(confirm_radio_xpath, race_radio_xpath, csv_cases)
   df_casesConfirmRace['Number of cases'] = df_casesConfirmRace['Number of cases'].str.replace(',', '').astype('int')
   df_casesConfirmRace.rename(columns={list(df_casesConfirmRace)[0]:'Demographic'}, inplace=True)
   df_casesConfirmRace = df_casesConfirmRace[['Demographic','Number of cases']]
   display(df_casesConfirmRace)
-  #print(df_casesConfirmRace.dtypes)
   #by ethnicity
-  visitNextURL(cases_url, cases_string)
   df_casesConfirmEth = getCSV(confirm_radio_xpath,eth_radio_xpath, csv_cases)
   df_casesConfirmEth['Number of cases'] = df_casesConfirmEth['Number of cases'].str.replace(',', '').astype('int')
   df_casesConfirmEth.rename(columns={list(df_casesConfirmEth)[0]:'Demographic'}, inplace=True)
   df_casesConfirmEth = df_casesConfirmEth[['Demographic','Number of cases']]
   display(df_casesConfirmEth)
-  #print(df_casesConfirmEth.dtypes)
-
-  #reset driver
-  wd.quit()
-  wd = init_driver()
-
-  #CONFIRMED DEATHS
-  #by race
-  visitNextURL(deaths_url, deaths_string)
-  df_deathsConfirmRace = getCSV(confirm_radio_xpath, race_radio_xpath, csv_deaths)
-  df_deathsConfirmRace['Deaths'] = df_deathsConfirmRace['Deaths'].str.replace(',', '').astype('int')
-  df_deathsConfirmRace.rename(columns={list(df_deathsConfirmRace)[0]:'Demographic'}, inplace=True)
-  df_deathsConfirmRace = df_deathsConfirmRace[['Demographic','Deaths']]
-  display(df_deathsConfirmRace)
-  #print(df_deathsConfirmRace.dtypes)
-  #by ethnicity
-  visitNextURL(deaths_url, deaths_string)
-  df_deathsConfirmEth = getCSV(confirm_radio_xpath, eth_radio_xpath, csv_deaths)
-  df_deathsConfirmEth['Deaths'] = df_deathsConfirmEth['Deaths'].str.replace(',', '').astype('int')
-  df_deathsConfirmEth.rename(columns={list(df_deathsConfirmEth)[0]:'Demographic'}, inplace=True)
-  df_deathsConfirmEth = df_deathsConfirmEth[['Demographic','Deaths']]
-  display(df_deathsConfirmEth)
-  #print(df_deathsConfirmEth.dtypes)
-
-  #reset driver
-  wd.quit()
-  wd = init_driver()
-
+  print("-" * 10)
+  print("PROBABLE CASES:")
   #PROBABLE CASES
   #by race
-  visitNextURL(cases_url, cases_string)
-  print("-" * 10)
-  print("PROBABLE:")
   df_casesProbsRace = getCSV(prob_radio_xpath, race_radio_xpath, csv_cases)
   df_casesProbsRace['Number of cases'] = df_casesProbsRace['Number of cases'].str.replace(',', '').astype('int')
   df_casesProbsRace.rename(columns={list(df_casesProbsRace)[0]:'Demographic'}, inplace=True)
   df_casesProbsRace = df_casesProbsRace[['Demographic','Number of cases']]
   display(df_casesProbsRace)
-  #print(df_casesProbsRace.dtypes)
   #by ethnicity
-  visitNextURL(cases_url, cases_string)
   df_casesProbsEth = getCSV(prob_radio_xpath, eth_radio_xpath, csv_cases)
   df_casesProbsEth['Number of cases'] = df_casesProbsEth['Number of cases'].str.replace(',', '').astype('int')
   df_casesProbsEth.rename(columns={list(df_casesProbsEth)[0]:'Demographic'}, inplace=True)
   df_casesProbsEth = df_casesProbsEth[['Demographic','Number of cases']]
   display(df_casesProbsEth)
-  #print(df_casesProbsEth.dtypes)
 
   #reset driver
   wd.quit()
-  wd = init_driver()
 
+  #start webdriver
+  wd = init_driver()
+  visitNextURL(deaths_url, deaths_string)
+
+  print("-" * 10)
+  print("CONFIRMED DEATHS:")
+  #CONFIRMED DEATHS
+  #by race
+  df_deathsConfirmRace = getCSV(confirm_radio_xpath, race_radio_xpath, csv_deaths)
+  df_deathsConfirmRace['Deaths'] = df_deathsConfirmRace['Deaths'].str.replace(',', '').astype('int')
+  df_deathsConfirmRace.rename(columns={list(df_deathsConfirmRace)[0]:'Demographic'}, inplace=True)
+  df_deathsConfirmRace = df_deathsConfirmRace[['Demographic','Deaths']]
+  display(df_deathsConfirmRace)
+  #by ethnicity
+  df_deathsConfirmEth = getCSV(confirm_radio_xpath, eth_radio_xpath, csv_deaths)
+  df_deathsConfirmEth['Deaths'] = df_deathsConfirmEth['Deaths'].str.replace(',', '').astype('int')
+  df_deathsConfirmEth.rename(columns={list(df_deathsConfirmEth)[0]:'Demographic'}, inplace=True)
+  df_deathsConfirmEth = df_deathsConfirmEth[['Demographic','Deaths']]
+  display(df_deathsConfirmEth)
+
+  print("-" * 10)
+  print("PROBABLE DEATHS:")
   #PROBABLE DEATHS
   #by race
-  visitNextURL(deaths_url, deaths_string)
   df_deathsProbsRace = getCSV(prob_radio_xpath, race_radio_xpath, csv_deaths)
   df_deathsProbsRace.rename(columns={list(df_deathsProbsRace)[0]:'Demographic'}, inplace=True)
   df_deathsProbsRace = df_deathsProbsRace[['Demographic','Deaths']]
   display(df_deathsProbsRace)
-  #print(df_deathsProbsRace.dtypes)
   #by ethnicity
-  visitNextURL(deaths_url, deaths_string)
   df_deathsProbsEth = getCSV(prob_radio_xpath, eth_radio_xpath, csv_deaths)
   df_deathsProbsEth.rename(columns={list(df_deathsProbsEth)[0]:'Demographic'}, inplace=True)
   df_deathsProbsEth = df_deathsProbsEth[['Demographic','Deaths']]
   display(df_deathsProbsEth)
-  #print(df_deathsProbsEth.dtypes)
 
+  #reset driver
   wd.quit()
 
   if write == 1:

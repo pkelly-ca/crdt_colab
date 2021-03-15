@@ -1694,20 +1694,23 @@ def runMT(ws, write):
 
   hosp = tables[2]
   tcols = list(hosp.columns)
-  tcols[0] = 'Hospitalization Status'
-  tcols[1] = 'Number of Cases'
+#  tcols[0] = 'Hospitalization Status'
+#  tcols[1] = 'Number of Cases'
+  tcols[0] = 'Status'
+  tcols[1] = 'Cases'
   hosp.columns = tcols
 
   #Replace NaN with ''
-  #totals=totals.fillna('0').drop(totals.index[0])
-  totals=totals.fillna('0')
+  totals=totals.fillna('0').drop(totals.index[0])
+  #totals=totals.fillna('0')
 
-  #hosp=hosp.fillna('0').drop(hosp.index[0])
-  hosp=hosp.fillna('0')
+  hosp=hosp.fillna('0').drop(hosp.index[0])
+  #hosp=hosp.fillna('0')
 
   #Remove parens from numbers
   totals['Totals']=totals['Totals'].replace("\(.*\)","",regex=True).astype(int)
-  hosp['Number of Cases']=hosp['Number of Cases'].replace("\(.*\)","",regex=True).astype(int)
+  #hosp['Number of Cases']=hosp['Number of Cases'].replace("\(.*\)","",regex=True).astype(int)
+  hosp['Cases']=hosp['Cases'].replace("\(.*\)","",regex=True).astype(int)
   print('MT Totals Table\n')
   display(totals)
   print('MT Hospitalized\n')

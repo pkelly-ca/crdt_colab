@@ -84,8 +84,12 @@ for state in states:
       display("Skipping state %s due to error: %s" % (state, str(e)))
       failed_states_list.append(state)
   else:
-    func = globals()["run" + state]
-    func(None,write_sheet)
+    try:
+      func = globals()["run" + state]
+      func(None,write_sheet)
+      display("STATE PASSED")
+    except Exception as e:
+      display("STATE FAILED")
   end = time.time()
   duration = end - start
   print('%s run time = %.2f s' % (state, duration))

@@ -301,11 +301,14 @@ def runDC(ws,write):
     df.drop(drop_cols, 1, inplace=True)
     # Remove NaNs, convert columns to integer (removes .0's)
     df = df.fillna(0)
+    df.replace(u'\xa0',u'', regex=True, inplace=True)
+    df.replace(',','', regex=True, inplace=True)
     df[max_date] = df[max_date].astype('int32')
     # Apply mapper function
     df.columns = df.columns.map(mapper)
     df = df.rename(columns = {'Unnamed: 0':'Race'})
     return df
+
 
   # Get DC excel file
   url = 'https://coronavirus.dc.gov/data'

@@ -576,6 +576,9 @@ def runGU(ws,write):
 # HI ************
 
 def runHI(ws,write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
 
   #Tableau for Race
   src="https://public.tableau.com/views/HawaiiCOVID-19-RaceChart/Overview?:embed=y&:showVizHome=no&:host_url=https%3A%2F%2Fpublic.tableau.com%2F&:embed_code_version=3&:tabs=no&:toolbar=yes&:animate_transition=yes&:display_static_image=no&:display_spinner=no&:display_overlay=yes&:display_count=yes&null&:loadOrderID=11"
@@ -597,34 +600,21 @@ def runHI(ws,write):
   #file csvs
   csv_metric = "Table.csv"
 
-  def getCSV(metric_xpath):
-      #Click metric xpath
-      data_btn=wd.find_element_by_xpath(metric_xpath).click()
-      #print("clicked metric button")
-      time.sleep(5)
-      #Click tableau download button
-      tab_btn=wd.find_element_by_xpath(tab_dnld_xpath).click()
-      #print("clicked download on tableau frame")
-      time.sleep(5)
-      #select crosstab
-      crosstab_btn=wd.find_element_by_xpath(crosstab_xpath).click()
-      #print("chose crosstab option")
-      time.sleep(20)
-      census_btn2=wd.find_element_by_xpath(census_xpath).click()
-      #print("Choses census file")
-      time.sleep(10)
-      #select csv option
-      csv_btn=wd.find_element_by_xpath(csv_xpath).click()
-      #print("Chose CSV option")
-      time.sleep(10)
-      #select download
-      dnld_btn=wd.find_element_by_xpath(dnld_xpath).click()
-      #print("Clicked dnld button")
-      time.sleep(60)
-      #make df
-      df=pd.read_csv(csv_metric,sep="\t", encoding="utf-16")
-      df=df.fillna('0')
-      return df
+  def getCSV(metric_xpath,csv_file):
+     wait = WebDriverWait(wd, 20)
+     wait.until(EC.element_to_be_clickable((By.XPATH,metric_xpath))).click()
+     wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".tab-icon-download"))).click()
+     print("clicked download on tableau frame")
+     wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Crosstab']"))).click()
+     print("chose crosstab option")
+     wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label[data-tb-test-id='crosstab-options-dialog-radio-csv-Label']"))).click()
+     print("Chose CSV option")
+     wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[title='Table']"))).click()
+     print("Chose census file")
+     wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Download']"))).click()
+     print("Clicked dnld button")
+     time.sleep(5)
+     return pd.read_csv(csv_file,sep="\t",encoding="utf-16")
 
   #download view and convert to df
   wd=init_driver()
@@ -635,7 +625,7 @@ def runHI(ws,write):
   #Go Get the HI Race Table
   print("-" * 10)
   print("HI Race")
-  df_race=getCSV(summary_xpath)
+  df_race=getCSV(summary_xpath, csv_metric)
   df_race=df_race.fillna('0')
   #convert to integer
   tcols=list(df_race.columns)

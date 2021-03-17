@@ -576,6 +576,9 @@ def runGU(ws,write):
 # HI ************
 
 def runHI(ws,write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
 
   #Tableau for Race
   src="https://public.tableau.com/views/HawaiiCOVID-19-RaceChart/Overview?:embed=y&:showVizHome=no&:host_url=https%3A%2F%2Fpublic.tableau.com%2F&:embed_code_version=3&:tabs=no&:toolbar=yes&:animate_transition=yes&:display_static_image=no&:display_spinner=no&:display_overlay=yes&:display_count=yes&null&:loadOrderID=11"
@@ -597,34 +600,21 @@ def runHI(ws,write):
   #file csvs
   csv_metric = "Table.csv"
 
-  def getCSV(metric_xpath):
-      #Click metric xpath
-      data_btn=wd.find_element_by_xpath(metric_xpath).click()
-      #print("clicked metric button")
-      time.sleep(5)
-      #Click tableau download button
-      tab_btn=wd.find_element_by_xpath(tab_dnld_xpath).click()
-      #print("clicked download on tableau frame")
-      time.sleep(5)
-      #select crosstab
-      crosstab_btn=wd.find_element_by_xpath(crosstab_xpath).click()
-      #print("chose crosstab option")
-      time.sleep(20)
-      census_btn2=wd.find_element_by_xpath(census_xpath).click()
-      #print("Choses census file")
-      time.sleep(10)
-      #select csv option
-      csv_btn=wd.find_element_by_xpath(csv_xpath).click()
-      #print("Chose CSV option")
-      time.sleep(10)
-      #select download
-      dnld_btn=wd.find_element_by_xpath(dnld_xpath).click()
-      #print("Clicked dnld button")
-      time.sleep(60)
-      #make df
-      df=pd.read_csv(csv_metric,sep="\t", encoding="utf-16")
-      df=df.fillna('0')
-      return df
+  def getCSV(metric_xpath,csv_file):
+     wait = WebDriverWait(wd, 20)
+     wait.until(EC.element_to_be_clickable((By.XPATH,metric_xpath))).click()
+     wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".tab-icon-download"))).click()
+     print("clicked download on tableau frame")
+     wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Crosstab']"))).click()
+     print("chose crosstab option")
+     wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label[data-tb-test-id='crosstab-options-dialog-radio-csv-Label']"))).click()
+     print("Chose CSV option")
+     wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[title='Table']"))).click()
+     print("Chose census file")
+     wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Download']"))).click()
+     print("Clicked dnld button")
+     time.sleep(5)
+     return pd.read_csv(csv_file,sep="\t",encoding="utf-16")
 
   #download view and convert to df
   wd=init_driver()
@@ -635,7 +625,7 @@ def runHI(ws,write):
   #Go Get the HI Race Table
   print("-" * 10)
   print("HI Race")
-  df_race=getCSV(summary_xpath)
+  df_race=getCSV(summary_xpath, csv_metric)
   df_race=df_race.fillna('0')
   #convert to integer
   tcols=list(df_race.columns)
@@ -1688,14 +1678,16 @@ def runMT(ws, write):
       url = "https://dphhs.mt.gov{}".format(filename)
       print(url)
 
-
+ 
   #Read in the url, page 1 and select the first table & display the values for the Totals   
   tables = tabula.read_pdf(url,pages=1,multiple_tables=True)
+  print("read tables")
   totals = tables[0]
   tcols = list(totals.columns)
   tcols[0] = 'MT'
   tcols[1] = 'Totals'
   totals.columns = tcols
+  print("setup totals")
 
   hosp = tables[2]
   tcols = list(hosp.columns)
@@ -1704,18 +1696,25 @@ def runMT(ws, write):
   tcols[0] = 'Status'
   tcols[1] = 'Cases'
   hosp.columns = tcols
+  print("setup hosp columns")
 
   #Replace NaN with ''
   totals=totals.fillna('0').drop(totals.index[0])
   #totals=totals.fillna('0')
+  #print("did fillna on totals and lopped the top row")
+  #display(totals)
 
   hosp=hosp.fillna('0').drop(hosp.index[0])
   #hosp=hosp.fillna('0')
+  #print("did fillna on hosp and lopped the top row")
+  #display(hosp)
 
   #Remove parens from numbers
-  totals['Totals']=totals['Totals'].replace("\(.*\)","",regex=True).astype(int)
+  totals['Totals']=totals['Totals'].str.replace(r"1E5","100000",regex=True)
+  totals['Totals']=totals['Totals'].str.replace(r"\(.*\)","",regex=True).astype(int)
+  #print("totals regex")
   #hosp['Number of Cases']=hosp['Number of Cases'].replace("\(.*\)","",regex=True).astype(int)
-  hosp['Cases']=hosp['Cases'].replace("\(.*\)","",regex=True).astype(int)
+  hosp['Cases']=hosp['Cases'].str.replace(r"\(.*\)","",regex=True).astype(int)
   print('MT Totals Table\n')
   display(totals)
   print('MT Hospitalized\n')
@@ -1976,59 +1975,65 @@ def runNE(ws, write):
 # NH
 def runNH(ws, write):
 
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
+  from selenium.webdriver import ActionChains
+
   #interactive equity dash
   #iframe
   url="https://www.nh.gov/t/DHHS/views/COVID19InteractiveEquityDashboard/COVID19InteractiveEquityDashboard?:isGuestRedirectFromVizportal=y&amp;:embed=y"
   #Cases Button xpaths
-  cases_xpath = "//*[@id='[Parameters].[Parameter 3]_0']/div[2]/input"
-  deaths_xpath = "//*[@id='[Parameters].[Parameter 3]_1']/div[2]/input"
+  cases_xpath='//*[@id="[Parameters].[Parameter 3]_0"]'
+  deaths_xpath='//*[@id="[Parameters].[Parameter 3]_1"]'
 
   #compare rates by
-  raceeth_xpath = "//*[@id='[Parameters].[Parameter 1]_0']/div[2]/input"
+  raceeth_xpath = "//*[@id='[Parameters].[Parameter 1]_0']"
+
   #compare numbers by sex "No"
-  sex_xpath = "//*[@id='[Parameters].[Parameter 5]_0']/div[2]/input"
+  sex_xpath = "//*[@id='[Parameters].[Parameter 5]_0']"
+
   #download form options
   data_btn_xpath = "//*[@id='view1917354692013186876_13459133749204884095']/div[1]/div[2]/canvas[2]"
+
   #downloaded csv paths
   csv_Cases = "CrudeCount-Cases.csv"
   csv_Deaths = "CrudeCount-Deaths.csv"
 
-  #download view and convert to df
+  def getCSV(demo_xpath, demo_csv):
+        #Demographics for Cases
+        print("Demographics for Cases/Deaths")
+        wait.until(EC.element_to_be_clickable((By.XPATH, demo_xpath))).click()
+        print("clicked Cases/Deaths")
+
+        #choose race or ethnicity vs. Age
+        wait.until(EC.element_to_be_clickable((By.XPATH, raceeth_xpath))).click()
+        print("clicked race or ethnicity vs age")
+
+        #choose sex yes or no view
+        wait.until(EC.element_to_be_clickable((By.XPATH, sex_xpath))).click()
+        print("chose sex=no")
+
+        #click data option
+        wait.until(EC.element_to_be_clickable((By.XPATH, data_btn_xpath))).click()
+        print("clicked download button")   
+
+        #download view and convert to df
+        df = pd.read_csv(demo_csv, sep=",", encoding="utf-8", na_values=['']) #dumb tableau encoding
+        df = df.fillna('0')
+
+        return df
+
   #cases
   wd=init_driver()
   wd.get(url)
+  wait = WebDriverWait(wd, 20)
   time.sleep(5)
   print("\nTableau URL")
   print(url)
 
-  #Demographics for Cases
-  print("Demographics for Cases")
-  cases_radio = wd.find_element_by_xpath(cases_xpath)
-  cases_radio.click()
-  time.sleep(5)
-  #choose Race/Ethnicity vs. Age
-  print("clicked Cases ")
-  #choose race or ethnicity vs. Age
-  demo_radio = wd.find_element_by_xpath(raceeth_xpath)
-  demo_radio.click()
-  print("clicked demographic")
-  time.sleep(5)
-  #choose sex yes or no view
-  sex_radio = wd.find_element_by_xpath(sex_xpath)
-  sex_radio.click()
-  time.sleep(5)
-  print("chose sex=no")
-
-  #click data option
-  data_btn = wd.find_element_by_xpath(data_btn_xpath)
-  data_btn.get_attribute('innerHTML') #verify element
-  data_btn.click()
-  print("clicked download button")
-  time.sleep(10)
-
   #make df_casesRace
-  df_cases = pd.read_csv("CrudeCount-Cases.csv", sep=",", encoding="utf-8", na_values=['']) #dumb tableau encoding
-  df_casesRace = df_cases.fillna('0')
+  df_casesRace = getCSV(cases_xpath, csv_Cases)
   tcols = list(df_casesRace.columns)
   tcols[0] = 'Demographic'
   tcols[1] = 'Sex'
@@ -2039,45 +2044,19 @@ def runNH(ws, write):
   df_casesRace['Cases'] = df_casesRace['Cases'].astype('int')
   print("-" *10)
   display(df_casesRace)
-  time.sleep(5)
-
-  #download view and convert to df
-  #deaths
   wd.quit()
+
+
+  #deaths
   wd=init_driver()
   wd.get(url)
+  wait = WebDriverWait(wd, 20)
   time.sleep(5)
   print("\nTableau URL")
   print(url)
 
-  #Demographics for Deaths
-  print("\nDemographics for Deaths")
-  cases_radio = wd.find_element_by_xpath(deaths_xpath)
-  cases_radio.click()
-  time.sleep(5)
-  #choose deaths
-  print("clicked Deaths ")
-  #choose race or ethnicity vs. Age
-  demo_radio = wd.find_element_by_xpath(raceeth_xpath)
-  demo_radio.click()
-  print("clicked demographic")
-  time.sleep(5)
-  #choose sex yes or no view
-  sex_radio = wd.find_element_by_xpath(sex_xpath)
-  sex_radio.click()
-  time.sleep(5)
-  print("chose sex=no")
-
-  #click data option
-  data_btn = wd.find_element_by_xpath(data_btn_xpath)
-  data_btn.get_attribute('innerHTML') #verify element
-  data_btn.click()
-  print("clicked download button")
-  time.sleep(10)
-
   #make df_deathsRace
-  df_deaths = pd.read_csv("CrudeCount-Deaths.csv", sep=",", encoding="utf-8", na_values=['']) #dumb tableau encoding
-  df_deathsRace = df_deaths.fillna('0')
+  df_deathsRace = getCSV(deaths_xpath, csv_Deaths)
   tcols = list(df_deathsRace.columns)
   tcols[0] = 'Demographic'
   tcols[1] = 'Sex'
@@ -2096,6 +2075,7 @@ def runNH(ws, write):
   wd.quit()
   wd=init_driver()
   wd.get(urlSumT)
+  wait = WebDriverWait(wd, 20)
   time.sleep(5)
 
   #xpaths
@@ -2106,24 +2086,26 @@ def runNH(ws, write):
   casepercent_xpath="//*[@id='title2676828700685879255_18320527963907039571']/div[1]/div/span/div/span[2]"
   hosppercent_xpath="//*[@id='title2676828700685879255_18320527963907039571']/div[1]/div/span/div/span[4]"
   deathpercent_xpath="//*[@id='title2676828700685879255_18320527963907039571']/div[1]/div/span/div/span[6]"
+  
   #press summary tab
   print("\nSummary Tab")
-  summary_radio = wd.find_element_by_xpath(summary_xpath)
-  summary_radio.click()
-  time.sleep(5)
+  wait.until(EC.element_to_be_clickable((By.XPATH, summary_xpath))).click()
 
   print("\nPercents of Known Demographics")
   casepercent=wd.find_element_by_xpath(casepercent_xpath)
+
   #print("\nCase Percent")
   casepercent=casepercent.text
   casepercent=casepercent.replace('%','', 1)
   casepercent=float(casepercent)
   #print(casepercent)
+
   #print("\nHospPercent")
   hosppercent=wd.find_element_by_xpath(hosppercent_xpath)
   hosppercent=hosppercent.text
   hosppercent=float(hosppercent.replace('%','', 1))
   #print(hosppercent)
+
   #print("\nDeathPercent")
   deathpercent=wd.find_element_by_xpath(deathpercent_xpath)
   deathpercent=deathpercent.text
@@ -2137,10 +2119,14 @@ def runNH(ws, write):
   display(knownpercent)
 
   wd.quit()
+
+  #Hospitalizations & Totals
   wd=init_driver()
+
   #Sumary Dashboard
   urlSum="https://www.nh.gov/t/DHHS/views/COVID-19CaseDashboard/Summary?:iid=1&amp;:isGuestRedirectFromVizportal=y&amp;:embed=y"
   wd.get(urlSum)
+  wait = WebDriverWait(wd, 20)
   time.sleep(5)
   print("\nTableau URL")
   print(urlSum)
@@ -2154,27 +2140,19 @@ def runNH(ws, write):
 
   #press summary tab
   print("Choose Summary Tab")
-  summary_radio = wd.find_element_by_xpath(summary_xpath)
-  summary_radio.click()
-  time.sleep(5)
+  wait.until(EC.element_to_be_clickable((By.XPATH, summary_xpath))).click()
 
   #press download button
   print("Choose Download Tab")
-  dnld_radio = wd.find_element_by_xpath(dnld_xpath)
-  dnld_radio.click()
-  time.sleep(5)
+  wait.until(EC.element_to_be_clickable((By.XPATH, dnld_xpath))).click()
 
   #Choose pdf
   print("Choose PDF")
-  pdf_btn=wd.find_element_by_xpath(sumpdf_xpath)
-  pdf_btn.click()
-  time.sleep(5)
+  wait.until(EC.element_to_be_clickable((By.XPATH, sumpdf_xpath))).click()
 
   #Choose Download
   print("Download PDF")
-  dnld_pdf_btn=wd.find_element_by_xpath(dnldpdf_xpath)
-  dnld_pdf_btn.click()
-  time.sleep(10)
+  wait.until(EC.element_to_be_clickable((By.XPATH, dnldpdf_xpath))).click()
 
   summaryTable = tabula.read_pdf('Summary.pdf',lattice=True, multiple_tables=True, pages=1)
   #display(summaryTable)

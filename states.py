@@ -2534,9 +2534,10 @@ def runSD(ws,write):
     wait = WebDriverWait(wd, 60)
     print('Got Website')
 
+    time.sleep(6)
     wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "i[title='Next Page']"))).click()
     print('Clicked Next Page')
-  #  time.sleep(10)
+    time.sleep(4)
     if category != 'Cases':
       wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@aria-label='" + category + "']/div"))).click()
       print('Clicked metric')

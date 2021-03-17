@@ -321,12 +321,12 @@ def runDC(ws,write):
   res = requests.get(link)
 
   # Read, wrangle race cases tab
-  df_cases = pd.read_excel(BytesIO(res.content), sheet_name="Total Cases by Race", skiprows=[0,2], engine='openpyxl')
+  df_cases = pd.read_excel(BytesIO(res.content), sheet_name="Total Cases by Race", skiprows=[0,2])
   df_cases = wrangle(df_cases)
   display(df_cases)
 
   # Read, wrangle race deaths tab
-  df_deaths = pd.read_excel(BytesIO(res.content), sheet_name="Lives Lost by Race", skiprows=[1], engine='openpyxl')
+  df_deaths = pd.read_excel(BytesIO(res.content), sheet_name="Lives Lost by Race", skiprows=[1])
   df_deaths = wrangle(df_deaths)
   display(df_deaths)
 
@@ -576,9 +576,6 @@ def runGU(ws,write):
 # HI ************
 
 def runHI(ws,write):
-  from selenium.webdriver.common.by import By
-  from selenium.webdriver.support.ui import WebDriverWait
-  from selenium.webdriver.support import expected_conditions as EC
 
   #Tableau for Race
   src="https://public.tableau.com/views/HawaiiCOVID-19-RaceChart/Overview?:embed=y&:showVizHome=no&:host_url=https%3A%2F%2Fpublic.tableau.com%2F&:embed_code_version=3&:tabs=no&:toolbar=yes&:animate_transition=yes&:display_static_image=no&:display_spinner=no&:display_overlay=yes&:display_count=yes&null&:loadOrderID=11"
@@ -600,21 +597,34 @@ def runHI(ws,write):
   #file csvs
   csv_metric = "Table.csv"
 
-  def getCSV(metric_xpath,csv_file):
-    wait = WebDriverWait(wd, 20)
-    wait.until(EC.element_to_be_clickable((By.XPATH,metric_xpath))).click()
-    wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".tab-icon-download"))).click()
-    print("clicked download on tableau frame")
-    wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Crosstab']"))).click()
-    print("chose crosstab option")
-    wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label[data-tb-test-id='crosstab-options-dialog-radio-csv-Label']"))).click()
-    print("Chose CSV option")
-    wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[title='Table']"))).click()
-    print("Chose census file")
-    wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Download']"))).click()
-    print("Clicked dnld button")
-    time.sleep(5)
-    return pd.read_csv(csv_file,sep="\t",encoding="utf-16")
+  def getCSV(metric_xpath):
+      #Click metric xpath
+      data_btn=wd.find_element_by_xpath(metric_xpath).click()
+      #print("clicked metric button")
+      time.sleep(5)
+      #Click tableau download button
+      tab_btn=wd.find_element_by_xpath(tab_dnld_xpath).click()
+      #print("clicked download on tableau frame")
+      time.sleep(5)
+      #select crosstab
+      crosstab_btn=wd.find_element_by_xpath(crosstab_xpath).click()
+      #print("chose crosstab option")
+      time.sleep(20)
+      census_btn2=wd.find_element_by_xpath(census_xpath).click()
+      #print("Choses census file")
+      time.sleep(10)
+      #select csv option
+      csv_btn=wd.find_element_by_xpath(csv_xpath).click()
+      #print("Chose CSV option")
+      time.sleep(10)
+      #select download
+      dnld_btn=wd.find_element_by_xpath(dnld_xpath).click()
+      #print("Clicked dnld button")
+      time.sleep(60)
+      #make df
+      df=pd.read_csv(csv_metric,sep="\t", encoding="utf-16")
+      df=df.fillna('0')
+      return df
 
   #download view and convert to df
   wd=init_driver()
@@ -625,7 +635,7 @@ def runHI(ws,write):
   #Go Get the HI Race Table
   print("-" * 10)
   print("HI Race")
-  df_race=getCSV(summary_xpath,csv_metric)
+  df_race=getCSV(summary_xpath)
   df_race=df_race.fillna('0')
   #convert to integer
   tcols=list(df_race.columns)
@@ -666,7 +676,7 @@ def runHI(ws,write):
 
   #Retrieve HI Deaths
   req=requests.get(deathSrc)
-  
+  #{"MMWRyear":2021,"MMWRweek":7,"week_ending":1613779200000,"county":"State","deaths":1,"ObjectId":420,"rolling_deaths":7.42857142857143,"previous_deaths":3,"cumulative_deaths":431,"fatality_rate":1.58607492456024}}]}
   df_death=pd.json_normalize(req.json()['features'])
   df_death=df_death.rename(columns=lambda x:re.sub('properties.','',x))
   df_deaths=df_death.loc[:,['cumulative_deaths']]
@@ -804,7 +814,7 @@ def runID(ws, write):
   if write == True:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    #ws.update('L14',dataToWrite)
+    ##ws.update('L14',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df_cases['State Total Cases Display (2)'],'','K15')
@@ -1035,10 +1045,10 @@ def runIL(ws,write):
 def runIN(ws, write):
 
   url = 'https://hub.mph.in.gov/dataset/62ddcb15-bbe8-477b-bb2e-175ee5af8629/resource/2538d7f1-391b-4733-90b3-9e95cd5f3ea6/download/covid_report_demographics.xlsx'
-  df_IN_casesRace = pd.read_excel(url, sheet_name='Race', skiprows=0, engine='openpyxl')
+  df_IN_casesRace = pd.read_excel(url, sheet_name='Race', skiprows=0)
   print("Cases by Race")
   display(df_IN_casesRace)
-  df_IN_casesEthnicity = pd.read_excel(url, sheet_name='Ethnicity', skiprows=0, engine='openpyxl')
+  df_IN_casesEthnicity = pd.read_excel(url, sheet_name='Ethnicity', skiprows=0)
   print("\nCases by Ethnicity")
   display(df_IN_casesEthnicity)
 
@@ -1191,7 +1201,7 @@ def runMA(ws, write):
   res = requests.get(link)
 
   #Cases -
-  df_cases = pd.read_excel(BytesIO(res.content), sheet_name="Cases (Report Date)", engine='openpyxl')
+  df_cases = pd.read_excel(BytesIO(res.content), sheet_name="Cases (Report Date)")
   maxdate = df_cases['Date'].max()
   print("Case Totals")
   print(maxdate,'\n')
@@ -1199,7 +1209,7 @@ def runMA(ws, write):
   display(df_cases)
 
   #Deaths -
-  df_deaths = pd.read_excel(BytesIO(res.content), sheet_name="DeathsReported (Report Date)", engine='openpyxl')
+  df_deaths = pd.read_excel(BytesIO(res.content), sheet_name="DeathsReported (Report Date)")
   maxdate = df_deaths['Date'].max()
   print("\nDeath Totals")
   print(maxdate,'\n')
@@ -1207,7 +1217,7 @@ def runMA(ws, write):
   display(df_deaths)
 
   #Demographics
-  df_dems = pd.read_excel(BytesIO(res.content), sheet_name='RaceEthnicityLast2Weeks', engine='openpyxl')
+  df_dems = pd.read_excel(BytesIO(res.content), sheet_name='RaceEthnicityLast2Weeks')
   maxdate = df_dems['Date'].max()
   print("\nMA Demographics")
   print(maxdate,'\n')
@@ -1323,7 +1333,7 @@ def runME(ws, write):
     print("-" *10)
     return df
 
-  #Race
+ #Race
   wd=init_driver()
   wd.get(raceethsrc)
   wait = WebDriverWait(wd, 160)
@@ -1358,7 +1368,7 @@ def runME(ws, write):
   #df_casesEth=df_casesEth.drop(['Population','Recoveries'],1).fillna('0')
   #display(df_casesEth)
   #wd.quit()
-
+  
   if write == 1:
       # Write Paste Date To Sheet
       dataToWrite = [[date.today().strftime('%m/%d')]]
@@ -1508,6 +1518,7 @@ def runMO(ws, write):
   print("\n")
   display(ethnicity)
 
+
   if write == 1:
       # Write Paste Date To Sheet
       dataToWrite = [[date.today().strftime('%m/%d')]]
@@ -1649,8 +1660,7 @@ def runMS(ws, write):
       writeTable(case_tot,'','A37')
       writeTable(death_tot,'','A40')
 
-# MT
-
+#MT
 def runMT(ws, write):
  
   #Setup Dates
@@ -1673,34 +1683,40 @@ def runMT(ws, write):
       url = "https://dphhs.mt.gov{}".format(filename)
       print(url)
 
-
+ 
   #Read in the url, page 1 and select the first table & display the values for the Totals   
   tables = tabula.read_pdf(url,pages=1,multiple_tables=True)
+  print("read tables")
   totals = tables[0]
   tcols = list(totals.columns)
   tcols[0] = 'MT'
   tcols[1] = 'Totals'
   totals.columns = tcols
+  print("setup totals")
 
   hosp = tables[2]
   tcols = list(hosp.columns)
   tcols[0] = 'Status'
   tcols[1] = 'Cases'
-  #print("reassigned name")
   hosp.columns = tcols
+  print("setup hosp columns")
 
   #Replace NaN with ''
   totals=totals.fillna('0').drop(totals.index[0])
   #totals=totals.fillna('0')
+  #print("did fillna on totals and lopped the top row")
+  #display(totals)
 
   hosp=hosp.fillna('0').drop(hosp.index[0])
   #hosp=hosp.fillna('0')
-
-  #display(totals)
+  #print("did fillna on hosp and lopped the top row")
   #display(hosp)
 
   #Remove parens from numbers
-  totals['Totals']=totals['Totals'].replace("\(.*\)","",regex=True).astype(int)
+  totals['Totals']=totals['Totals'].str.replace(r"1E5","100000",regex=True)
+  totals['Totals']=totals['Totals'].str.replace(r"\(.*\)","",regex=True).astype(int)
+  #print("totals regex")
+  #hosp['Number of Cases']=hosp['Number of Cases'].replace("\(.*\)","",regex=True).astype(int)
   hosp['Cases']=hosp['Cases'].str.replace(r"\(.*\)","",regex=True).astype(int)
   print('MT Totals Table\n')
   display(totals)
@@ -1740,8 +1756,9 @@ def runMT(ws, write):
 
      # Write Data To Sheet
      writeTable(raceeth,'Race Table','H19')
-     writeTable(totals,'Totals Table','H32')
-     writeTable(hosp,'Ever Hospitalized','H38')
+     writeTable(totals,'Totals  Table','H33')
+     writeTable(hosp,'Ever Hospitalized','H39') 
+
 
 #NC
 def runNC(ws, write):
@@ -1959,62 +1976,67 @@ def runNE(ws, write):
       writeTable(df_casesF,'Case Totals','C41')
 
 # NH
-
 def runNH(ws, write):
+
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
+  from selenium.webdriver import ActionChains
 
   #interactive equity dash
   #iframe
   url="https://www.nh.gov/t/DHHS/views/COVID19InteractiveEquityDashboard/COVID19InteractiveEquityDashboard?:isGuestRedirectFromVizportal=y&amp;:embed=y"
   #Cases Button xpaths
-  cases_xpath = "//*[@id='[Parameters].[Parameter 3]_0']/div[2]/input"
-  deaths_xpath = "//*[@id='[Parameters].[Parameter 3]_1']/div[2]/input"
+  cases_xpath='//*[@id="[Parameters].[Parameter 3]_0"]'
+  deaths_xpath='//*[@id="[Parameters].[Parameter 3]_1"]'
 
   #compare rates by
-  raceeth_xpath = "//*[@id='[Parameters].[Parameter 1]_0']/div[2]/input"
+  raceeth_xpath = "//*[@id='[Parameters].[Parameter 1]_0']"
+
   #compare numbers by sex "No"
-  sex_xpath = "//*[@id='[Parameters].[Parameter 5]_0']/div[2]/input"
+  sex_xpath = "//*[@id='[Parameters].[Parameter 5]_0']"
+
   #download form options
   data_btn_xpath = "//*[@id='view1917354692013186876_13459133749204884095']/div[1]/div[2]/canvas[2]"
+
   #downloaded csv paths
   csv_Cases = "CrudeCount-Cases.csv"
   csv_Deaths = "CrudeCount-Deaths.csv"
 
-  #download view and convert to df
+  def getCSV(demo_xpath, demo_csv):
+        #Demographics for Cases
+        print("Demographics for Cases/Deaths")
+        wait.until(EC.element_to_be_clickable((By.XPATH, demo_xpath))).click()
+        print("clicked Cases/Deaths")
+
+        #choose race or ethnicity vs. Age
+        wait.until(EC.element_to_be_clickable((By.XPATH, raceeth_xpath))).click()
+        print("clicked race or ethnicity vs age")
+
+        #choose sex yes or no view
+        wait.until(EC.element_to_be_clickable((By.XPATH, sex_xpath))).click()
+        print("chose sex=no")
+
+        #click data option
+        wait.until(EC.element_to_be_clickable((By.XPATH, data_btn_xpath))).click()
+        print("clicked download button")   
+
+        #download view and convert to df
+        df = pd.read_csv(demo_csv, sep=",", encoding="utf-8", na_values=['']) #dumb tableau encoding
+        df = df.fillna('0')
+
+        return df
+
   #cases
   wd=init_driver()
   wd.get(url)
+  wait = WebDriverWait(wd, 20)
   time.sleep(5)
   print("\nTableau URL")
   print(url)
 
-  #Demographics for Cases
-  print("Demographics for Cases")
-  cases_radio = wd.find_element_by_xpath(cases_xpath)
-  cases_radio.click()
-  time.sleep(5)
-  #choose Race/Ethnicity vs. Age
-  print("clicked Cases ")
-  #choose race or ethnicity vs. Age
-  demo_radio = wd.find_element_by_xpath(raceeth_xpath)
-  demo_radio.click()
-  print("clicked demographic")
-  time.sleep(5)
-  #choose sex yes or no view
-  sex_radio = wd.find_element_by_xpath(sex_xpath)
-  sex_radio.click()
-  time.sleep(5)
-  print("chose sex=no")
-
-  #click data option
-  data_btn = wd.find_element_by_xpath(data_btn_xpath)
-  data_btn.get_attribute('innerHTML') #verify element
-  data_btn.click()
-  print("clicked download button")
-  time.sleep(10)
-
   #make df_casesRace
-  df_cases = pd.read_csv("CrudeCount-Cases.csv", sep=",", encoding="utf-8", na_values=['']) #dumb tableau encoding
-  df_casesRace = df_cases.fillna('0')
+  df_casesRace = getCSV(cases_xpath, csv_Cases)
   tcols = list(df_casesRace.columns)
   tcols[0] = 'Demographic'
   tcols[1] = 'Sex'
@@ -2025,45 +2047,19 @@ def runNH(ws, write):
   df_casesRace['Cases'] = df_casesRace['Cases'].astype('int')
   print("-" *10)
   display(df_casesRace)
-  time.sleep(5)
-
-  #download view and convert to df
-  #deaths
   wd.quit()
+
+
+  #deaths
   wd=init_driver()
   wd.get(url)
+  wait = WebDriverWait(wd, 20)
   time.sleep(5)
   print("\nTableau URL")
   print(url)
 
-  #Demographics for Deaths
-  print("\nDemographics for Deaths")
-  cases_radio = wd.find_element_by_xpath(deaths_xpath)
-  cases_radio.click()
-  time.sleep(5)
-  #choose deaths
-  print("clicked Deaths ")
-  #choose race or ethnicity vs. Age
-  demo_radio = wd.find_element_by_xpath(raceeth_xpath)
-  demo_radio.click()
-  print("clicked demographic")
-  time.sleep(5)
-  #choose sex yes or no view
-  sex_radio = wd.find_element_by_xpath(sex_xpath)
-  sex_radio.click()
-  time.sleep(5)
-  print("chose sex=no")
-
-  #click data option
-  data_btn = wd.find_element_by_xpath(data_btn_xpath)
-  data_btn.get_attribute('innerHTML') #verify element
-  data_btn.click()
-  print("clicked download button")
-  time.sleep(10)
-
   #make df_deathsRace
-  df_deaths = pd.read_csv("CrudeCount-Deaths.csv", sep=",", encoding="utf-8", na_values=['']) #dumb tableau encoding
-  df_deathsRace = df_deaths.fillna('0')
+  df_deathsRace = getCSV(deaths_xpath, csv_Deaths)
   tcols = list(df_deathsRace.columns)
   tcols[0] = 'Demographic'
   tcols[1] = 'Sex'
@@ -2082,6 +2078,7 @@ def runNH(ws, write):
   wd.quit()
   wd=init_driver()
   wd.get(urlSumT)
+  wait = WebDriverWait(wd, 20)
   time.sleep(5)
 
   #xpaths
@@ -2092,24 +2089,26 @@ def runNH(ws, write):
   casepercent_xpath="//*[@id='title2676828700685879255_18320527963907039571']/div[1]/div/span/div/span[2]"
   hosppercent_xpath="//*[@id='title2676828700685879255_18320527963907039571']/div[1]/div/span/div/span[4]"
   deathpercent_xpath="//*[@id='title2676828700685879255_18320527963907039571']/div[1]/div/span/div/span[6]"
+  
   #press summary tab
   print("\nSummary Tab")
-  summary_radio = wd.find_element_by_xpath(summary_xpath)
-  summary_radio.click()
-  time.sleep(5)
+  wait.until(EC.element_to_be_clickable((By.XPATH, summary_xpath))).click()
 
   print("\nPercents of Known Demographics")
   casepercent=wd.find_element_by_xpath(casepercent_xpath)
+
   #print("\nCase Percent")
   casepercent=casepercent.text
   casepercent=casepercent.replace('%','', 1)
   casepercent=float(casepercent)
   #print(casepercent)
+
   #print("\nHospPercent")
   hosppercent=wd.find_element_by_xpath(hosppercent_xpath)
   hosppercent=hosppercent.text
   hosppercent=float(hosppercent.replace('%','', 1))
   #print(hosppercent)
+
   #print("\nDeathPercent")
   deathpercent=wd.find_element_by_xpath(deathpercent_xpath)
   deathpercent=deathpercent.text
@@ -2123,10 +2122,14 @@ def runNH(ws, write):
   display(knownpercent)
 
   wd.quit()
+
+  #Hospitalizations & Totals
   wd=init_driver()
+
   #Sumary Dashboard
   urlSum="https://www.nh.gov/t/DHHS/views/COVID-19CaseDashboard/Summary?:iid=1&amp;:isGuestRedirectFromVizportal=y&amp;:embed=y"
   wd.get(urlSum)
+  wait = WebDriverWait(wd, 20)
   time.sleep(5)
   print("\nTableau URL")
   print(urlSum)
@@ -2140,27 +2143,19 @@ def runNH(ws, write):
 
   #press summary tab
   print("Choose Summary Tab")
-  summary_radio = wd.find_element_by_xpath(summary_xpath)
-  summary_radio.click()
-  time.sleep(5)
+  wait.until(EC.element_to_be_clickable((By.XPATH, summary_xpath))).click()
 
   #press download button
   print("Choose Download Tab")
-  dnld_radio = wd.find_element_by_xpath(dnld_xpath)
-  dnld_radio.click()
-  time.sleep(5)
+  wait.until(EC.element_to_be_clickable((By.XPATH, dnld_xpath))).click()
 
   #Choose pdf
   print("Choose PDF")
-  pdf_btn=wd.find_element_by_xpath(sumpdf_xpath)
-  pdf_btn.click()
-  time.sleep(5)
+  wait.until(EC.element_to_be_clickable((By.XPATH, sumpdf_xpath))).click()
 
   #Choose Download
   print("Download PDF")
-  dnld_pdf_btn=wd.find_element_by_xpath(dnldpdf_xpath)
-  dnld_pdf_btn.click()
-  time.sleep(10)
+  wait.until(EC.element_to_be_clickable((By.XPATH, dnldpdf_xpath))).click()
 
   summaryTable = tabula.read_pdf('Summary.pdf',lattice=True, multiple_tables=True, pages=1)
   #display(summaryTable)
@@ -2197,7 +2192,7 @@ def runNH(ws, write):
   if write == 1:
       # Write Paste Date To Sheet
       dataToWrite = [[date.today().strftime('%m/%d')]]
-      ws.update('F31',dataToWrite)
+      #ws.update('F31',dataToWrite)
 
       # Write Data To Sheet
       #writeTable(df_totals,'Race & Ethnicity Totals','G32')
@@ -2206,7 +2201,6 @@ def runNH(ws, write):
       writeTable(knownpercent,'Percent of Known Demographics','G43')
       writeTable(totals,'Race & Ethnicity Totals','G48')
       writeTable(hosp,'Hosp by Race & Ethnicity','M31')
-
 
 # NM
 def runNM(ws, write):
@@ -2523,7 +2517,7 @@ def runRI(ws,write):
     writeTable(df_totals,'Summary','R19')
     writeTable(df_demo,'Demographics','T19')
 
-#SD
+# SD
 def runSD(ws,write):
   from selenium.webdriver.common.by import By
   from selenium.webdriver.support.ui import WebDriverWait
@@ -2588,7 +2582,7 @@ def runSD(ws,write):
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
-    #ws.update('J19',dataToWrite)
+    ##ws.update('J19',dataToWrite)
 
     # Write Data To Sheet
     writeTable(df,'','I20')
@@ -2634,11 +2628,11 @@ def runTX(ws,write):
 
   url = 'https://dshs.texas.gov/coronavirus/TexasCOVID19Demographics.xlsx.asp'
 
-  df_cases = pd.read_excel(url, sheet_name='Cases by RaceEthnicity', skiprows=0, engine='openpyxl')
+  df_cases = pd.read_excel(url, sheet_name='Cases by RaceEthnicity', skiprows=0)
   print("Cases by Race")
   display(df_cases)
 
-  df_deaths = pd.read_excel(url, sheet_name='Fatalities by Race-Ethnicity', skiprows=0, engine='openpyxl')
+  df_deaths = pd.read_excel(url, sheet_name='Fatalities by Race-Ethnicity', skiprows=0)
   print("\nDeaths by Race")
   display(df_deaths)
 
@@ -2656,7 +2650,7 @@ def runUT(ws, write):
   url = 'https://coronavirus-dashboard.utah.gov/demographics.html'
   wd = init_driver()
   wd.get(url)
-#  time.sleep(20)
+  #time.sleep(20)
   soup = BeautifulSoup(wd.page_source, 'html.parser')
 
   # Find Table
@@ -2864,6 +2858,9 @@ def runWA(ws,write):
 #from bs4 import BeautifulSoup
 #import pandas as pd
 def runWI(ws, write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
 
   url = 'https://opendata.arcgis.com/datasets/859602b5d427456f821de3830f89301c_11.csv?outSR=%7B%22latestWkid%22%3A3857%2C%22wkid%22%3A102100%7D'
 
@@ -2908,55 +2905,52 @@ def runWI(ws, write):
   #visit metric url and go to tableau src page
   def visitNextURL(url, target_string):
     wd.get(url)
-    time.sleep(10)
+    wait = WebDriverWait(wd, 60)
+    print('waiting')
+    time.sleep(20)
     soup = BeautifulSoup(wd.page_source, "html.parser")
     iframes = soup.find_all("iframe")
-    cases_src = [tag["src"] for tag in iframes if target_string in tag["src"]]
+    #cases_src = [tag["src"] for tag in iframes if target_string in tag["src"]]
+    cases_src = []
+    for tag in iframes:
+        try:
+            if target_string in tag["src"]:
+                cases_src.append(tag["src"])
+        except Exception as e:
+            print('Got Exception')
     target_src = cases_src[0]
-    #print(target_src) #verify link
-    #print("")
-    print("Visiting new URL")
+    print("Loading new URL")
     wd.get(target_src)
-    time.sleep(5)
+    #time.sleep(3)
 
   #download view and convert to df
   def getCSV(status_choice, demo_choice, metric_csv):
-    #choose probable on chart
-    status_radio = wd.find_element_by_xpath(status_choice)
-    status_radio.click()
+    wait = WebDriverWait(wd, 20)
+    #choose confirmed/probable on chart
+    wait.until(EC.presence_of_element_located((By.XPATH, status_choice))).click()
     print("clicked case status")
-    time.sleep(5)
+    time.sleep(1)
     #choose demographic on chart
-    demo_radio = wd.find_element_by_xpath(demo_choice)
-    demo_radio.click()
+    wait.until(EC.presence_of_element_located((By.XPATH, demo_choice))).click()
     print("clicked demographic")
-    time.sleep(5)
+    time.sleep(1)
 
     #click download button at button of tableau to open download dialog box
-    main_download_btn = wd.find_element_by_xpath(main_download_btn_xpath)
-    main_download_btn.click()
+    wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".tab-icon-download"))).click()
     print("clicked download button")
-    time.sleep(5)
 
     #click crosstab option
-    cross_btn = wd.find_element_by_xpath(crosstab_btn_xpath)
-    #cross_btn.get_attribute('innerHTML') #verify element
-    cross_btn.click()
+    wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Crosstab']"))).click()
     print("clicked crosstab button")
-    time.sleep(3)
 
     #click csv option
-    csv_radio = wd.find_element_by_xpath(csv_radio_xpath)
-    csv_radio.click()
+    wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label[data-tb-test-id='crosstab-options-dialog-radio-csv-Label']"))).click()
     print("clicked csv option")
-    time.sleep(3)
 
     #download csv
-    final_download = wd.find_element_by_xpath(fin_dwnld_xpath)
-    #print(final_download.get_attribute('innerHTML')) #verify element
-    final_download.click()
+    wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Download']"))).click()
     print("clicked download button")
-    time.sleep(5) #wait for download
+    time.sleep(2) #wait for download
 
     #make df
     df = pd.read_csv(metric_csv, sep="\t", encoding="utf-16") #dumb tableau encoding
@@ -2964,93 +2958,77 @@ def runWI(ws, write):
 
   #start webdriver
   wd = init_driver()
+  visitNextURL(cases_url, cases_string)
 
   #CONFIRMED CASES
   #by race
-  visitNextURL(cases_url, cases_string)
   print("-" * 10)
-  print("CONFIRMED:")
+  print("CONFIRMED CASES:")
   df_casesConfirmRace = getCSV(confirm_radio_xpath, race_radio_xpath, csv_cases)
   df_casesConfirmRace['Number of cases'] = df_casesConfirmRace['Number of cases'].str.replace(',', '').astype('int')
   df_casesConfirmRace.rename(columns={list(df_casesConfirmRace)[0]:'Demographic'}, inplace=True)
   df_casesConfirmRace = df_casesConfirmRace[['Demographic','Number of cases']]
   display(df_casesConfirmRace)
-  #print(df_casesConfirmRace.dtypes)
   #by ethnicity
-  visitNextURL(cases_url, cases_string)
   df_casesConfirmEth = getCSV(confirm_radio_xpath,eth_radio_xpath, csv_cases)
   df_casesConfirmEth['Number of cases'] = df_casesConfirmEth['Number of cases'].str.replace(',', '').astype('int')
   df_casesConfirmEth.rename(columns={list(df_casesConfirmEth)[0]:'Demographic'}, inplace=True)
   df_casesConfirmEth = df_casesConfirmEth[['Demographic','Number of cases']]
   display(df_casesConfirmEth)
-  #print(df_casesConfirmEth.dtypes)
-
-  #reset driver
-  wd.quit()
-  wd = init_driver()
-
-  #CONFIRMED DEATHS
-  #by race
-  visitNextURL(deaths_url, deaths_string)
-  df_deathsConfirmRace = getCSV(confirm_radio_xpath, race_radio_xpath, csv_deaths)
-  df_deathsConfirmRace['Deaths'] = df_deathsConfirmRace['Deaths'].str.replace(',', '').astype('int')
-  df_deathsConfirmRace.rename(columns={list(df_deathsConfirmRace)[0]:'Demographic'}, inplace=True)
-  df_deathsConfirmRace = df_deathsConfirmRace[['Demographic','Deaths']]
-  display(df_deathsConfirmRace)
-  #print(df_deathsConfirmRace.dtypes)
-  #by ethnicity
-  visitNextURL(deaths_url, deaths_string)
-  df_deathsConfirmEth = getCSV(confirm_radio_xpath, eth_radio_xpath, csv_deaths)
-  df_deathsConfirmEth['Deaths'] = df_deathsConfirmEth['Deaths'].str.replace(',', '').astype('int')
-  df_deathsConfirmEth.rename(columns={list(df_deathsConfirmEth)[0]:'Demographic'}, inplace=True)
-  df_deathsConfirmEth = df_deathsConfirmEth[['Demographic','Deaths']]
-  display(df_deathsConfirmEth)
-  #print(df_deathsConfirmEth.dtypes)
-
-  #reset driver
-  wd.quit()
-  wd = init_driver()
-
+  print("-" * 10)
+  print("PROBABLE CASES:")
   #PROBABLE CASES
   #by race
-  visitNextURL(cases_url, cases_string)
-  print("-" * 10)
-  print("PROBABLE:")
   df_casesProbsRace = getCSV(prob_radio_xpath, race_radio_xpath, csv_cases)
   df_casesProbsRace['Number of cases'] = df_casesProbsRace['Number of cases'].str.replace(',', '').astype('int')
   df_casesProbsRace.rename(columns={list(df_casesProbsRace)[0]:'Demographic'}, inplace=True)
   df_casesProbsRace = df_casesProbsRace[['Demographic','Number of cases']]
   display(df_casesProbsRace)
-  #print(df_casesProbsRace.dtypes)
   #by ethnicity
-  visitNextURL(cases_url, cases_string)
   df_casesProbsEth = getCSV(prob_radio_xpath, eth_radio_xpath, csv_cases)
   df_casesProbsEth['Number of cases'] = df_casesProbsEth['Number of cases'].str.replace(',', '').astype('int')
   df_casesProbsEth.rename(columns={list(df_casesProbsEth)[0]:'Demographic'}, inplace=True)
   df_casesProbsEth = df_casesProbsEth[['Demographic','Number of cases']]
   display(df_casesProbsEth)
-  #print(df_casesProbsEth.dtypes)
 
   #reset driver
   wd.quit()
-  wd = init_driver()
 
+  #start webdriver
+  wd = init_driver()
+  visitNextURL(deaths_url, deaths_string)
+
+  print("-" * 10)
+  print("CONFIRMED DEATHS:")
+  #CONFIRMED DEATHS
+  #by race
+  df_deathsConfirmRace = getCSV(confirm_radio_xpath, race_radio_xpath, csv_deaths)
+  df_deathsConfirmRace['Deaths'] = df_deathsConfirmRace['Deaths'].str.replace(',', '').astype('int')
+  df_deathsConfirmRace.rename(columns={list(df_deathsConfirmRace)[0]:'Demographic'}, inplace=True)
+  df_deathsConfirmRace = df_deathsConfirmRace[['Demographic','Deaths']]
+  display(df_deathsConfirmRace)
+  #by ethnicity
+  df_deathsConfirmEth = getCSV(confirm_radio_xpath, eth_radio_xpath, csv_deaths)
+  df_deathsConfirmEth['Deaths'] = df_deathsConfirmEth['Deaths'].str.replace(',', '').astype('int')
+  df_deathsConfirmEth.rename(columns={list(df_deathsConfirmEth)[0]:'Demographic'}, inplace=True)
+  df_deathsConfirmEth = df_deathsConfirmEth[['Demographic','Deaths']]
+  display(df_deathsConfirmEth)
+
+  print("-" * 10)
+  print("PROBABLE DEATHS:")
   #PROBABLE DEATHS
   #by race
-  visitNextURL(deaths_url, deaths_string)
   df_deathsProbsRace = getCSV(prob_radio_xpath, race_radio_xpath, csv_deaths)
   df_deathsProbsRace.rename(columns={list(df_deathsProbsRace)[0]:'Demographic'}, inplace=True)
   df_deathsProbsRace = df_deathsProbsRace[['Demographic','Deaths']]
   display(df_deathsProbsRace)
-  #print(df_deathsProbsRace.dtypes)
   #by ethnicity
-  visitNextURL(deaths_url, deaths_string)
   df_deathsProbsEth = getCSV(prob_radio_xpath, eth_radio_xpath, csv_deaths)
   df_deathsProbsEth.rename(columns={list(df_deathsProbsEth)[0]:'Demographic'}, inplace=True)
   df_deathsProbsEth = df_deathsProbsEth[['Demographic','Deaths']]
   display(df_deathsProbsEth)
-  #print(df_deathsProbsEth.dtypes)
 
+  #reset driver
   wd.quit()
 
   if write == 1:
@@ -3074,6 +3052,9 @@ def runWI(ws, write):
 # WY ************
 
 def runWY(ws,write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
   #url = 'https://public.tableau.com/vizql/w/EpiCOVIDtest/v/Dashboard/tempfile/sessions/324E4F03F0184305838EC00E7A01CB86-0:0/?key=4098009697&keepfile=yes&attachment=yes'
   srcCases="https://public.tableau.com/views/EpiCOVIDtest/Dashboard?:embed=y&amp;:showVizHome=no&amp;:host_url=https%3A%2F%2Fpublic.tableau.com%2F&amp;:embed_code_version=3&amp;:tabs=no&amp;:toolbar=no&amp;:animate_transition=yes&amp;:display_static_image=no&amp;:display_spinner=no&amp;:display_overlay=yes&amp;:display_count=yes&amp;publish=yes&amp;:loadOrderID=0"
   srcDeaths="https://public.tableau.com/views/EpiCOVIDtest/COVID-19RelatedDeaths?%3Aembed=y&amp%3B%3AshowVizHome=no&amp%3B%3Ahost_url=https%3A%2F%2Fpublic.tableau.com%2F&amp%3B%3Aembed_code_version=3&amp%3B%3Atabs=no&amp%3B%3Atoolbar=no&amp%3B%3Aanimate_transition=yes&amp%3B%3Adisplay_static_image=no&amp%3B%3Adisplay_spinner=no&amp%3B%3Adisplay_overlay=yes&amp%3B%3Adisplay_count=yes&amp%3Bpublish=yes&amp%3B%3AloadOrderID=0"
@@ -3101,28 +3082,26 @@ def runWY(ws,write):
 
   #press download button
   def getCSV(metric_xpath,csv_metric):
-      data_btn=wd.find_element_by_xpath(data_btn_xpath)
-      data_btn.click()
-      print("clicked download on tableau frame")
-      time.sleep(5)
-      #select crosstab
-      crosstab_btn=wd.find_element_by_xpath(crosstab_xpath)
-      crosstab_btn.click()
-      print("chose crosstab option")
-      time.sleep(20)
-      #select csv option
-      csv_btn=wd.find_element_by_xpath(csv_xpath)
-      csv_btn.click()
-      print("Chose CSV option")
-      time.sleep(5)
-      #select xpath for metric type
-      cases_btn=wd.find_element_by_xpath(metric_xpath)
-      cases_btn.click()
-      time.sleep(5)
-      #select download
-      dnld_btn=wd.find_element_by_xpath(dnld_xpath)
-      dnld_btn.click()
-      time.sleep(5)
+      wait = WebDriverWait(wd, 20)
+      #click download button at button of tableau to open download dialog box 
+      wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".tab-icon-download"))).click()
+      print("clicked download button")
+
+      #click crosstab option
+      wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Crosstab']"))).click()
+      print("clicked crosstab button")
+
+      #click csv option
+      wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label[data-tb-test-id='crosstab-options-dialog-radio-csv-Label']"))).click()
+      print("clicked csv option")
+
+      #select metric
+      wait.until(EC.element_to_be_clickable((By.XPATH, metric_xpath))).click()
+      print("clicked metric")
+      #download csv
+      wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Download']"))).click()
+      print("clicked download button")
+      time.sleep(2) #wait for download
 
       #make df
       df=pd.read_csv(csv_metric,sep="\t", encoding="utf-16")
@@ -3133,7 +3112,7 @@ def runWY(ws,write):
   #cases
   wd=init_driver()
   wd.get(srcCases)
-  time.sleep(15)
+  time.sleep(3)
   print("\nCases, Deaths, Probables, Raceth")
   print(srcCases)
   #Cases
@@ -3144,20 +3123,20 @@ def runWY(ws,write):
   df_cases['Laboratory Confirmed Cases'] = df_cases['Laboratory Confirmed Cases'].str.replace(r",",'', 1)
   df_cases = df_cases.astype({"Laboratory Confirmed Cases": int})
   display(df_cases)
-  time.sleep(5)
+  time.sleep(3)
   #Deaths
   print("-" * 10)
   print("Deaths")
   df_deaths=getCSV(deaths_xpath,csv_deaths)
   display(df_deaths)
-  time.sleep(5)
+  time.sleep(3)
   #Probables
   print("-" * 10)
   print("Probables")
   df_probables=getCSV(probables_xpath,csv_probables)
   df_probables['Probable Cases'] = df_probables['Probable Cases'].str.replace(r",",'', 1).astype('float')
   display(df_probables)
-  time.sleep(5)
+  time.sleep(3)
   #Race Ethnicity for Cases
   print("-" * 10)
   print("Race Ethnicity for Cases")
@@ -3168,14 +3147,13 @@ def runWY(ws,write):
   df_raceth['Count']= df_raceth['Count'].str.replace(r",",'',1)
   df_raceth['Count'] = df_raceth['Count'].astype(int)
   display(df_raceth)
-  time.sleep(5)
   wd.quit()
 
   wd=init_driver()
   wd.get(srcDeaths)
   print("\nCases, Deaths, Probables, Raceth")
   print(srcDeaths)
-  time.sleep(15)
+  time.sleep(3)
   #Race Ethnicity for Deaths
   print("-" * 10)
   print("Race Ethnicity for Deaths")
@@ -3184,8 +3162,6 @@ def runWY(ws,write):
   tcols=['Race','Count','%']
   df_racethdeath.columns=tcols
   display(df_racethdeath)
-  time.sleep(5)
-
   display(df_probables)
   wd.quit()
 

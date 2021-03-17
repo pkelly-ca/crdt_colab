@@ -709,11 +709,16 @@ def runID(ws, write):
 
   def download_CSV(csv_name):
     wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".tab-icon-download"))).click()
+    print('clicked download')
     wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Crosstab']"))).click()
+    print('clicked crosstab')
     wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label[data-tb-test-id='crosstab-options-dialog-radio-csv-Label']"))).click()
+    print('clicked csv')
     wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[title='" + csv_name + "']"))).click()
+    print('clicked file')
     wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Download']"))).click()
-    time.sleep(2)
+    print('clicked download')
+    time.sleep(4)
 
   def colstr2int(df,col):
     df.loc[:,col] = df.loc[:,col].replace(',','', regex=True)
@@ -1696,6 +1701,8 @@ def runMT(ws, write):
 
   hosp = tables[2]
   tcols = list(hosp.columns)
+#  tcols[0] = 'Hospitalization Status'
+#  tcols[1] = 'Number of Cases'
   tcols[0] = 'Status'
   tcols[1] = 'Cases'
   hosp.columns = tcols

@@ -18,6 +18,7 @@ begin_run = time.time()
 
 
 write_sheet = False  #Default to not write to S3
+debug = False
 states = []
 states_all = ["AK","AL","AR","CA","CT","DC","DE","FL","GA","GU",
           "HI","ID","IL","IN","KY","LA","MA","MD","ME","MI",
@@ -47,6 +48,7 @@ try:
         elif arg in ("-s", "--state"):
             print (("Running State = (% s)") % (val))
             states = [str(val)]
+            debug = True
 
         elif arg in ("-w", "--write"):
             print ("Writing to S3")
@@ -69,18 +71,25 @@ if os.path.exists(maindir):
   shutil.move(maindir,maindir + '_old')
 
 
-
 failed_states_list = []
 for state in states:
   print("\n")
   display("***" + state + " Output:***")
   start = time.time()
-  try:
-    func = globals()["run" + state]
-    func(None,write_sheet)
-  except Exception as e:
-    display("Skipping state %s due to error: %s" % (state, str(e)))
-    failed_states_list.append(state)
+  if debug == False:
+    try:
+      func = globals()["run" + state]
+      func(None,write_sheet)
+    except Exception as e:
+      display("Skipping state %s due to error: %s" % (state, str(e)))
+      failed_states_list.append(state)
+  else:
+    try:
+      func = globals()["run" + state]
+      func(None,write_sheet)
+      display("STATE PASSED")
+    except Exception as e:
+      display("STATE FAILED")
   end = time.time()
   duration = end - start
   print('%s run time = %.2f s' % (state, duration))
@@ -101,7 +110,7 @@ if len(failed_states_list) > 0:
       display("Could not notify Slack, received error")
   else:
     display('SLACK_API_TOKEN and/or SLACK_CHANNEL environment variable not set')
-else:
+elif debug == False:
   display("ALL STATES PASSED!!!")
 
 end_run = time.time()

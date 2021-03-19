@@ -47,7 +47,7 @@ def init_driver():
   wd = webdriver.Chrome('chromedriver',options=options)
   return wd
 
-def writeTable(df,title,startCell):
+def writeTable(df,title,startCell,ws):
   i = 0
   maindir = 'crdt_' +  date.today().strftime('%m%d%y')
   func = inspect.stack()[1][3]
@@ -71,16 +71,22 @@ def writeTable(df,title,startCell):
   path = '%s-%s-%d.csv' % (state, date_str, i)
   full_path = os.path.join(statedir, path)
   df.to_csv(full_path)
-
+  if ws == True:
+      gd_path = "/Users/User/Google Drive (patkellyatx@gmail.com)/CRDT"
+      state_path = gd_path + "/" + state
+      if not os.path.exists(state_path):
+          os.mkdir(state_path)
+      df.to_csv(state_path + "/" + path)
+  else:
   # attempt to write to S3
-  s3 = boto3.resource('s3')
-  bucket_name = 'covid-tracking-project-data'
-  s3_path = os.path.join('CRDT', state, path)
-  try:
-    s3.meta.client.upload_file(full_path, bucket_name, s3_path)
-    display('S3 upload successful to %s' % s3_path)
-  except Exception as e:
-    display('Skipping S3 upload for %s' % state)
+    s3 = boto3.resource('s3')
+    bucket_name = 'covid-tracking-project-data'
+    s3_path = os.path.join('CRDT', state, path)
+    try:
+        s3.meta.client.upload_file(full_path, bucket_name, s3_path)
+        display('S3 upload successful to %s' % s3_path)
+    except Exception as e:
+        display('Skipping S3 upload for %s' % state)
     
     
 
@@ -119,7 +125,7 @@ def runAK(ws, write):
     #ws.update('J17',dataToWrite)
 
     # Write Data To Sheet
-    writeTable(df_dem,'AK Hospitalization & Death Demographics (Residents Only)','J19')
+    writeTable(df_dem,'AK Hospitalization & Death Demographics (Residents Only)','J19',ws)
 
 # AL
 def runAL(ws, write):
@@ -155,10 +161,10 @@ def runAL(ws, write):
     #ws.update('B36',dataToWrite)
 
     # Write Data To Sheet
-    writeTable(df_cases_eth,'Ethnicity Cases','A38')
-    writeTable(df_cases_race,'Race Cases','A43')
-    writeTable(df_deaths_eth,'Ethnicity Deaths','E38')
-    writeTable(df_deaths_race,'Race Deaths','E43')
+    writeTable(df_cases_eth,'Ethnicity Cases','A38',ws)
+    writeTable(df_cases_race,'Race Cases','A43',ws)
+    writeTable(df_deaths_eth,'Ethnicity Deaths','E38',ws)
+    writeTable(df_deaths_race,'Race Deaths','E43',ws)
 
 # AR
 def runAR(ws, write):
@@ -185,8 +191,8 @@ def runAR(ws, write):
     #ws.update('B33',dataToWrite)
 
     # Write Data To Sheet
-    writeTable(df_cases,'Case Demographics','A34')
-    writeTable(df_deaths,'Death Demographics','A37')
+    writeTable(df_cases,'Case Demographics','A34',ws)
+    writeTable(df_deaths,'Death Demographics','A37',ws)
 
 # CA
 #import pandas as pd
@@ -228,8 +234,8 @@ def runCA(ws, write):
     #ws.update('F16',dataToWrite)
 
     # Write Data To Sheet
-    writeTable(df_cases,'Case & Death Totals','G18')
-    writeTable(df_dem,'CA Race and Ethnicity Totals','G23')
+    #writeTable(df_cases,'Case & Death Totals','G18',ws)
+    writeTable(df_dem,'CA Race and Ethnicity Totals','G23',ws)
 
 #CT
 
@@ -284,8 +290,8 @@ def runCT(ws, write):
     #ws.update('F19',dataToWrite)
 
     # Write Data To Sheet
-    writeTable(df_tot,'CT Case & Deaths Totals, Confirmed & Probables','G18')
-    writeTable(df_dems2,'CT Race and Ethnicity Totals','G22')
+    writeTable(df_tot,'CT Case & Deaths Totals, Confirmed & Probables','G18',ws)
+    writeTable(df_dems2,'CT Race and Ethnicity Totals','G22',ws)
 
 # DC
 def runDC(ws,write):
@@ -340,8 +346,8 @@ def runDC(ws,write):
     #ws.update('H17',dataToWrite)
 
     # Write Data To Sheet
-    writeTable(df_cases,'Total Cases by Race','I16')
-    writeTable(df_deaths,'Lives Lost by Race','K16')
+    writeTable(df_cases,'Total Cases by Race','I16',ws)
+    writeTable(df_deaths,'Lives Lost by Race','K16',ws)
 
 # DE
 def runDE(ws,write):
@@ -419,10 +425,10 @@ def runDE(ws,write):
     #ws.update('H14',dataToWrite)
 
     # Write Data To Sheet
-    writeTable(df_totals,'','G15')
-    writeTable(df_cases,'','G19')
-    writeTable(df_deaths,'','G30')
-    writeTable(df_tests,'','G41')
+    writeTable(df_totals,'','G15',ws)
+    writeTable(df_cases,'','G19',ws)
+    writeTable(df_deaths,'','G30',ws)
+    writeTable(df_tests,'','G41',ws)
 
 # FL
 
@@ -472,9 +478,9 @@ def runFL(ws, write):
     #ws.update('L23',dataToWrite)
 
     # Write Data To Sheet
-    writeTable(df_hosp_totals,'Hospitalization Totals','N23')
-    writeTable(df_totals,'Overall Totals','P23')
-    writeTable(df_race,'Demographics','R23')
+    writeTable(df_hosp_totals,'Hospitalization Totals','N23',ws)
+    writeTable(df_totals,'Overall Totals','P23',ws)
+    writeTable(df_race,'Demographics','R23',ws)
 
 # GA
 #from io import StringIO, BytesIO
@@ -524,8 +530,8 @@ def runGA(ws, write):
     #ws.update('F20',dataToWrite)
 
     # Write Data To Sheet
-    writeTable(df_dems,'Table for Copying to Spreadsheet Area of State Page','G18')
-    writeTable(df_GA_totals,'','G41')
+    writeTable(df_dems,'Table for Copying to Spreadsheet Area of State Page','G18',ws)
+    writeTable(df_GA_totals,'','G41',ws)
 
 # GU
 def runGU(ws,write):
@@ -573,8 +579,8 @@ def runGU(ws,write):
     #ws.update('H19',dataToWrite)
 
     # Write Data To Sheet
-    writeTable(df_demo_cases,'','G21')
-    writeTable(df_demo_deaths,'','I21')
+    writeTable(df_demo_cases,'','G21',ws)
+    writeTable(df_demo_deaths,'','I21',ws)
 
 # HI ************
 
@@ -688,10 +694,10 @@ def runHI(ws,write):
       #ws.update('K13',dataToWrite)
 
       # Write Data To Sheet
-      writeTable(df_tots,'','J14')
-      writeTable(df_deaths,'','K14')
-      writeTable(df_hosps,'','L14')
-      writeTable(df_race,'HI Race','J17')
+      writeTable(df_tots,'','J14',ws)
+      writeTable(df_deaths,'','K14',ws)
+      writeTable(df_hosps,'','L14',ws)
+      writeTable(df_race,'HI Race','J17',ws)
 
 # ID
 #
@@ -815,13 +821,13 @@ def runID(ws, write):
     ##ws.update('L14',dataToWrite)
 
     # Write Data To Sheet
-    writeTable(df_cases['State Total Cases Display (2)'],'','K15')
-    writeTable(df_deaths['Total Deaths (2)'],'','M15')
-    writeTable(df_vals,'','O15')
-    writeTable(df_cases['CaseRace'],'','K21')
-    writeTable(df_cases['CaseEth'],'','K31')
-    writeTable(df_deaths['Race'],'','M21')
-    writeTable(df_deaths['Ethnicity'],'','M31')
+    writeTable(df_cases['State Total Cases Display (2)'],'','K15',ws)
+    writeTable(df_deaths['Total Deaths (2)'],'','M15',ws)
+    writeTable(df_vals,'','O15',ws)
+    writeTable(df_cases['CaseRace'],'','K21',ws)
+    writeTable(df_cases['CaseEth'],'','K31',ws)
+    writeTable(df_deaths['Race'],'','M21',ws)
+    writeTable(df_deaths['Ethnicity'],'','M31',ws)
 
 #MI
 def runMI(ws,write):
@@ -966,7 +972,7 @@ def runMI(ws,write):
     #ws.update('M19',dataToWrite)
 
     # Write Data To Sheet
-    writeTable(df,'','L20')
+    writeTable(df,'','L20',ws)
 
 def runIL(ws,write):
 
@@ -1034,7 +1040,7 @@ def runIL(ws,write):
     #ws.update('G33',dataToWrite)
 
     # Write Data To Sheet
-    writeTable(df,'','F34')
+    writeTable(df,'','F34',ws)
 
 # IN
 #import pandas as pd
@@ -1056,8 +1062,8 @@ def runIN(ws, write):
     #ws.update('G21',dataToWrite)
 
     # Write Data To Sheet
-    writeTable(df_IN_casesRace,'Cases by Race','H22')
-    writeTable(df_IN_casesEthnicity,'Cases by Ethnicity','H29')
+    writeTable(df_IN_casesRace,'Cases by Race','H22',ws)
+    writeTable(df_IN_casesEthnicity,'Cases by Ethnicity','H29',ws)
 
 # KY
 #from io import StringIO, BytesIO
@@ -1148,9 +1154,9 @@ def runKY(ws, write):
 
 
     # Write Data To Sheet
-    writeTable(race,'Race Table','J18')
-    writeTable(eth,'Ethnicity Table','J27')
-    writeTable(totals,'Totals Table','J32')
+    writeTable(race,'Race Table','J18',ws)
+    writeTable(eth,'Ethnicity Table','J27',ws)
+    writeTable(totals,'Totals Table','J32',ws)
 
 # LA
 def runLA(ws,write):
@@ -1180,7 +1186,7 @@ def runLA(ws,write):
     #ws.update('H26',dataToWrite)
 
     # Write Data To Sheet
-    writeTable(df_demo,'','J27')
+    writeTable(df_demo,'','J27',ws)
 
 # MA
 
@@ -1234,13 +1240,14 @@ def runMA(ws, write):
     #ws.update('F26',dataToWrite)
 
     # Write Data To Sheet
-    writeTable(df_cases,'Case Totals','G23')
-    writeTable(df_deaths,'Death Totals','G27')
-    writeTable(df_dems,'MA Demographics','G31')
-    writeTable(df_dem_tot,'MA Race and Ethnicity Totals','G42')
+    writeTable(df_cases,'Case Totals','G23',ws)
+    writeTable(df_deaths,'Death Totals','G27',ws)
+    writeTable(df_dems,'MA Demographics','G31',ws)
+    writeTable(df_dem_tot,'MA Race and Ethnicity Totals','G42',ws)
 
 # MD
 def runMD(ws,write):
+    
   url = 'https://coronavirus.maryland.gov/'
   req = requests.get(url)
   soup = BeautifulSoup(req.text, 'html5lib')
@@ -1271,6 +1278,7 @@ def runMD(ws,write):
   df_totals.columns = ["Metric","Value"]
   display(df_totals)
 
+
   #Template for writing to state page
   if write == True:
     # Write Paste Date To Sheet
@@ -1278,8 +1286,8 @@ def runMD(ws,write):
     #ws.update('F33',dataToWrite)
 
     # Write Data To Sheet
-    writeTable(df_demo,'','A33')
-    writeTable(df_totals,'','G29')
+    writeTable(df_demo,'','A33',ws)
+    writeTable(df_totals,'','G29',ws)
 
 # ME #Race only
 def runME(ws, write):
@@ -1373,7 +1381,7 @@ def runME(ws, write):
       #ws.update('G26',dataToWrite)
       #Write Demographic Data
       #writeTable(df_totals,'Confirmed Case & Death Totals','L15')
-      writeTable(df_casesRace,'','H27')
+      writeTable(df_casesRace,'','H27',ws)
       #writeTable(df_casesEth,'Demographics by Ethnicity','L23')
 
 #MN
@@ -1403,8 +1411,8 @@ def runMN(ws, write):
       #ws.update('C48',dataToWrite)
 
       # Write Data To Sheet
-      writeTable(df_caseR,'','B51')
-      writeTable(df_deathR,'','D51')
+      writeTable(df_caseR,'','B51',ws)
+      writeTable(df_deathR,'','D51',ws)
      # writeTable(df_tot,'','I19')
 
 #MO
@@ -1523,8 +1531,8 @@ def runMO(ws, write):
       #ws.update('J16',dataToWrite)
 
       # Write Data To Sheet
-      writeTable(race,'Race Totals','J17')
-      writeTable(ethnicity,'Ethnicity Totals','J28')
+      writeTable(race,'Race Totals','J17',ws)
+      writeTable(ethnicity,'Ethnicity Totals','J28',ws)
 
 #MS
 def runMS(ws, write):
@@ -1540,9 +1548,9 @@ def runMS(ws, write):
     index = int(index[0])
     #print("\nindex")
     #print(index)
-    if (index > big):
+    if (index > big) and ('Cases and Deaths' in link['title']):
         big = index
-  print(big)
+  #print(big)
 
   #Put the filename back together
   url=('https://msdh.ms.gov/msdhsite/_static/resources/{}.pdf'.format(big))
@@ -1655,8 +1663,8 @@ def runMS(ws, write):
       #ws.update('B36',dataToWrite)
 
       # Write Data To Sheet
-      writeTable(case_tot,'','A37')
-      writeTable(death_tot,'','A40')
+      writeTable(case_tot,'','A37',ws)
+      writeTable(death_tot,'','A40',ws)
 
 #MT
 def runMT(ws, write):
@@ -1755,9 +1763,9 @@ def runMT(ws, write):
      #ws.update('J18',dataToWrite)
 
      # Write Data To Sheet
-     writeTable(raceeth,'Race Table','H19')
-     writeTable(totals,'Totals  Table','H33')
-     writeTable(hosp,'Ever Hospitalized','H39') 
+     writeTable(raceeth,'Race Table','H19',ws)
+     writeTable(totals,'Totals  Table','H33',ws)
+     writeTable(hosp,'Ever Hospitalized','H39',ws) 
 
 
 #NC
@@ -1848,8 +1856,8 @@ def runNC(ws, write):
       #ws.update('H19',dataToWrite)
 
       # Write Data To Sheet
-      writeTable(race,'Race Totals','G20')
-      writeTable(ethnicity,'Ethnicity Totals','G28')
+      writeTable(race,'Race Totals','G20',ws)
+      writeTable(ethnicity,'Ethnicity Totals','G28',ws)
 
 #ND
 def runND(ws,write):
@@ -1906,7 +1914,7 @@ def runND(ws,write):
     #ws.update('D22',dataToWrite)
 
     # Write Data To Sheet
-    writeTable(df,'','C23')
+    writeTable(df,'','C23',ws)
 
 #NE
 def runNE(ws, write):
@@ -1972,8 +1980,8 @@ def runNE(ws, write):
       #ws.update('B38',dataToWrite)
 
       # Write Data To Sheet
-      writeTable(df_tot,'','C39')
-      writeTable(df_casesF,'Case Totals','C41')
+      writeTable(df_tot,'','C39',ws)
+      writeTable(df_casesF,'Case Totals','C41',ws)
 
 # NH
 def runNH(ws, write):
@@ -2195,12 +2203,12 @@ def runNH(ws, write):
       #ws.update('F31',dataToWrite)
 
       # Write Data To Sheet
-      #writeTable(df_totals,'Race & Ethnicity Totals','G32')
-      writeTable(df_casesRace,'Confirmed Cases by Race & Ethnicity','G31')
-      writeTable(df_deathsRace,'Confirmed Deaths by Race & Ethnicity','S31')
-      writeTable(knownpercent,'Percent of Known Demographics','G43')
-      writeTable(totals,'Race & Ethnicity Totals','G48')
-      writeTable(hosp,'Hosp by Race & Ethnicity','M31')
+      #writeTable(df_totals,'Race & Ethnicity Totals','G32',ws)
+      writeTable(df_casesRace,'Confirmed Cases by Race & Ethnicity','G31',ws)
+      writeTable(df_deathsRace,'Confirmed Deaths by Race & Ethnicity','S31',ws)
+      writeTable(knownpercent,'Percent of Known Demographics','G43',ws)
+      writeTable(totals,'Race & Ethnicity Totals','G48',ws)
+      writeTable(hosp,'Hosp by Race & Ethnicity','M31',ws)
 
 # NM
 def runNM(ws, write):
@@ -2236,8 +2244,8 @@ def runNM(ws, write):
     #ws.update('B36',dataToWrite)
 
     # Write Data To Sheet
-    writeTable(df_casesR,'','B37')
-    writeTable(death_table2,'','E36')
+    writeTable(df_casesR,'','B37',ws)
+    writeTable(death_table2,'','E36',ws)
 
 # NV
 def runNV(ws,write):
@@ -2287,7 +2295,7 @@ def runNV(ws,write):
     #ws.update('B37',dataToWrite)
 
     # Write Data To Sheet
-    writeTable(df,'','A38')
+    writeTable(df,'','A38',ws)
 
 # NY
 #import pandas as pd
@@ -2311,8 +2319,8 @@ def runNY(ws, write):
     #ws.update('J25',dataToWrite)
 
     # Write Data To Sheet
-    writeTable(df_nyc_deaths,'','J17')
-    writeTable(df_nyc_cases_hosp,'','O17')
+    writeTable(df_nyc_deaths,'','J17',ws)
+    writeTable(df_nyc_cases_hosp,'','O17',ws)
 
 # OR
 def runOR(ws, write):
@@ -2389,8 +2397,8 @@ def runOR(ws, write):
     #ws.update('J48',dataToWrite)
 
     # Write Data To Sheet
-    writeTable(df_cases_deaths,'','H21')
-    writeTable(df_hosp,'','H36')
+    writeTable(df_cases_deaths,'','H21',ws)
+    writeTable(df_hosp,'','H36',ws)
 
 # PA
 def runPA(ws, write):
@@ -2445,11 +2453,11 @@ def runPA(ws, write):
     #ws.update('H16',dataToWrite)
 
     # Write Data To Sheet
-    writeTable(df_casesR, 'Cases by Race', 'H25')
-    writeTable(df_casesE,'Cases by Ethnicity','H34')
-    writeTable(df_deathR,'Deaths by Race','K25')
-    writeTable(df_deathE,'Deaths by Ethnicity','K34')
-    writeTable(df_tots,'Totals', 'H17')
+    writeTable(df_casesR, 'Cases by Race', 'H25',ws)
+    writeTable(df_casesE,'Cases by Ethnicity','H34',ws)
+    writeTable(df_deathR,'Deaths by Race','K25',ws)
+    writeTable(df_deathE,'Deaths by Ethnicity','K34',ws)
+    writeTable(df_tots,'Totals', 'H17',ws)
 
 # RI
 
@@ -2514,8 +2522,8 @@ def runRI(ws,write):
     #ws.update('R32',dataToWrite)
 
     # Write Data To Sheet
-    writeTable(df_totals,'Summary','R19')
-    writeTable(df_demo,'Demographics','T19')
+    writeTable(df_totals,'Summary','R19',ws)
+    writeTable(df_demo,'Demographics','T19',ws)
 
 # SD
 def runSD(ws,write):
@@ -2586,7 +2594,7 @@ def runSD(ws,write):
     ##ws.update('J19',dataToWrite)
 
     # Write Data To Sheet
-    writeTable(df,'','I20')
+    writeTable(df,'','I20',ws)
 
 # TN
 def runTN(ws, write):
@@ -2620,7 +2628,7 @@ def runTN(ws, write):
     #ws.update('K20',dataToWrite)
 
     # Write Data To Sheet
-    writeTable(df,'','J21')
+    writeTable(df,'','J21',ws)
 
 # TX
 #import pandas as pd
@@ -2643,8 +2651,8 @@ def runTX(ws,write):
     #ws.update('F31',dataToWrite)
 
     # Write Data To Sheet
-    writeTable(df_cases,'Cases by Race','H20')
-    writeTable(df_deaths,'Deaths by Race','H29')
+    writeTable(df_cases,'Cases by Race','H20',ws)
+    writeTable(df_deaths,'Deaths by Race','H29',ws)
 
 # UT
 def runUT(ws, write):
@@ -2693,8 +2701,8 @@ def runUT(ws, write):
     #ws.update('G34',dataToWrite)
 
     # Write Data To Sheet
-    writeTable(df,'','H17')
-    writeTable(df_tests,'','H34')
+    writeTable(df,'','H17',ws)
+    writeTable(df_tests,'','H34',ws)
 
 # VA
 #import pandas as pd
@@ -2753,9 +2761,9 @@ def runVA(ws, write):
     #ws.update('J14',dataToWrite)
 
     # Write Data To Sheet
-    writeTable(df_confProb,'','K15')
-    writeTable(df_tots,'','K19')
-    writeTable(df_dem,'','C33')
+    writeTable(df_confProb,'','K15',ws)
+    writeTable(df_tots,'','K19',ws)
+    writeTable(df_dem,'','C33',ws)
 
 # VT
 def runVT(ws, write):
@@ -2801,8 +2809,8 @@ def runVT(ws, write):
     #ws.update('I19',dataToWrite)
 
     # Write Data To Sheet
-    writeTable(df_demo_cases,'','H20')
-    writeTable(df_demo_deaths,'','K20')
+    writeTable(df_demo_cases,'','H20',ws)
+    writeTable(df_demo_deaths,'','K20',ws)
 
 # WA
 def runWA(ws,write):
@@ -2850,9 +2858,9 @@ def runWA(ws,write):
     #ws.update('B33',dataToWrite)
 
     # Write Data To Sheet
-    writeTable(df_cases,'','A35')
-    writeTable(df_hosp,'','G35')
-    writeTable(df_deaths,'','D35')
+    writeTable(df_cases,'','A35',ws)
+    writeTable(df_hosp,'','G35',ws)
+    writeTable(df_deaths,'','D35',ws)
 
 #WI
 #from io import StringIO, BytesIO
@@ -3038,17 +3046,17 @@ def runWI(ws, write):
     #ws.update('J15',dataToWrite)
 
     # Write Data To Sheet
-    writeTable(df_totals,'Confirmed Case & Death Totals','L15')
+    writeTable(df_totals,'Confirmed Case & Death Totals','L15',ws)
 
-    writeTable(df_casesConfirmRace, 'Confirmed Cases by Race', 'K19')
-    writeTable(df_casesConfirmEth, 'Confirmed Cases by Ethnicity', 'K28')
-    writeTable(df_casesProbsRace, 'Probable Cases by Race', 'N19')
-    writeTable(df_casesProbsEth, 'Probable Cases by Ethnicity', 'N28')
+    writeTable(df_casesConfirmRace, 'Confirmed Cases by Race', 'K19',ws)
+    writeTable(df_casesConfirmEth, 'Confirmed Cases by Ethnicity', 'K28',ws)
+    writeTable(df_casesProbsRace, 'Probable Cases by Race', 'N19',ws)
+    writeTable(df_casesProbsEth, 'Probable Cases by Ethnicity', 'N28',ws)
 
-    writeTable(df_deathsConfirmRace, 'Confirmed Deaths by Race', 'K34')
-    writeTable(df_deathsConfirmEth, 'Confirmed Deaths by Ethnicity', 'K43')
-    writeTable(df_deathsProbsRace, 'Probable Deaths by Race', 'N34')
-    writeTable(df_deathsProbsEth, 'Probable Deaths by Ethnicity', 'N43')
+    writeTable(df_deathsConfirmRace, 'Confirmed Deaths by Race', 'K34',ws)
+    writeTable(df_deathsConfirmEth, 'Confirmed Deaths by Ethnicity', 'K43',ws)
+    writeTable(df_deathsProbsRace, 'Probable Deaths by Race', 'N34',ws)
+    writeTable(df_deathsProbsEth, 'Probable Deaths by Ethnicity', 'N43',ws)
 
 # WY ************
 
@@ -3172,9 +3180,9 @@ def runWY(ws,write):
       #ws.update('G16',dataToWrite)
 
       # Write Data To Sheet
-      writeTable(df_cases,'Case Totals','M17')
-      writeTable(df_probables,'Probable Totals','M20')
-      writeTable(df_deaths,'Death Totals','M32')
-      writeTable(df_raceth,'Cases by Race & Ethnicity','H17')
-      writeTable(df_racethdeath,'Deaths by Race & Ethnicity','H32')
+      writeTable(df_cases,'Case Totals','M17',ws)
+      writeTable(df_probables,'Probable Totals','M20',ws)
+      writeTable(df_deaths,'Death Totals','M32',ws)
+      writeTable(df_raceth,'Cases by Race & Ethnicity','H17',ws)
+      writeTable(df_racethdeath,'Deaths by Race & Ethnicity','H32',ws)
 

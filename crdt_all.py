@@ -18,6 +18,7 @@ begin_run = time.time()
 
 
 write_sheet = False  #Default to not write to S3
+write_local = False
 debug = False
 states = []
 states_all = ["AK","AL","AR","CA","CT","DC","DE","FL","GA","GU",
@@ -29,8 +30,8 @@ states_all = ["AK","AL","AR","CA","CT","DC","DE","FL","GA","GU",
 args_list  = sys.argv[1:]
 
 # Options
-opts = "haws:"
-long_opts = ["help", "all", "state", "write"]
+opts = "hawls:"
+long_opts = ["help", "all", "state", "write", "local"]
 try:
     # Parsing argument
     args, vals = getopt.getopt(args_list, opts, long_opts)
@@ -51,8 +52,13 @@ try:
             debug = True
 
         elif arg in ("-w", "--write"):
-            print ("Writing to S3")
+            print ("Writing Output")
             write_sheet = True # #Make True to enable writes of csv files to the directory tree
+
+        elif arg in ("-l", "--local"):
+            print ("Writing Locally")
+            write_local = True # Overrides S3 write, writes to local database (Pat's google drive for now)
+
 
 except getopt.error as err:
     # output error, and return with an error code
@@ -79,17 +85,18 @@ for state in states:
   if debug == False:
     try:
       func = globals()["run" + state]
-      func(None,write_sheet)
+      func(write_local,write_sheet)
     except Exception as e:
       display("Skipping state %s due to error: %s" % (state, str(e)))
       failed_states_list.append(state)
   else:
     try:
       func = globals()["run" + state]
-      func(None,write_sheet)
+      func(write_local,write_sheet)
       display("STATE PASSED")
     except Exception as e:
       display("STATE FAILED")
+      display(e)
   end = time.time()
   duration = end - start
   print('%s run time = %.2f s' % (state, duration))

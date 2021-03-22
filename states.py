@@ -1721,8 +1721,10 @@ def runMT(ws, write):
   #display(hosp)
 
   #Remove parens from numbers
-  totals['Totals']=totals['Totals'].str.replace(r"1E5","100000",regex=True)
-  totals['Totals']=totals['Totals'].str.replace(r"\(.*\)","",regex=True).astype(int)
+  display(totals['Totals'].dtypes)
+  if (totals['Totals'].dtypes == 'str'):
+    totals['Totals']=totals['Totals'].str.replace(r"1E5","100000",regex=True)
+    totals['Totals']=totals['Totals'].str.replace(r"\(.*\)","",regex=True).astype(int)
   #print("totals regex")
   #hosp['Number of Cases']=hosp['Number of Cases'].replace("\(.*\)","",regex=True).astype(int)
   hosp['Cases']=hosp['Cases'].str.replace(r"\(.*\)","",regex=True).astype(int)

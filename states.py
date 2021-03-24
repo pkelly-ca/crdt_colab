@@ -2465,38 +2465,34 @@ def runPA(ws, write):
 
 def runRI(ws,write):
 
-  key_ri = '1c2QrNMz8pIbYEKzMJL7Uh2dtThOJa2j1sSMwiDo5Gz4'
-  try:
-    wb_ri = gc.open_by_key(key_ri)
-  except NameError:
+#  key_ri = '1c2QrNMz8pIbYEKzMJL7Uh2dtThOJa2j1sSMwiDo5Gz4'
+#  try:
+#    wb_ri = gc.open_by_key(key_ri)
+#  except NameError:
 #    auth.authenticate_user()
-    gc = gspread.oauth()
+#    gc = gspread.oauth()
 #    gc = gspread.authorize(GoogleCredentials.get_application_default())
-    wb_ri = gc.open_by_key(key_ri)
+#    wb_ri = gc.open_by_key(key_ri)
 
   # Get Totals from Summary tab, discard unused rows
-  ws_sum = wb_ri.worksheet('Summary')
-  df_totals = pd.DataFrame(ws_sum.get_all_records())
+  summary_url = 'https://docs.google.com/spreadsheets/d/1c2QrNMz8pIbYEKzMJL7Uh2dtThOJa2j1sSMwiDo5Gz4/gviz/tq?tqx=out:csv&sheet=Summary'
+  df_totals = pd.read_csv(summary_url)
   df_totals = df_totals.iloc[[9,12,14,24],:]
   display(df_totals)
 
   # Get race info from Demographics tab, wrangle data
-  ws_demo = wb_ri.worksheet('Demographics')
-  df_demo = pd.DataFrame(data=ws_demo.get_all_values())
-  # Remove unused columns, delete \n from header
-  df_demo.drop(df_demo.columns[[2, 4, 6, 8]], axis = 1, inplace = True)
+  demo_url = 'https://docs.google.com/spreadsheets/d/1c2QrNMz8pIbYEKzMJL7Uh2dtThOJa2j1sSMwiDo5Gz4/gviz/tq?tqx=out:csv&sheet=Demographics'
+  df_demo= pd.read_csv(demo_url,header=None)
+  df_demo.drop(df_demo.columns[[2, 4, 6, 8,9,10,11,12,13,14]], axis = 1, inplace = True)
+  header = df_demo.T[0].str.split(' N=', expand=True)
+  df_demo = header.T.append(df_demo.iloc[1:,:])
+  df_demo.reset_index(drop=True,inplace=True)
+  df_demo.iloc[0:2,0]=['','Totals']
   df_demo.columns = df_demo.iloc[0,:].replace({'\n': ''}, regex=True)
-  # Get totals row
   totals = df_demo.iloc[[1]]
-  # Get race rows, append to totals row
-  df_demo = df_demo.iloc[16:27,:]
-  df_demo = totals.append(df_demo)
-  # Change old header to row title for totals
-  df_demo = df_demo.replace('Age Group','Totals')
-  # Convert totals to pure numbers
-  df_demo = df_demo.replace({'N=': ''}, regex=True)
-  # Find number of <5's, replace with 1's
+  df_demo = totals.append(df_demo.iloc[16:27,:])
   df_demo = df_demo.replace({'<5': '1'}, regex=True)
+  df_demo = df_demo.fillna('')
 
   cols = list(df_demo.columns)
   cols = [s for s in cols if s != '']

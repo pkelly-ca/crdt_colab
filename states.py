@@ -355,7 +355,7 @@ def runDE(ws,write):
     val = re.findall(r'\b\d{1,3}(?:,\d{3})*(?!\d)', span.text)
     val = int(val[0].replace(',',''))
     return val
-
+  
   def make_table(script,txt):
     pattern = re.compile(r"App.Charts.SimpleBar\(\n\s*({\"name\".*})", flags=re.MULTILINE)
     scr = re.search(pattern, script)
@@ -368,22 +368,62 @@ def runDE(ws,write):
     df.rename(columns={'Categories': txt},inplace=True)
     df.Data = df.Data.astype('int')
     return df
-
+  
   confirmed = []
   probable = []
   num_found = [0,0,0,0,0]
-
-  url = 'https://myhealthycommunity.dhss.delaware.gov/locations/state'
+  
+  url = 'https://myhealthycommunity.dhss.delaware.gov/locations/state/testing'
   req = requests.get(url)
-  soup = BeautifulSoup(req.text, 'html.parser')
-
-  # Find Totals
+  soup = BeautifulSoup(req.text, 'html5lib')
+  
+  # Find Total Tests
   span = soup.find_all('span')
-
+  
+  for i in range(0,len(span)):
+    if ("State of Delaware" in span[i]) & (num_found[4]<2):
+      if num_found[4] == 1:
+        total_tests = find_val(span[i+1])
+      num_found[4] += 1 
+  
+  all_script = soup.find_all('script')
+  
+  for scr in all_script:
+    if "total_persons_tested_by_race_ethnicity" in scr.text:
+      df_tests = make_table(scr.text,'Tests')
+  
+  url = 'https://myhealthycommunity.dhss.delaware.gov/locations/state/cases'
+  req = requests.get(url)
+  soup = BeautifulSoup(req.text, 'html5lib')
+  
+  # Find Total Cases
+  span = soup.find_all('span')
+  
   for i in range(0,len(span)):
     if ("Total Positive Cases" in span[i]) & (num_found[0]==0):
       total_cases = find_val(span[i+1])
       num_found[0] += 1
+    if ("Confirmed" in span[i]) & (num_found[2]<2):
+      confirmed.append(find_val(span[i+1]))
+      num_found[2] += 1
+    if ("Probable" in span[i]) & (num_found[3]<2):
+      probable.append(find_val(span[i+1]))
+      num_found[3] += 1
+  
+  all_script = soup.find_all('script')
+  
+  for scr in all_script:
+    if "total_cases_by_race_ethnicity" in scr.text:
+      df_cases = make_table(scr.text,'Cases')
+  
+  url = 'https://myhealthycommunity.dhss.delaware.gov/locations/state/deaths'
+  req = requests.get(url)
+  soup = BeautifulSoup(req.text, 'html5lib')
+  
+  # Find Total Deaths
+  span = soup.find_all('span')
+  
+  for i in range(0,len(span)):
     if ("Total Deaths" in span[i]) & (num_found[1]==0):
       total_deaths = find_val(span[i+1])
       num_found[1] += 1
@@ -393,31 +433,22 @@ def runDE(ws,write):
     if ("Probable" in span[i]) & (num_found[3]<2):
       probable.append(find_val(span[i+1]))
       num_found[3] += 1
-    if ("State of Delaware" in span[i]) & (num_found[4]<2):
-      if num_found[4] == 1:
-        total_tests = find_val(span[i+1])
-      num_found[4] += 1
-
+  
+  
+  all_script = soup.find_all('script')
+  
+  for scr in all_script:
+    if "total_deaths_by_race_ethnicity" in scr.text:
+      df_deaths = make_table(scr.text,'Deaths')
+  
   df_totals = pd.DataFrame([["Cases",total_cases, confirmed[0],probable[0]],["Deaths",total_deaths, confirmed[1],probable[1]],["Tests",total_tests,0,0]],
                           columns=['Category','Total','Confirmed','Probable'])
   display(df_totals)
-
-  # Find Demo Tables
-  soup = BeautifulSoup(req.text,"html5lib")
-  all_script = soup.find_all('script')
-
-  for scr in all_script:
-    if "total_persons_tested_by_race_ethnicity" in scr.text:
-      df_tests = make_table(scr.text,'Tests')
-    if "total_cases_by_race_ethnicity" in scr.text:
-      df_cases = make_table(scr.text,'Cases')
-    if "total_deaths_by_race_ethnicity" in scr.text:
-      df_deaths = make_table(scr.text,'Deaths')
-
+  
   display(df_tests)
   display(df_cases)
   display(df_deaths)
-
+  
   #Template for writing to state page
   if write == True:
     # Write Paste Date To Sheet
@@ -1559,6 +1590,7 @@ def runMS(ws, write):
   print("\nMS Cases by Race & Ethnicity")
   #Grab first half & second havles of tables - strip off first two rows and then rename columns
   casesTable1 = tabula.read_pdf(url,pages=1 ,multiple_tables=True, lattice=True)
+  print("table2")
   casesTable2 = tabula.read_pdf(url,pages=2 ,multiple_tables=True, lattice=True)
   deathsTable1 = tabula.read_pdf(url,pages=3 ,multiple_tables=True, lattice=True)
   deathsTable2 = tabula.read_pdf(url,pages=4 ,multiple_tables=True, lattice=True)

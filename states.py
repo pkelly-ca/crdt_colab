@@ -237,9 +237,80 @@ def runCA(ws, write):
     #writeTable(df_cases,'Case & Death Totals','G18',ws)
     writeTable(df_dem,'CA Race and Ethnicity Totals','G23',ws)
 
+#CO
+
+def runCO(ws, write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
+
+  # CO Total Cases, Total Deaths, Percent of Cases by Race, Percent of Cases by Ethnicity
+  #url='https://data-cdphe.opendata.arcgis.com/datasets/cdphe-covid19-state-level-expanded-case-data/data'
+  #dnld_xpath='//*[@class="btn dropdown-toggle btn-default hub-download"]'
+  #dnld_xpath_caret='//*[@class="caret"]'
+  url='https://opendata.arcgis.com/datasets/15883575464d46f686044d2c1aa84ef9_0.csv'
+
+  df_totals = pd.read_csv(url,parse_dates=['date'])
+  print(url)
+  #display(df_totals)
+  maxDateCase = df_totals ['date'].max()
+
+  print(maxDateCase, '\n')
+  df_tot=df_totals[df_totals['description'] == 'Cumulative counts to date']
+  df_tot=(df_tot[df_tot['date']== maxDateCase])
+  df_tot['value'].astype(float)
+  
+  # Find the case Totals & death Totals
+  df_tot=df_tot.drop(df_tot.columns[[0,1,2,3,6,7]],axis=1).reset_index() 
+  print("CO Totals")
+  display(df_tot)
+  caseTot=(df_tot[df_tot['metric'] == 'Cases'])
+  cases=caseTot['value']
+  #print(cases)
+  deathTot=(df_tot[df_tot['metric'] == 'Deaths Among Cases'])
+  deaths=deathTot['value']
+  #print(deaths)
+
+  # find the Case Demographics
+  df_caseDems=df_totals[df_totals['description']== 'Percent of Cases by Race and Ethnicity']
+  df_caseDems=(df_caseDems[df_caseDems['date'] == maxDateCase])
+  df_caseDems=df_caseDems.drop(df_caseDems.columns[[0,2,3,6,7]],axis=1).reset_index() 
+  df_caseDems['value'].astype(float)
+  df_caseDems['Case Count']=df_caseDems['value']
+  for i in range(len(df_caseDems)):
+    df_caseDems.iloc[i, 4]=round(df_caseDems.iloc[i, 4] * cases)
+
+  # find the Death Demographics
+  df_deathDems = df_totals[df_totals['description'] == 'Percent of Deaths by Race and Ethnicity']
+  df_deathDems= (df_deathDems[df_deathDems['date'] == maxDateCase])
+  df_deathDems=df_deathDems.drop(df_deathDems.columns[[0,2,3,6,7]],axis=1).reset_index()
+  df_deathDems['value'].astype(float)
+  df_deathDems['Death Count']=df_deathDems['value']
+  for i in range(len(df_deathDems)):
+    df_deathDems.iloc[i, 4]=round(df_deathDems.iloc[i, 4] * deaths)
+
+  print("CO Case Demographic %")
+  display(df_caseDems)
+  print("CO Death Demographic %")
+  display(df_deathDems)
+
+  if(write == 1):
+    # Write Paste Date To Sheet
+    dataToWrite = [[date.today().strftime('%m/%d')]]
+    #ws.update('F16',dataToWrite)
+
+    # Write Data To Sheet
+    #writeTable(df_cases,'Case & Death Totals','G18',ws)
+    writeTable(df_tot,'CO Totals','G23',ws)
+    writeTable(df_caseDems, 'CO Case Demographics', 'H23', ws)
+    writeTable(df_deathDems, 'CO Death Demographics', 'J23', ws)
+  
+  
+
 #CT
 
 def runCT(ws, write):
+
   # CT Case & Deaths Totals, Confirmed & Probables"
   url = 'https://data.ct.gov/api/views/rf3k-f8fg/rows.csv?accessType=DOWNLOAD&bom=true&format=true'
   df_totals = pd.read_csv(url,parse_dates=['Date'])
@@ -1332,26 +1403,23 @@ def runME(ws, write):
   #xpaths
   #Race & Ethnicity Toggle
   race_toggle_xpath='//*[@id="tableau_base_widget_ParameterControl_0"]/div/div[2]/span/div[2]/span/svg'
-  eth_toggle_xpath='//button[@aria-label="Toggle race / ethnicity Ethnicity"]'
 
   #Select hospitalizations
-  hosp_xpath='//*[@id="tabZoneId8"]/div/div/div/div[1]/div[5]/div[1]/canvas'
+  #race_hosp_xpath='//*[@id="tabZoneId8"]/div/div/div/div[1]/div[5]/div[1]/canvas'
+  race_hosp_xpath='//*[@class="tabCanvas tab-widget"]'
   #Download Toolbar Button
   tab_btn_xpath = '//*[@id="download-ToolbarButton"]/span[1]'
   #download form options
-  data_btn_xpath='//*[@id="DownloadDialog-Dialog-Body-Id"]/div/fieldset/button[2]'
-  #Text File
-  text_file_xpath = "//*[@id='tabContent-panel-summary']/div[2]/div[2]/a"
+  data_btn_xpath='//*[@data-tb-test-id="DownloadData-Button"]'
+  #data_btn_xpath='//*[@id="DownloadDialog-Dialog-Body-Id"]/div/fieldset/button[2]'
   #downloaded csv paths
   csv_Race = "case-by-race-bars_data.csv"
   csv_Eth = "case-by-race-bars_data.csv"
 
-  # Race or Ethnicity tab -> Race & Ethnicity Toggle -> Hosp Selection -> Dnld Toolbar Btn -> Data Option -> 
-  #download view and convert to df
   def getCSV(metric_csv):
-    wait.until(EC.element_to_be_clickable((By.XPATH,hosp_xpath))).click()
-    print("selected Hospitalizations")
+
     wait.until(EC.element_to_be_clickable((By.XPATH,tab_btn_xpath))).click()
+    time.sleep(10)
     print("clicked download button")
     print('record the windows that are open')
     window_before = wd.window_handles[0]
@@ -1362,7 +1430,7 @@ def runME(ws, write):
     window_after = wd.window_handles[1]
     wd.switch_to_window(window_after)
     print("window after")
-    wait.until(EC.element_to_be_clickable((By.XPATH,text_file_xpath))).click()
+    wait.until(EC.element_to_be_clickable((By.XPATH,"//*[@class='csvLink_summary']"))).click()
     print("clicked text file option")
     time.sleep(5)
     #make df
@@ -1377,32 +1445,67 @@ def runME(ws, write):
   print(raceethsrc)
   #Demographics by Race
   print("\nDemographics by Race")
+  wait.until(EC.element_to_be_clickable((By.XPATH,race_hosp_xpath))).click()
+  print("selected Hospitalizations")
   df_casesRace = getCSV(csv_Race)
   df_casesRace.fillna('0')
   #Get rid of extra rows
-  df_casesRace=df_casesRace.drop(['Population','Recoveries'],1).fillna('0')
+  df_casesRace=df_casesRace.drop(['Population'],1).fillna('0')
   display(df_casesRace)
   wd.quit()
 
   #Ethnicity
-  #wd=init_driver()
-  #wd.get(raceethsrc)
-  #wait = WebDriverWait(wd, 120)
-  #print(raceethsrc)
+  wd=init_driver()
+  wd.get(raceethsrc)
+  wait = WebDriverWait(wd, 120)
+  print(raceethsrc)
+
   #Demographics by Ethnicity
-  #print("\nDemographics by Ethnicity")
-  #eth_xpath='//*[@id="tab-ui-id-1615693149007"]'
-  #wd.find_element_by_xpath(eth_xpath)
- # time.sleep(20)
-  #wait.until(EC.element_to_be_clickable((By.XPATH, eth_xpath))).click()
-  #print("clicked to select ethnicity")
-  #wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="tab-menuItem22"]/div/span'))).click()
-  #print("selected ethnicity")
- # wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@aria-label='Toggle race / ethnicity Ethnicity']"))).click()
+  print("\nDemographics by Ethnicity")
+  wd.save_screenshot("eth_Begin.png");
+
+ 
+  toggle_zero='//*[@id="tableau_base_widget_ParameterControl_0"]/div/div[2]/span/div[2]/span' # Widget
+ #Ethnicity
+  toggle_one='//*[@id="tab-menuItem2"]/div/span'
+  toggle_xpath_eth='//*[@id="tab-menuItem2"]'
+  toggle_last='//*[@id="tab-menuItem2"]/div/span'
+
+  toggle_eth_xpath='//*[@id="tab-menuItem2"]/div/span'
+  #toggle_eth_xpath='//*[@aria-activedescendant="tab-menuItem2"]'
+
+  toggle_xpath='//*[@id="tab-ui-id-1616981554102"]'
+  choose_eth='//*[@id="tab-menuItem2"]/div/span'
+
+  little_widget='//*[@aria-label="Toggle race / ethnicity Ethnicity"]'
+  raceeth_xpath='//*[@aria-label="Toggle race / ethnicity"]'
+  eth_hosp_xpath='//*[@class="tab-tooltip tab-widget tab-tooltipBR"]'
+
+  #print("Toggle 0")
+  #time.sleep(10)
+  #wd.find_element_by_xpath(toggle_zero).click()
+  #wd.save_screenshot("ethToggleZero.png");
+
+  #print("Toggle One")
+  #time.sleep(20)
+  #toggle_btn=wd.find_element_by_xpath(toggle_one).click()
+  #wd.save_screenshot("ethToggleOne.png");
+  #print("Toggle one done, now choosing Toggle two")
+  #wd.save_screenshot("ethToggleOne.png");
+
+  #print("Toggle Xpath Eth")
+  #toggle_btn=wd.find_element_by_xpath(toggle_xpath_eth).click()
+  #wd.save_screenshot("ethToggleXpath.png");
+  #print("Toggle xpath eth done, now choosing xpath last")
+  #wd.save_screenshot("ethToggleXpath.png");  
+
+  #wait.until(EC.element_to_be_clickable((By.XPATH, eth_hosp_xpath))).click()
+  #print("clicked Hospitalization")
+
   #df_casesEth = getCSV(csv_Eth)
   #df_casesEth.fillna('0')
   #Get rid of extra rows
-  #df_casesEth=df_casesEth.drop(['Population','Recoveries'],1).fillna('0')
+  #df_casesEth=df_casesEth.drop(['Population'],1).fillna('0')
   #display(df_casesEth)
   #wd.quit()
   
@@ -1954,58 +2057,55 @@ def runND(ws,write):
 def runNE(ws, write):
     #totals, case dems, death dems
   print("NE Dems")
-  #NE Deaths
-  urldeath='https://gis.ne.gov/enterprise/rest/services/CovidUpdatePublic/MapServer/0/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outStatistics=%5B%7B%22statisticType%22%3A%22avg%22%2C%22onStatisticField%22%3A%22dec_gender_male%22%2C%22outStatisticFieldName%22%3A%22dec_gender_male%22%7D%2C%7B%22statisticType%22%3A%22avg%22%2C%22onStatisticField%22%3A%22dec_gender_female%22%2C%22outStatisticFieldName%22%3A%22dec_gender_female%22%7D%2C%7B%22statisticType%22%3A%22avg%22%2C%22onStatisticField%22%3A%22dec_gender_unknown%22%2C%22outStatisticFieldName%22%3A%22dec_gender_unknown%22%7D%5D&outSR=102100'
-  #sum gender of deaths to get total
-  headers = {"User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:79.0) Gecko/20100101 Firefox/79.0"}
-  req = requests.get(urldeath, headers=headers)
+  #NE Deaths  FIXED
+  urldeath='https://gis.ne.gov/Enterprise/rest/services/Covid19MapV6/MapServer/4/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outSR=102100&resultOffset=0&resultRecordCount=50'
+  #headers = {"User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:79.0) Gecko/20100101 Firefox/79.0"}
+  req = requests.get(urldeath)
   #Read in from ArcGIS->replace NaN
   df_death=pd.json_normalize(req.json()['features'])
   df_death=df_death.fillna('0').astype('int64')
-  df_death['Deaths']=df_death.sum(axis=1)
-  cols=list(df_death.columns)
-  cols=['drop1','drop2','drop3','Deaths']
-  df_death.columns=cols
+  df_death= df_death.rename(columns={'attributes.DEATH_TOTAL':'Deaths'})
+  df_death=df_death['Deaths'].astype('int64')
+  #print("Deaths")
   #display(df_death)
 
-  #NE Hospitalizations
-  urlhosp='https://gis.ne.gov/enterprise/rest/services/CovidUpdatePublic/MapServer/0/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outSR=102100&resultOffset=0&resultRecordCount=50'
-  req = requests.get(urlhosp, headers=headers)
+  #NE Hospitalizations FIXED
+  urlhosp='https://gis.ne.gov/Enterprise/rest/services/Covid19MapV6/MapServer/5/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outStatistics=%5B%7B%22statisticType%22%3A%22avg%22%2C%22onStatisticField%22%3A%22HOSP_0_19%22%2C%22outStatisticFieldName%22%3A%22HOSP_0_19%22%7D%2C%7B%22statisticType%22%3A%22avg%22%2C%22onStatisticField%22%3A%22HOSP_20_34%22%2C%22outStatisticFieldName%22%3A%22HOSP_20_34%22%7D%2C%7B%22statisticType%22%3A%22avg%22%2C%22onStatisticField%22%3A%22HOSP_35_44%22%2C%22outStatisticFieldName%22%3A%22HOSP_35_44%22%7D%2C%7B%22statisticType%22%3A%22avg%22%2C%22onStatisticField%22%3A%22HOSP_45_54%22%2C%22outStatisticFieldName%22%3A%22HOSP_45_54%22%7D%2C%7B%22statisticType%22%3A%22avg%22%2C%22onStatisticField%22%3A%22HOSP_55_64%22%2C%22outStatisticFieldName%22%3A%22HOSP_55_64%22%7D%2C%7B%22statisticType%22%3A%22avg%22%2C%22onStatisticField%22%3A%22HOSP_65_74%22%2C%22outStatisticFieldName%22%3A%22HOSP_65_74%22%7D%2C%7B%22statisticType%22%3A%22avg%22%2C%22onStatisticField%22%3A%22HOSP_75_84%22%2C%22outStatisticFieldName%22%3A%22HOSP_75_84%22%7D%2C%7B%22statisticType%22%3A%22avg%22%2C%22onStatisticField%22%3A%22HOSP_85UP%22%2C%22outStatisticFieldName%22%3A%22HOSP_85UP%22%7D%5D&outSR=102100'
+  req = requests.get(urlhosp)
   #Read in from ArcGIS->replace NaN
   df_hosp=pd.json_normalize(req.json()['features'])
   df_hosp=df_hosp.fillna('0')
-  df_hosp= df_hosp.rename(columns={'attributes.hosp_cumulative_total':'Hospitalized'})
+  df_hosp['Hospitalized']=df_hosp.sum(axis=1)
   df_hosp=df_hosp['Hospitalized'].astype('int64')
   #display(df_hosp)
 
-  #NE Case Totals
+  #NE Case Totals FIXED
   urlpos='https://gis.ne.gov/Enterprise/rest/services/Covid19MapV6/MapServer/1/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=AllTestsAsOfThisDate%20desc&outSR=102100&resultOffset=0&resultRecordCount=1'
-  req = requests.get(urlpos, headers=headers)
+  req = requests.get(urlpos)
   #Read in from ArcGIS & replace NaN
   df_pos=pd.json_normalize(req.json()['features'])
   df_pos=df_pos.fillna('0')
   df_pos= df_pos.rename(columns={'attributes.TotalPositiveAsOfThisDate':'Cases'})
   df_pos=df_pos['Cases'].astype('int64')
+  #print("Positive Cases")
   #display(df_pos)
 
   #Combine 3 dataframes to get a total dataframe
   df_tot=pd.concat([df_pos,df_hosp,df_death],axis=1)
-  df_tot=df_tot.drop(['drop1','drop2','drop3'],1).reset_index()
   display(df_tot)
 
   #NE Demographics
-  urldems='https://gis.ne.gov/enterprise/rest/services/Covid19MapV5/MapServer/6/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=Category%20desc&resultOffset=0&resultRecordCount=500'
-  req = requests.get(urldems, headers=headers)
+  urldems='https://gis.ne.gov/enterprise/rest/services/Covid19MapV6/MapServer/6/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&orderByFields=Category%20desc&resultOffset=0&resultRecordCount=500'
+  req = requests.get(urldems)
   #Read in from ArcGIS->replace NaN->slice unneeded columns->rotate->slice number indices->
   #remove unneeded new columns-> remove attributes. from race & ethnicity categories
   df_cases=pd.json_normalize(req.json()['features'])
   df_cases=df_cases.fillna('0')
-  df_cases=df_cases.drop(['attributes.age_0_19','attributes.age_20_34','attributes.age_35_44','attributes.age_45_54','attributes.age_55_64','attributes.age_65_74','attributes.age_75_84','attributes.age_85_Over','attributes.age_Unknown','attributes.gender_Female','attributes.gender_Male','attributes.gender_Unknown','attributes.ESRI_OID'],1)
   df_casesF=df_cases.transpose().reset_index()
-  df_casesF.columns = df_casesF.iloc[0]
-  df_casesF = df_casesF.iloc[1:].reset_index(drop=True)
-  df_casesF=df_casesF.drop(['Recoveries','Census'],1)
-  df_casesF['attributes.Category']=df_casesF['attributes.Category'].str.replace(r"attributes.","")
+  df_casesF=df_casesF[1:12]
+  df_casesF=df_casesF.reset_index()
+  df_casesF=df_casesF.drop(['level_0',0,4],1)
+  df_casesF['index']=df_casesF['index'].str.replace(r"attributes.","")
   display(df_casesF)
 
   if write == 1:

@@ -70,11 +70,11 @@ except getopt.error as err:
 if len(states) == 0:
     sys.exit("ERROR: Must supply either -a or -s argumemnt")
 
-maindir = 'crdt_' +  date.today().strftime('%m%d%y')
-if os.path.exists(maindir):
-  if os.path.exists(maindir + '_old'):
-    shutil.rmtree(maindir + '_old')
-  shutil.move(maindir,maindir + '_old')
+#maindir = 'crdt_' +  date.today().strftime('%m%d%y')
+#if os.path.exists(maindir):
+#  if os.path.exists(maindir + '_old'):
+#    shutil.rmtree(maindir + '_old')
+#  shutil.move(maindir,maindir + '_old')
 
 
 failed_states_list = []

@@ -2767,7 +2767,8 @@ def runTN(ws, write):
 #runTX(ws)
 def runTX(ws,write):
 
-  url = 'https://dshs.texas.gov/coronavirus/TexasCOVID19Demographics.xlsx.asp'
+  #url = 'https://dshs.texas.gov/coronavirus/TexasCOVID19Demographics.xlsx.asp'
+  url = 'https://dshs.texas.gov/coronavirus/TexasCOVID19Demographics.xlsx'
 
   df_cases = pd.read_excel(url, sheet_name='Cases by RaceEthnicity', skiprows=0, engine='openpyxl')
   print("Cases by Race")

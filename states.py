@@ -2467,15 +2467,22 @@ def runOR(ws, write):
   def getCSV_OR(csv_file,first=1,contains='',header='infer'):
     wait = WebDriverWait(wd, 20)
     if first == 1:
+      print('Waiting on frame...')
       wait.until(EC.frame_to_be_available_and_switch_to_it((By.CSS_SELECTOR, "iframe[title='Data Visualization']")))
     wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".tab-icon-download"))).click()
+    print('Clicked download')
     wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Crosstab']"))).click()
+    print('Clicked crosstab')
     wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label[data-tb-test-id='crosstab-options-dialog-radio-csv-Label']"))).click()
+    print('Clicked csv button')
     if contains == '':
       wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[title='" + csv_file + "']"))).click()
     else:
-      wait.until(EC.element_to_be_clickable((By.XPATH, "//div[contains(@title," + contains + ")]"))).click()
+      wait.until(EC.element_to_be_clickable((By.XPATH, "//div[contains(@title," + contains + ")]")))
+      #wait.until(EC.element_to_be_clickable((By.XPATH, "//div[contains(@title," + contains + ")]"))).click()
+    print('Clicked sheet')
     wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Download']"))).click()
+    print('Clicked download')
     time.sleep(5)
     return pd.read_csv(csv_file + '.csv',skiprows=1,sep="\t", encoding="utf-16",header=header)
 

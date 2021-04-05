@@ -456,7 +456,7 @@ def runDE(ws,write):
   
   for i in range(0,len(span)):
     if ("State of Delaware" in span[i]) & (num_found[4]<2):
-      if num_found[4] == 1:
+      if num_found[4] == 0:
         total_tests = find_val(span[i+1])
       num_found[4] += 1 
   

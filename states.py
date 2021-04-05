@@ -279,7 +279,8 @@ def runCO(ws, write):
   df_caseDems['Case Count']=df_caseDems['value']
   display(df_caseDems)
   for i in range(len(df_caseDems)):
-    df_caseDems.iloc[i, 4]=round(df_caseDems.iloc[i, 4] * cases[0]) # PK fix
+    df_caseDems.iloc[i, 4]=round(df_caseDems.iloc[i, 4] * cases.iloc[0]) # PK fix
+  display(df_caseDems)
 
   # find the Death Demographics
   df_deathDems = df_totals[df_totals['description'] == 'Percent of Deaths by Race and Ethnicity']
@@ -289,7 +290,7 @@ def runCO(ws, write):
   df_deathDems['Death Count']=df_deathDems['value']
   print('6')
   for i in range(len(df_deathDems)):
-    df_deathDems.iloc[i, 4]=round(df_deathDems.iloc[i, 4] * deaths[5]) # PK fix
+    df_deathDems.iloc[i, 4]=round(df_deathDems.iloc[i, 4] * deaths.iloc[0]) # PK fix
 
   print("CO Case Demographic %")
   display(df_caseDems)

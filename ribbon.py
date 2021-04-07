@@ -12,6 +12,10 @@ import os, time
 os.environ['TZ'] = 'America/New_York'
 time.tzset()
 
+def colstr2int(df,col):
+  df.loc[:,col] = df.loc[:,col].replace(',','', regex=True)
+  df[col] = df[col].astype('int')
+
 def init_ribbon():
   headings = ['Total','White','Black','Hispanic','Asian','AIAN','NHPI','Multiple','Other','Unknown','Hispanic','Non-Hispanic','Unknown']
   headings = headings*4
@@ -216,26 +220,110 @@ def runDE(path,date,state,keys):
   # Return ribbon
   return df_st
 
+def runFL(path,date,state,keys):
+  # Read state file(s)
+  df = {}
+  for i in range(1,3+1):
+    df[i] = st_csv(i,path,date,state)
+    df[i]=df[i].drop('Unnamed: 0',axis=1)
+  hosp_total = df[1]['Values'].sum()
+  df_tots = df[2]
+  colstr2int(df_tots,'Value')
+  case_total = df_tots[df_tots['Metric']=='Total cases'].loc[0,'Value']
+  deaths_total = df_tots.loc[df_tots.Metric=='Florida resident deaths','Value'].iloc[0] + df_tots.loc[df_tots.Metric=='Non-Florida resident deaths','Value'].iloc[0]
+  non_res = ['Non-Florida residents',df_tots.iloc[4,1],df[1].loc[1,'Values'],df_tots.iloc[24,1]]
+  df = df[3].drop(['Unnamed: 3','Unnamed: 5','Unnamed: 7'],axis=1)
+  colstr2int(df,'Cases')
+  colstr2int(df,'Hospitalizations')
+  colstr2int(df,'Deaths')
+  df.loc[len(df.index)] = non_res
+  df.loc[len(df.index)] = ['Totals',case_total,hosp_total,deaths_total]
+  df = df.set_index('Race and ethnicity')
+  df.iloc[0] -= df.iloc[1]
+  df.iloc[4] -= df.iloc[5]
+  df.iloc[8] -= df.iloc[9]
+  df.iloc[12] -= df.iloc[13]
+  df = df.groupby(['Race and ethnicity'],sort=False).sum()
+  df.iloc[3] += df.iloc[7]
+  df.iloc[6] += df.iloc[7]
+  df = df.reset_index()
+  # Pre-processing
+  # Common processing
+  df_st = state_common(df,keys,state)
+  # Custom Mapping
+  # Return ribbon
+  return df_st
+
+
+def template(path,date,state,keys):
+  # Read state file(s)
+  df = {}
+  for i in range(1,4+1):
+    df[i] = st_csv(i,path,date,state)
+    display(df[i])
+  # Pre-processing
+  # Common processing
+  df_st = state_common(df,keys,state)
+  # Custom Mapping
+  # Return ribbon
+  return df_st
 
 begin_run = time.time()
 
 key = load_state_keys('crdt_key.csv')
 
-states_all = ["AK","AL","AR","CA","CO","CT","DC","DE","FL","GA","GU",
-          "HI","ID","IL","IN","KY","LA","MA","MD","ME","MI",
-          "MO","MN","MS","MT","NC","ND","NE","NH","NM","NV",
-          "NY","OR","PA","RI","SD","TN","TX","UT","VA","VT",
-          "WA","WI","WY"]
+#states_all = ["AK","AL","AR","CA","CO","CT","DC","DE","FL","GA","GU",
+#          "HI","ID","IL","IN","KY","LA","MA","MD","ME","MI",
+#          "MO","MN","MS","MT","NC","ND","NE","NH","NM","NV",
+#          "NY","OR","PA","RI","SD","TN","TX","UT","VA","VT",
+#          "WA","WI","WY"]
 
-states = ["AK","AL","AR","CA","CO","CT","DC","DE"]
-#states = ["DE"]
+states_all = ["AK","AL","AR","CA","CO","CT","DC","DE","FL"]
+#states = ["FL"]
+date_str = datetime.datetime.now().strftime("%Y%m%d") 
+
+args_list  = sys.argv[1:]
+
+# Options
+opts = "hays:"
+long_opts = ["help", "all", "state", "yesterday"]
+try:
+    # Parsing argument
+    args, vals = getopt.getopt(args_list, opts, long_opts)
+
+    # checking each argument
+    for arg, val in args:
+        if arg in ("-h", "--help"):
+            print ("Use:\n-a OR --all to run all states;\n-s <ST> OR --state <ST> to run a single state.")
+            sys.exit()
+
+        elif arg in ("-a", "--all"):
+            print ("Running All")
+            states = states_all
+
+        elif arg in ("-s", "--state"):
+            print (("Running State = (% s)") % (val))
+            states = [str(val)]
+            debug = True
+
+        elif arg in ("-y", "--yesterday"):
+            print ("Using Yesterday's Data")
+            yesterday = datetime.datetime.now() - timedelta(1)
+            date_str = datetime.datetime.strftime(yesterday,"%Y%m%d") 
+
+except getopt.error as err:
+    # output error, and return with an error code
+    print (str(err))
+
+
+# You should not need to edit below this line
+
+if len(states) == 0:
+    sys.exit("ERROR: Must supply either -a or -s argumemnt")
 
 # You should not need to edit below this line
 
 gd_path = "/Users/User/Google Drive (patkellyatx@gmail.com)/CRDT"
-#yesterday = datetime.datetime.now() - timedelta(1)
-#date_str = datetime.datetime.strftime(yesterday,"%Y%m%d") 
-date_str = datetime.datetime.now().strftime("%Y%m%d") 
 first=True
 failed = [-1]*52
 

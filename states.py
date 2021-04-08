@@ -1169,6 +1169,68 @@ def runIN(ws, write):
     writeTable(df_IN_casesRace,'Cases by Race','H22',ws)
     writeTable(df_IN_casesEthnicity,'Cases by Ethnicity','H29',ws)
 
+
+# KS
+def runKS(ws, write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
+  from selenium.webdriver import ActionChains 
+
+  #System.setProperty("sun.java2d.cmm", "sun.java2d.cmm.kcms.KcmsServiceProvider")
+
+  url='https://public.tableau.com/views/COVID-19TableauVersion2/COVID-19Overview?:embed=y&:showVizHome=no&:host_url=https%3A%2F%2Fpublic.tableau.com%2F&:embed_code_version=3&:tabs=no&:toolbar=yes&:animate_transition=yes&:display_static_image=no&:display_spinner=no&:display_overlay=yes&:display_count=yes&:language=en&publish=yes&:loadOrderID=0'
+  #case_dems_xpath='//*[@id="tabZoneId434"]/div/div/div/div/div'
+  case_dems_xpath='//*[@id="tabZoneId434"]/div/div/div/div/div/div'
+  #death_dems_xpath='//*[@id="tabZoneId439"]/div/div/div/div/div'
+  death_dems_xpath='//*[@id="tabZoneId439"]/div/div/div/div/div/div'
+
+
+  dnld_xpath='//*[@id="download-ToolbarButton"]/span[1]'
+  pdf_xpath='//*[@id="DownloadDialog-Dialog-Body-Id"]/div/fieldset/button[4]'
+  download_xpath='//*[@id="export-pdf-dialog-Dialog-Body-Id"]/div/div[4]/button'
+  pdf_Cases='Case Characteristics.pdf'
+  pdf_Deaths='Death_Summary.pdf'
+
+  #Cases PDF
+  
+  def getPDF(metric_xpath,pdf_file):
+     wait = WebDriverWait(wd, 20)
+     print("Wait")
+     btn=wd.find_element_by_xpath(metric_xpath)
+     btn.click()
+     time.sleep(30)
+     #wait.until(EC.element_to_be_clickable((By.XPATH,metric_xpath))).click()
+     print("Metric - case dems or death dems")
+     dnld_btn=wd.find_element_by_xpath(dnld_xpath)
+     dnld_btn.click()
+     time.sleep(60)
+     #wait.until(EC.element_to_be_clickable((By.XPATH, dnld_xpath))).click()
+     print("clicked download on tableau frame")
+     wait.until(EC.element_to_be_clickable((By.XPATH, pdf_xpath))).click()
+     print("chose PDF option")
+     wait.until(EC.element_to_be_clickable((By.XPATH, download_xpath))).click()
+     print("Chose Download as is option")
+     time.sleep(5)
+     tables=tabula.read_pdf(pdf_file, pages="all", multiple_tables=True, lattice=False, encoding='utf-8', guess=False)
+     return tables
+
+  #initialize the driver
+  wd=init_driver()
+  wd.get(url)
+  wait = WebDriverWait(wd, 160)
+  print(url)
+
+  case_tables=getPDF(case_dems_xpath, pdf_Cases)
+  case_tables[0].fillna('0')
+  display(case_tables[0])
+
+  #death_tables=getPDF(death_dems_xpath, pdf_Deaths)
+  #display(death_tables[0])
+
+
+  wd.quit()
+
 # KY
 #from io import StringIO, BytesIO
 #from bs4 import BeautifulSoup

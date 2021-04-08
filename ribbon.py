@@ -203,6 +203,7 @@ def runDE(path,date,state,keys):
     df[i] = st_csv(i,path,date,state)
     df[i]=df[i].drop('Unnamed: 0',axis=1)
     display(df[i])
+  # Pre-processing
   df[2].columns = ['Category','Cases']
   df[3].columns = ['Category','Deaths']
   df[4].columns = ['Category','Tests']
@@ -213,7 +214,6 @@ def runDE(path,date,state,keys):
   non_h_tests = df['Tests'].sum() - df['Tests'].iloc[2] - df['Tests'].iloc[5]
   df.loc[len(df.index)] = ['Non-Hispanic',non_h_cases,non_h_deaths,non_h_tests]
   df.loc[len(df.index)] = ['Total',df_tots.loc[0,'Total'],df_tots.loc[1,'Total'],df_tots.loc[2,'Total']]
-  # Pre-processing
   # Common processing
   df_st = state_common(df,keys,state)
   # Custom Mapping
@@ -233,20 +233,43 @@ def runFL(path,date,state,keys):
   deaths_total = df_tots.loc[df_tots.Metric=='Florida resident deaths','Value'].iloc[0] + df_tots.loc[df_tots.Metric=='Non-Florida resident deaths','Value'].iloc[0]
   non_res = ['Non-Florida residents',df_tots.iloc[4,1],df[1].loc[1,'Values'],df_tots.iloc[24,1]]
   df = df[3].drop(['Unnamed: 3','Unnamed: 5','Unnamed: 7'],axis=1)
-  colstr2int(df,'Cases')
-  colstr2int(df,'Hospitalizations')
-  colstr2int(df,'Deaths')
+  for cat in ['Cases', 'Hospitalizations', 'Deaths']:
+    colstr2int(df,cat)
   df.loc[len(df.index)] = non_res
   df.loc[len(df.index)] = ['Totals',case_total,hosp_total,deaths_total]
   df = df.set_index('Race and ethnicity')
-  df.iloc[0] -= df.iloc[1]
-  df.iloc[4] -= df.iloc[5]
-  df.iloc[8] -= df.iloc[9]
-  df.iloc[12] -= df.iloc[13]
+  for i in range(0,3):
+    df.iloc[i*4] -= df.iloc[i*4+1]
   df = df.groupby(['Race and ethnicity'],sort=False).sum()
-  df.iloc[3] += df.iloc[7]
-  df.iloc[6] += df.iloc[7]
+  df.iloc[[3,6]] += df.iloc[7]
   df = df.reset_index()
+  # Pre-processing
+  # Common processing
+  df_st = state_common(df,keys,state)
+  # Custom Mapping
+  # Return ribbon
+  return df_st
+
+def runGA(path,date,state,keys):
+  # Read state file(s)
+  df = {}
+  for i in range(1,2+1):
+    df[i] = st_csv(i,path,date,state)
+    df[i]=df[i].drop('Unnamed: 0',axis=1)
+    display(df[i])
+  df_tots = df[2]
+  df = df[1]
+  df.columns = ['Ethnicity','Race','Cases','Hospitalizations','Deaths']
+  df = df.set_index(['Ethnicity','Race'])
+  display(df)
+  df.loc[('Unknown','Unknown'),:] += [df_tots.loc[0,'antigen_cases'],0,df_tots.loc[0,'probable_deaths']]
+  display(df)
+  s_tot = df.sum()
+  df_tot = pd.DataFrame([s_tot.values],columns=s_tot.index,index=['Totals']).reset_index().rename({'index':'Category'},axis=1)
+  df_eth = df.sum(level=0).reset_index().rename({'Ethnicity':'Category'},axis=1)
+  df_race = df.loc[['Non-Hispanic/ Latino','Unknown']].sum(level=1).reset_index().rename({'Race':'Category'},axis=1)
+  df = pd.concat([df_eth, df_race, df_tot]).reset_index(drop=True)
+#  df.loc['Total', :] = df.sum().values
   # Pre-processing
   # Common processing
   df_st = state_common(df,keys,state)
@@ -278,7 +301,7 @@ key = load_state_keys('crdt_key.csv')
 #          "NY","OR","PA","RI","SD","TN","TX","UT","VA","VT",
 #          "WA","WI","WY"]
 
-states_all = ["AK","AL","AR","CA","CO","CT","DC","DE","FL"]
+states_all = ["AK","AL","AR","CA","CO","CT","DC","DE","FL","GA"]
 #states = ["FL"]
 date_str = datetime.datetime.now().strftime("%Y%m%d") 
 

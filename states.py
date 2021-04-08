@@ -279,7 +279,8 @@ def runCO(ws, write):
   df_caseDems['Case Count']=df_caseDems['value']
   display(df_caseDems)
   for i in range(len(df_caseDems)):
-    df_caseDems.iloc[i, 4]=round(df_caseDems.iloc[i, 4] * cases[0]) # PK fix
+    df_caseDems.iloc[i, 4]=round(df_caseDems.iloc[i, 4] * cases.iloc[0]) # PK fix
+  display(df_caseDems)
 
   # find the Death Demographics
   df_deathDems = df_totals[df_totals['description'] == 'Percent of Deaths by Race and Ethnicity']
@@ -289,7 +290,7 @@ def runCO(ws, write):
   df_deathDems['Death Count']=df_deathDems['value']
   print('6')
   for i in range(len(df_deathDems)):
-    df_deathDems.iloc[i, 4]=round(df_deathDems.iloc[i, 4] * deaths[5]) # PK fix
+    df_deathDems.iloc[i, 4]=round(df_deathDems.iloc[i, 4] * deaths.iloc[0]) # PK fix
 
   print("CO Case Demographic %")
   display(df_caseDems)
@@ -455,7 +456,7 @@ def runDE(ws,write):
   
   for i in range(0,len(span)):
     if ("State of Delaware" in span[i]) & (num_found[4]<2):
-      if num_found[4] == 1:
+      if num_found[4] == 0:
         total_tests = find_val(span[i+1])
       num_found[4] += 1 
   
@@ -2428,8 +2429,10 @@ def runNM(ws, write):
   soup = BeautifulSoup(req.text, 'html.parser')
   a = soup.find('a', string=re.compile("Download The Latest COVID-19 Mortality Report"))
   url_mort = a['href']
-  tables = tabula.read_pdf(url_mort,pages=6,multiple_tables=False,stream=True)
+  tables = tabula.read_pdf(url_mort,pages=6,multiple_tables=False,stream=True,pandas_options={'header': 1})
+  display(tables)
   death_table=tables[0].iloc[:,[0,-1]]
+  display(death_table)
   death_table['Total']=death_table['Total'].fillna('0')
   #slice the split header rows
   death_table2=death_table.drop([1,3,5]).reset_index()
@@ -2529,15 +2532,22 @@ def runOR(ws, write):
   def getCSV_OR(csv_file,first=1,contains='',header='infer'):
     wait = WebDriverWait(wd, 20)
     if first == 1:
+      print('Waiting on frame...')
       wait.until(EC.frame_to_be_available_and_switch_to_it((By.CSS_SELECTOR, "iframe[title='Data Visualization']")))
     wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".tab-icon-download"))).click()
+    print('Clicked download')
     wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Crosstab']"))).click()
+    print('Clicked crosstab')
     wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label[data-tb-test-id='crosstab-options-dialog-radio-csv-Label']"))).click()
+    print('Clicked csv button')
     if contains == '':
       wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[title='" + csv_file + "']"))).click()
     else:
-      wait.until(EC.element_to_be_clickable((By.XPATH, "//div[contains(@title," + contains + ")]"))).click()
+      wait.until(EC.element_to_be_clickable((By.XPATH, "//div[contains(@title," + contains + ")]")))
+      #wait.until(EC.element_to_be_clickable((By.XPATH, "//div[contains(@title," + contains + ")]"))).click()
+    print('Clicked sheet')
     wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Download']"))).click()
+    print('Clicked download')
     time.sleep(5)
     return pd.read_csv(csv_file + '.csv',skiprows=1,sep="\t", encoding="utf-16",header=header)
 
@@ -2829,7 +2839,8 @@ def runTN(ws, write):
 #runTX(ws)
 def runTX(ws,write):
 
-  url = 'https://dshs.texas.gov/coronavirus/TexasCOVID19Demographics.xlsx.asp'
+  #url = 'https://dshs.texas.gov/coronavirus/TexasCOVID19Demographics.xlsx.asp'
+  url = 'https://dshs.texas.gov/coronavirus/TexasCOVID19Demographics.xlsx'
 
   df_cases = pd.read_excel(url, sheet_name='Cases by RaceEthnicity', skiprows=0, engine='openpyxl')
   print("Cases by Race")

@@ -296,6 +296,28 @@ def runGU(path,date,state,keys):
   # Return ribbon
   return df_st
 
+def runHI(path,date,state,keys):
+  # Read state file(s)
+  num_files = 4 ### Edit this to equal the number of files in the repo
+  df = {}
+  for i in range(1,num_files+1):
+    df[i] = st_csv(i,path,date,state)
+    df[i]=df[i].drop('Unnamed: 0',axis=1)
+    display(df[i])
+  df_tots = df
+  df = df[4].drop(['Cases','State Population','State Population.1'],axis=1)
+  df.columns=['Race','Cases','Deaths','Hospitalizations']
+  df.loc[len(df.index)] = ['Totals',df_tots[1].loc[0,'Total Cases'],df_tots[2].loc[0,'Deaths'],df_tots[3].loc[0,'Hospital']]
+  df.loc[len(df.index)] = pd.Series(['Unknowns'],index=['Race']).append(df.iloc[10,[1,2,3]] - df.iloc[9,[1,2,3]])
+  df.loc[len(df.index)] = ['Asian',df.Cases.loc[[3,4,5,6]].sum(),df.Deaths.loc[[3,4,5,6]].sum(),df.Hospitalizations.loc[[3,4,5,6]].sum()]
+  df.loc[len(df.index)] = ['NHPI',df.Cases.loc[[1,2]].sum(),df.Deaths.loc[[1,2]].sum(),df.Hospitalizations.loc[[1,2]].sum()]
+  # Pre-processing
+  # Common processing
+  df_st = state_common(df,keys,state)
+  # Custom Mapping
+  # Return ribbon
+  return df_st
+
 def template(path,date,state,keys):
   # Read state file(s)
   num_files = 2 ### Edit this to equal the number of files in the repo

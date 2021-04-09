@@ -318,6 +318,35 @@ def runHI(path,date,state,keys):
   # Return ribbon
   return df_st
 
+def runID(path,date,state,keys):
+  # Read state file(s)
+  num_files = 7 ### Edit this to equal the number of files in the repo
+  df = {}
+  for i in range(1,num_files+1):
+    df[i] = st_csv(i,path,date,state)
+    df[i]=df[i].drop('Unnamed: 0',axis=1)
+    display(df[i])
+  df_tot_cases = df[1]
+  df_tot_deaths = df[2]
+  df[4].loc[len(df[4].index)] = ['Known Race Total',df[4].Cases.sum()]
+  df[5].loc[len(df[5].index)] = ['Known Eth Total',df[5].Cases.sum()]
+  df[6].loc[len(df[6].index)] = ['Known Race Total',df[6].Deaths.sum()]
+  df[7].loc[len(df[7].index)] = ['Known Eth Total',df[7].Deaths.sum()]
+  df_cases = df[4].append(df[5])
+  df_deaths = df[6].append(df[7])
+  df_deaths.loc[:,'Category'] = df_deaths.loc[:,'Category'].replace('/',' or ', regex=True)
+  df_deaths.loc[:,'Category'] = df_deaths.loc[:,'Category'].replace('n-','t ', regex=True)
+  df = df_cases.merge(df_deaths,how='outer',on='Category').fillna(-1)
+  df.loc[len(df.index)] = ['Total',df_tot_cases.Value[0],df_tot_deaths.Value[0]]
+  df.loc[len(df.index)] = ['Race Unknown',df.Cases[10]-df.Cases[6],df.Deaths[10]-df.Deaths[6]]
+  df.loc[len(df.index)] = ['Eth Unknown',df.Cases[10]-df.Cases[9],df.Deaths[10]-df.Deaths[9]]
+  # Pre-processing
+  # Common processing
+  df_st = state_common(df,keys,state)
+  # Custom Mapping
+  # Return ribbon
+  return df_st
+
 def template(path,date,state,keys):
   # Read state file(s)
   num_files = 2 ### Edit this to equal the number of files in the repo
@@ -342,7 +371,7 @@ key = load_state_keys('crdt_key.csv')
 #          "NY","OR","PA","RI","SD","TN","TX","UT","VA","VT",
 #          "WA","WI","WY"]
 
-states_all = ["AK","AL","AR","CA","CO","CT","DC","DE","FL","GA"]
+states_all = ["AK","AL","AR","CA","CO","CT","DC","DE","FL","GA","GU","HI"]
 #states = ["FL"]
 date_str = datetime.datetime.now().strftime("%Y%m%d") 
 

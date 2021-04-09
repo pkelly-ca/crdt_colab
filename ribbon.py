@@ -368,6 +368,27 @@ def runIL(path,date,state,keys):
   # Return ribbon
   return df_st
 
+def runIN(path,date,state,keys):
+  # Read state file(s)
+  num_files = 2 ### Edit this to equal the number of files in the repo
+  df = {}
+  for i in range(1,num_files+1):
+    df[i] = st_csv(i,path,date,state)
+    df[i]=df[i].drop('Unnamed: 0',axis=1)
+    df[i]=df[i].loc[:,~df[i].columns.str.contains('PCT')]
+    df[i].columns = ['Category','Tests','Cases','Deaths']
+    df[i].index = df[i]['Category']
+    df[i] = df[i].drop('Category',axis=1)
+    df[i].loc['Total']=df[i].sum()
+    display(df[i])
+  df = df[1].append(df[2]).reset_index()
+  # Pre-processing
+  # Common processing
+  df_st = state_common(df,keys,state)
+  # Custom Mapping
+  # Return ribbon
+  return df_st
+
 def template(path,date,state,keys):
   # Read state file(s)
   num_files = 2 ### Edit this to equal the number of files in the repo
@@ -392,7 +413,7 @@ key = load_state_keys('crdt_key.csv')
 #          "NY","OR","PA","RI","SD","TN","TX","UT","VA","VT",
 #          "WA","WI","WY"]
 
-states_all = ["AK","AL","AR","CA","CO","CT","DC","DE","FL","GA","GU","HI","ID"]
+states_all = ["AK","AL","AR","CA","CO","CT","DC","DE","FL","GA","GU","HI","ID","IL","IN"]
 #states = ["FL"]
 date_str = datetime.datetime.now().strftime("%Y%m%d") 
 

@@ -389,6 +389,33 @@ def runIN(path,date,state,keys):
   # Return ribbon
   return df_st
 
+def runKY(path,date,state,keys):
+  # Read state file(s)
+  num_files = 3 ### Edit this to equal the number of files in the repo
+  df = {}
+  for i in range(1,num_files+1):
+    df[i] = st_csv(i,path,date,state)
+    if i == 3:
+      df[i]=df[i].drop('Unnamed: 0.1',axis=1)
+    df[i]=df[i].drop('Unnamed: 0',axis=1)
+    if i < 3:
+      df[i].columns = ['Cases','Category','Deaths']
+      df[i].index = df[i]['Category']
+      df[i] = df[i].drop('Category',axis=1)
+      df[i].loc['Known total']=df[i].sum()
+    display(df[i])
+  # Pre-processing
+  df[1].loc['Total'] = [df[3].loc[0,'Total'],df[3].loc[1,'Total']]
+  df[1].loc['Unknown'] = df[1].loc['Total'] - df[1].loc['Known total']
+  df[2].loc['Total'] = [df[3].loc[0,'Total'],df[3].loc[1,'Total']]
+  df[2].loc['Unknown'] = df[2].loc['Total'] - df[2].loc['Known total']
+  df = df[1].append(df[2]).reset_index()
+  # Common processing
+  df_st = state_common(df,keys,state)
+  # Custom Mapping
+  # Return ribbon
+  return df_st
+
 def template(path,date,state,keys):
   # Read state file(s)
   num_files = 2 ### Edit this to equal the number of files in the repo

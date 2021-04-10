@@ -466,6 +466,35 @@ def runMA(path,date,state,keys):
   # Return ribbon
   return df_st
 
+def runMD(path,date,state,keys):
+  # Read state file(s)
+  num_files = 2 ### Edit this to equal the number of files in the repo
+  df = {}
+  for i in range(1,num_files+1):
+    df[i] = st_csv(i,path,date,state)
+    df[i]=df[i].drop(['Unnamed: 0'],axis=1)
+    display(df[i])
+  # Pre-processing
+  tots = df[2]
+  df = df[1]
+  df['Deaths']=df['Deaths'].str.replace(r"[()]","")
+  colstr2int(df,'Deaths')
+  df['Unnamed: 4']=df['Unnamed: 4'].str.replace(r"\*","")
+  df.columns = ['Category','Cases','Confirmed','Probable']
+  colstr2int(df,'Probable')
+  df['Deaths'] = df['Confirmed']+df['Probable']
+  df=df.drop(['Confirmed','Probable'],axis=1)
+  df = df.set_index(['Category'],drop=True)
+  df.loc['Total'] = df.sum()
+  df.loc['Non Hispanic'] = df.loc['Total']-df.loc['Hispanic']-df.loc['Data not available']
+  df = df.reset_index()
+  # Common processing
+  df_st = state_common(df,keys,state)
+  # Custom Mapping
+  # Return ribbon
+  return df_st
+
+
 def template(path,date,state,keys):
   # Read state file(s)
   num_files = 2 ### Edit this to equal the number of files in the repo
@@ -490,7 +519,7 @@ key = load_state_keys('crdt_key.csv')
 #          "NY","OR","PA","RI","SD","TN","TX","UT","VA","VT",
 #          "WA","WI","WY"]
 
-states_all = ["AK","AL","AR","CA","CO","CT","DC","DE","FL","GA","GU","HI","ID","IL","IN","KY","LA","MA"]
+states_all = ["AK","AL","AR","CA","CO","CT","DC","DE","FL","GA","GU","HI","ID","IL","IN","KY","LA","MA","MD"]
 #states = ["FL"]
 date_str = datetime.datetime.now().strftime("%Y%m%d") 
 

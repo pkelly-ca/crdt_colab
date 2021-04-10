@@ -435,6 +435,37 @@ def runLA(path,date,state,keys):
   # Return ribbon
   return df_st
 
+def runMA(path,date,state,keys):
+  # Read state file(s)
+  num_files = 4 ### Edit this to equal the number of files in the repo
+  df = {}
+  for i in range(1,num_files+1):
+    df[i] = st_csv(i,path,date,state)
+    if i < 4:
+      df[i]=df[i].drop(['Unnamed: 0','Date'],axis=1)
+    else:
+      df[i]=df[i].drop(['Date'],axis=1)
+    display(df[i])
+  case_tots = df[1]
+  death_tots = df[2]
+  known_tots = df[4]
+  df = df[3].iloc[:,[0,1,2,3]]
+  df.columns = ['Category','Cases','Hospitalizations','Deaths']
+  df = df.set_index(['Category'],drop=True)
+  df.loc['Known Total'] = df.sum()
+  df.loc['Non Hispanic'] = df.loc['Known Total']-df.loc['Hispanic']-df.loc['Unknown, missing, or refused']
+  df.loc['Total'] = [case_tots.loc[0,'Positive Total']+case_tots.loc[0,'Probable Total'],
+                     known_tots.loc[0,'Ever Hospitaltized'],
+                     death_tots.loc[0,'DeathsConfTotal']+death_tots.loc[0,'DeathsProbTotal']]
+  df.loc['Unknown'] = df.loc['Total']-df.loc['Known Total']+df.loc['Unknown, missing, or refused']
+  df = df.reset_index()
+  # Pre-processing
+  # Common processing
+  df_st = state_common(df,keys,state)
+  # Custom Mapping
+  # Return ribbon
+  return df_st
+
 def template(path,date,state,keys):
   # Read state file(s)
   num_files = 2 ### Edit this to equal the number of files in the repo
@@ -459,7 +490,7 @@ key = load_state_keys('crdt_key.csv')
 #          "NY","OR","PA","RI","SD","TN","TX","UT","VA","VT",
 #          "WA","WI","WY"]
 
-states_all = ["AK","AL","AR","CA","CO","CT","DC","DE","FL","GA","GU","HI","ID","IL","IN","KY"]
+states_all = ["AK","AL","AR","CA","CO","CT","DC","DE","FL","GA","GU","HI","ID","IL","IN","KY","LA","MA"]
 #states = ["FL"]
 date_str = datetime.datetime.now().strftime("%Y%m%d") 
 

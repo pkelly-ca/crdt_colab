@@ -494,6 +494,24 @@ def runMD(path,date,state,keys):
   # Return ribbon
   return df_st
 
+def runME(path,date,state,keys):
+  # Read state file(s)
+  num_files = 1 ### Edit this to equal the number of files in the repo
+  df = {}
+  for i in range(1,num_files+1):
+    df[i] = st_csv(i,path,date,state)
+    display(df[i])
+  df = df[1].loc[:,['Race / Ethnicity Dimension','Cases','Hospitalizations','Deaths']]
+  df = df.set_index(['Race / Ethnicity Dimension'],drop=True)
+  df.loc['Total'] = df.sum()
+  df = df.reset_index()
+  # Pre-processing
+  # Common processing
+  df_st = state_common(df,keys,state)
+  # Custom Mapping
+  # Return ribbon
+  return df_st
+
 
 def template(path,date,state,keys):
   # Read state file(s)

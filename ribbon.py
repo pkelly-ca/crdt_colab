@@ -666,6 +666,34 @@ def runND(path,date,state,keys):
   # Return ribbon
   return df_st
 
+def runNE(path,date,state,keys):
+  # Read state file(s)
+  num_files = 2 ### Edit this to equal the number of files in the repo
+  df = {}
+  for i in range(1,num_files+1):
+    df[i] = st_csv(i,path,date,state)
+    df[i]=df[i].drop(['Unnamed: 0'],axis=1)
+    display(df[i])
+  # Pre-processing
+  df[1].index = ['Total']
+  df[1].columns = ['Cases','Hospitalizations','Deaths']
+  df[2].columns = ['Category','Cases','Hospitalizations','Deaths']
+  df[2]=df[2].set_index('Category').drop('Category')
+  for cat in ['Cases','Hospitalizations','Deaths']:
+    df[2].loc[:,cat] = df[2].loc[:,cat].astype('float')
+    df[2].loc[:,cat] = df[2].loc[:,cat].astype('int')
+  df=df[1].append(df[2])
+  df.loc['Known Eth']=df.iloc[1:3].sum()
+  df.loc['Known Race']=df.iloc[4:11].sum()-df.loc['race_Unknown']
+  df.loc['Unknown Eth']=df.loc['Total']-df.loc['Known Eth']
+  df.loc['Unknown Race']=df.loc['Total']-df.loc['Known Race']
+  df = df.reset_index()
+  # Common processing
+  df_st = state_common(df,keys,state)
+  # Custom Mapping
+  # Return ribbon
+  return df_st
+
 def template(path,date,state,keys):
   # Read state file(s)
   num_files = 2 ### Edit this to equal the number of files in the repo

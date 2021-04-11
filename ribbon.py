@@ -582,6 +582,32 @@ def runMS(path,date,state,keys):
   # Return ribbon
   return df_st
 
+def runMT(path,date,state,keys):
+  # Read state file(s)
+  num_files = 3 ### Edit this to equal the number of files in the repo
+  df = {}
+  for i in range(1,num_files+1):
+    df[i] = st_csv(i,path,date,state)
+    display(df[i])
+  # Pre-processing
+  df_tot = df[2]
+  i = 0
+  for bool in df[1].loc[:,'Unnamed: 0'].str.isalpha():
+    if bool:
+      df[1].loc[i-1,'Cases']=df[1].loc[i,'Race']
+      df[1].loc[i-1,'Deaths']=df[1].loc[i,'Cases']
+    i+=1
+  df=df[1][~df[1].loc[:,'Unnamed: 0'].str.isalpha()]
+  df=df.drop(['Unnamed: 0'],axis=1).reset_index(drop=True)
+  df.loc[len(df.index)] = ['Total',df_tot.loc[0,'Totals']+df_tot.loc[1,'Totals'],df_tot.loc[2,'Totals']]
+  df.loc[len(df.index)] = ['Race Unknown',df.loc[11,'Cases']-df.loc[6,'Cases'],df.loc[11,'Deaths']-df.loc[6,'Deaths']]
+  df.loc[len(df.index)] = ['Eth Unknown',df.loc[11,'Cases']-df.loc[10,'Cases'],df.loc[11,'Deaths']-df.loc[10,'Deaths']]
+  # Common processing
+  df_st = state_common(df,keys,state)
+  # Custom Mapping
+  # Return ribbon
+  return df_st
+
 def template(path,date,state,keys):
   # Read state file(s)
   num_files = 2 ### Edit this to equal the number of files in the repo

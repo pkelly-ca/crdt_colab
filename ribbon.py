@@ -555,6 +555,33 @@ def runMO(path,date,state,keys):
   # Return ribbon
   return df_st
 
+def runMS(path,date,state,keys):
+  # Read state file(s)
+  num_files = 2 ### Edit this to equal the number of files in the repo
+  df = {}
+  for i in range(1,num_files+1):
+    df[i] = st_csv(i,path,date,state)
+    df[i]=df[i].drop(['Unnamed: 0'],axis=1)
+    display(df[i])
+  # Pre-processing
+  df[1] = df[1].rename({'Tot Cases':'Total'},axis=1)
+  df[1].index = ['Cases']
+  df[2] = df[2].rename({'Tot Deaths':'Total'},axis=1)
+  df[2].index = ['Deaths']
+  df = df[1].append(df[2]).T
+  race = ['Total'] + ['Blk','White','AIAN','Asian','Other','Unk']*3
+  eth = ['Total'] + ['NH']*6 + ['Hisp']*6 + ['Unk']*6
+  df = df.set_index([eth,race])
+  display(df)
+  df_eth = df.sum(level=0).reset_index().rename({'index':'Category'},axis=1)
+  df_race = df.loc[['NH','Unk']].sum(level=1).reset_index().rename({'index':'Category'},axis=1)
+  df = pd.concat([df_race,df_eth]).reset_index(drop=True)
+  # Common processing
+  df_st = state_common(df,keys,state)
+  # Custom Mapping
+  # Return ribbon
+  return df_st
+
 def template(path,date,state,keys):
   # Read state file(s)
   num_files = 2 ### Edit this to equal the number of files in the repo

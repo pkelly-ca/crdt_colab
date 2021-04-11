@@ -547,6 +547,7 @@ def runMN(path,date,state,keys):
   df = df[1].merge(df[2],how='outer',on='index')
   df.columns = ['Category','Cases','Deaths']
   df.loc[len(df.index)]=['NH',df.Cases[1]-df.Cases[9]-df.Cases[10],df.Deaths[11]-df.Deaths[19]-df.Deaths[20]]
+  df['Hospitalizations']=df['Deaths']
   # Common processing
   df_st = state_common(df,keys,state)
   # Custom Mapping
@@ -621,6 +622,26 @@ def runMT(path,date,state,keys):
   df.loc[len(df.index)] = ['Total',df_tot.loc[0,'Totals']+df_tot.loc[1,'Totals'],df_tot.loc[2,'Totals']]
   df.loc[len(df.index)] = ['Race Unknown',df.loc[11,'Cases']-df.loc[6,'Cases'],df.loc[11,'Deaths']-df.loc[6,'Deaths']]
   df.loc[len(df.index)] = ['Eth Unknown',df.loc[11,'Cases']-df.loc[10,'Cases'],df.loc[11,'Deaths']-df.loc[10,'Deaths']]
+  # Common processing
+  df_st = state_common(df,keys,state)
+  # Custom Mapping
+  # Return ribbon
+  return df_st
+
+def runNC(path,date,state,keys):
+  # Read state file(s)
+  num_files = 2 ### Edit this to equal the number of files in the repo
+  df = {}
+  for i in range(1,num_files+1):
+    df[i] = st_csv(i,path,date,state)
+    df[i]=df[i].drop(['Unnamed: 0','Percent of Cases','Percent of Deaths'],axis=1)
+    df[i]=df[i].rename({'Unnamed: 0.1':'Category'},axis=1)
+    df[i]=df[i].set_index('Category')
+    df[i].loc['Total']=df[i].sum()
+    display(df[i])
+  # Pre-processing
+#  df[i].loc[len(df[i].index)]=
+  df = df[1].append(df[2]).reset_index()
   # Common processing
   df_st = state_common(df,keys,state)
   # Custom Mapping

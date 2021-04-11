@@ -534,6 +534,27 @@ def runMI(path,date,state,keys):
   # Return ribbon
   return df_st
 
+def runMO(path,date,state,keys):
+  # Read state file(s)
+  num_files = 2 ### Edit this to equal the number of files in the repo
+  df = {}
+  for i in range(1,num_files+1):
+    df[i] = st_csv(i,path,date,state)
+    df[i]=df[i].drop(['Unnamed: 0','Antigen Tests','Serology Tests'],axis=1)
+    display(df[i])
+  # Pre-processing
+  df[1] = df[1].rename({'Race':'Category'},axis=1)
+  df[2] = df[2].rename({'Ethnicity':'Category'},axis=1)
+  df = df[1].append(df[2]).reset_index(drop=True)
+  df = df.rename({'Confirmed Deaths':'Deaths','PCR Tests':'Tests'},axis=1)
+  df['Cases']=df['Confirmed Cases']+df['Probable Cases']
+  df = df.drop(['Confirmed Cases','Probable Cases'],axis=1)
+  # Common processing
+  df_st = state_common(df,keys,state)
+  # Custom Mapping
+  # Return ribbon
+  return df_st
+
 def template(path,date,state,keys):
   # Read state file(s)
   num_files = 2 ### Edit this to equal the number of files in the repo

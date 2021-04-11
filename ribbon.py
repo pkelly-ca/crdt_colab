@@ -512,6 +512,27 @@ def runME(path,date,state,keys):
   # Return ribbon
   return df_st
 
+def runMI(path,date,state,keys):
+  # Read state file(s)
+  num_files = 1 ### Edit this to equal the number of files in the repo
+  df = {}
+  for i in range(1,num_files+1):
+    df[i] = st_csv(i,path,date,state)
+    df[i]=df[i].drop(['Unnamed: 0'],axis=1)
+    display(df[i])
+  df = df[1].fillna(0)
+  df['Cases'] = df['Confirmed Cases']+df['Probable Cases']
+  df['Deaths'] = df['Confirmed Deaths']+df['Probable Deaths']
+  df = df.loc[:,['Category','Cases','Deaths']]
+  df = df.set_index(['Category'],drop=True)
+  df.loc['Total'] = df.sum()
+  df = df.reset_index()
+  # Pre-processing
+  # Common processing
+  df_st = state_common(df,keys,state)
+  # Custom Mapping
+  # Return ribbon
+  return df_st
 
 def template(path,date,state,keys):
   # Read state file(s)

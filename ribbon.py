@@ -694,6 +694,41 @@ def runNE(path,date,state,keys):
   # Return ribbon
   return df_st
 
+def runNH(path,date,state,keys):
+  # Read state file(s)
+  num_files = 5 ### Edit this to equal the number of files in the repo
+  df = {}
+  for i in range(1,num_files+1):
+    df[i] = st_csv(i,path,date,state)
+    df[i]=df[i].drop(['Unnamed: 0'],axis=1)
+    display(df[i])
+  # Pre-processing
+  df_tot = df[4]
+  df_tot.columns = ['Cases','Hospitalizations','Deaths']
+  df_tot.index = ['Total']
+  df_hosp=df[5].rename({'Race/Ethnicity':'Demographic','Hosp':'Hospitalizations'},axis=1)
+  df_hosp=df_hosp.set_index('Demographic')
+  df_hosp=df_hosp.rename({'Hispanic or Latino':'Hispanic/Latino','Total':'Known'})
+  display(df_hosp)
+  for i in range(1,3):
+    df[i] = df[i].drop(['Sex', 'Suppression', 'Date'],axis=1)
+  df_demo = df[1].merge(df[2],how='outer',on='Demographic')
+  df_demo = df_demo.drop(0)
+  df_demo = df_demo.set_index('Demographic')
+  df_demo.index = df_demo.index.str.replace('^ ','', regex=True)
+  df_demo.loc['Known']=df_demo.sum()
+  df = df_demo.merge(df_hosp,how='outer',on='Demographic').fillna(0).astype('int')
+  df = df.append(df_tot)
+  df.loc['Unknown (calc)'] = df.loc['Total']-df.loc['Known']+df.loc['Unknown']
+  df.loc['Other'] = df.loc['Other']+df.loc['Other Race']
+  df.loc['NH'] = df.loc['Total']-df.loc['Hispanic/Latino']-df.loc['Unknown (calc)']
+  df = df.reset_index()
+  # Common processing
+  df_st = state_common(df,keys,state)
+  # Custom Mapping
+  # Return ribbon
+  return df_st
+
 def template(path,date,state,keys):
   # Read state file(s)
   num_files = 2 ### Edit this to equal the number of files in the repo

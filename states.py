@@ -1857,8 +1857,8 @@ def runMT(ws, write):
   #print("did fillna on totals and lopped the top row")
   #display(totals)
 
-  hosp=hosp.fillna('0').drop(hosp.index[0])
-  #hosp=hosp.fillna('0')
+  #hosp=hosp.fillna('0').drop(hosp.index[0])
+  hosp=hosp.fillna('0')
   #print("did fillna on hosp and lopped the top row")
   #display(hosp)
 

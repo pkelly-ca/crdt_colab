@@ -975,6 +975,7 @@ def runMI(ws,write):
   df_conf_cases.columns = ['Category', 'Confirmed Cases']
   colstr2int(df_conf_cases,'Confirmed Cases')
   df_conf_cases.sort_values('Category',ascending=True,inplace=True)
+  display(df_conf_cases)
 
   back_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='pvExplorationHost']/div/div/exploration/div/explore-canvas-modern/div/div[2]/div/div[2]/div[2]/visual-container-repeat/visual-container-modern[3]/transform/div/div[3]/visual-container-pop-out-bar/div/div[1]/button")))
   back_button.click()
@@ -1004,6 +1005,7 @@ def runMI(ws,write):
   df_prob_cases.columns = ['Category', 'Probable Cases']
   colstr2int(df_prob_cases,'Probable Cases')
   df_prob_cases.sort_values('Category',ascending=True,inplace=True)
+  display(df_prob_cases)
 
   back_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='pvExplorationHost']/div/div/exploration/div/explore-canvas-modern/div/div[2]/div/div[2]/div[2]/visual-container-repeat/visual-container-modern[3]/transform/div/div[3]/visual-container-pop-out-bar/div/div[1]/button")))
   back_button.click()
@@ -1034,6 +1036,7 @@ def runMI(ws,write):
   df_conf_deaths.columns = ['Category', 'Confirmed Deaths']
   colstr2int(df_conf_deaths,'Confirmed Deaths')
   df_conf_deaths.sort_values('Category',ascending=True,inplace=True)
+  display(df_conf_deaths)
 
   back_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='pvExplorationHost']/div/div/exploration/div/explore-canvas-modern/div/div[2]/div/div[2]/div[2]/visual-container-repeat/visual-container-modern[19]/transform/div/div[3]/visual-container-pop-out-bar/div/div[1]/button")))
   back_button.click()
@@ -1063,6 +1066,7 @@ def runMI(ws,write):
   df_prob_deaths.columns = ['Category', 'Probable Deaths']
   colstr2int(df_prob_deaths,'Probable Deaths')
   df_prob_deaths.sort_values('Category',ascending=True,inplace=True)
+  display(df_prob_deaths)
 
   df = df_conf_cases.merge(df_prob_cases,how='left',on='Category')
   df = df.merge(df_conf_deaths,how='left',on='Category')
@@ -2373,9 +2377,9 @@ def runNM(ws, write):
   display(death_table)
   death_table['Total']=death_table['Total'].fillna('0')
   #slice the split header rows
-  death_table2=death_table.drop([1,3,5]).reset_index()
-  death_table2=death_table2.drop(['index'],1)
-  display(death_table2)
+  #death_table2=death_table.drop([1,3,5]).reset_index()
+  #death_table2=death_table2.drop(['index'],1)
+  #display(death_table2)
 
   if write == 1:
     # Write Paste Date To Sheet
@@ -2384,7 +2388,7 @@ def runNM(ws, write):
 
     # Write Data To Sheet
     writeTable(df_casesR,'','B37',ws)
-    writeTable(death_table2,'','E36',ws)
+    writeTable(death_table,'','E36',ws)
 
 # NV
 def runNV(ws,write):

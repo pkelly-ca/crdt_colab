@@ -248,7 +248,8 @@ def runCO(ws, write):
   #url='https://data-cdphe.opendata.arcgis.com/datasets/cdphe-covid19-state-level-expanded-case-data/data'
   #dnld_xpath='//*[@class="btn dropdown-toggle btn-default hub-download"]'
   #dnld_xpath_caret='//*[@class="caret"]'
-  url='https://opendata.arcgis.com/datasets/15883575464d46f686044d2c1aa84ef9_0.csv'
+  #url='https://opendata.arcgis.com/datasets/15883575464d46f686044d2c1aa84ef9_0.csv'
+  url='https://prod-hub-indexer.s3.amazonaws.com/files/a0f52ab12eb4466bb6a76cc175923e62/0/full/4326/a0f52ab12eb4466bb6a76cc175923e62_0_full_4326.csv'
 
   df_totals = pd.read_csv(url,parse_dates=['date'])
   print(url)

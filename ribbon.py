@@ -782,6 +782,30 @@ def runNV(path,date,state,keys):
   # Return ribbon
   return df_st
 
+def runOR(path,date,state,keys):
+  # Read state file(s)
+  num_files = 2 ### Edit this to equal the number of files in the repo
+  df = {}
+  for i in range(1,num_files+1):
+    df[i] = st_csv(i,path,date,state)
+    df[i]=df[i].drop(['Unnamed: 0'],axis=1)
+    df[i]=df[i].rename(columns={'Categories (group) 2':'Category','Categories (group)':'Category'})
+    df[i]=df[i].set_index(['Demographic','Category'])
+    display(df[i])
+  # Pre-processing
+  hosp_tots=df[2].sum(level=0)
+  df[2].loc[('Race','Total'),:]=hosp_tots.loc['Race']
+  df[2].loc[('Ethnicity','Total'),:]=hosp_tots.loc['Ethnicity']
+  df = df[1].merge(df[2],how='outer',on=['Demographic','Category'])
+  df.columns=['Deaths','Cases','Hospitalizations']
+  df['Hospitalizations']=df['Hospitalizations'].astype('int')
+  df=df.reset_index()
+  # Common processing
+  df_st = state_common(df,keys,state)
+  # Custom Mapping
+  # Return ribbon
+  return df_st
+
 def template(path,date,state,keys):
   # Read state file(s)
   num_files = 2 ### Edit this to equal the number of files in the repo

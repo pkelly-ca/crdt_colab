@@ -756,6 +756,32 @@ def runNM(path,date,state,keys):
   # Return ribbon
   return df_st
 
+def runNV(path,date,state,keys):
+  # Read state file(s)
+  num_files = 2 ### Edit this to equal the number of files in the repo
+  df = {}
+  for i in range(1,num_files+1):
+    df[i] = st_csv(i,path,date,state)
+    df[i]=df[i].drop(['Unnamed: 0'],axis=1)
+    df[i]=df[i].set_index('Category',drop=True)
+    display(df[i])
+  # Pre-processing
+  df_tots=df[2].replace(',','', regex=True).astype('int')
+  display(df_tots)
+  df = df[1].replace('%','',regex=True).astype('float')
+  display(df_tots.values*df.values/100)
+  df = pd.DataFrame(df_tots.values*df.values/100,columns=df.columns,index=df.index).apply(np.floor).astype('int')
+  df.loc['Known']=df.sum()
+  df = df.append(df_tots)
+  df.loc['Unknown']=df.loc['Totals']-df.loc['Known']
+  df.loc['NH']=df.loc['Totals']-df.loc['Hispanic']-df.loc['Unknown']
+  df=df.reset_index()
+  # Common processing
+  df_st = state_common(df,keys,state)
+  # Custom Mapping
+  # Return ribbon
+  return df_st
+
 def template(path,date,state,keys):
   # Read state file(s)
   num_files = 2 ### Edit this to equal the number of files in the repo

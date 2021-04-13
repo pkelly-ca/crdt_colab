@@ -2419,6 +2419,9 @@ def runNV(ws,write):
   wd.maximize_window()
   wait = WebDriverWait(wd, 20)
 
+  wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Current Status']/parent::*"))).click()
+  wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Confirmed Cases']/parent::*"))).click()
+
   cases = wait.until(EC.visibility_of_element_located((By.XPATH,"//span[text()='Cumulative cases']/parent::*/span[3]"))).text
   wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Deaths']/parent::*"))).click()
   deaths = wait.until(EC.visibility_of_element_located((By.XPATH,"//span[text()='Cumulative Deaths  ']/parent::*/span[2]"))).text

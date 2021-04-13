@@ -2413,9 +2413,23 @@ def runNV(ws,write):
 
   url = 'https://app.powerbigov.us/view?r=eyJrIjoiMjA2ZThiOWUtM2FlNS00MGY5LWFmYjUtNmQwNTQ3Nzg5N2I2IiwidCI6ImU0YTM0MGU2LWI4OWUtNGU2OC04ZWFhLTE1NDRkMjcwMzk4MCJ9'
 
+
   wd = init_driver()
   wd.get(url)
+  wd.maximize_window()
   wait = WebDriverWait(wd, 20)
+
+  cases = wait.until(EC.visibility_of_element_located((By.XPATH,"//span[text()='Cumulative cases']/parent::*/span[3]"))).text
+  wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Deaths']/parent::*"))).click()
+  deaths = wait.until(EC.visibility_of_element_located((By.XPATH,"//span[text()='Cumulative Deaths  ']/parent::*/span[2]"))).text
+  wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[aria-label=' Page navigation Button. Trends']"))).click()
+  wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Testing']/parent::*"))).click()
+  tests  = wait.until(EC.visibility_of_element_located((By.XPATH,"//span[text()='People tested']/parent::*/span[2]"))).text
+  df_tots = pd.DataFrame([['Totals',cases,deaths,tests]],columns=['Category','Cases','Deaths','Tests'])
+  display(df_tots)
+
+  wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Confirmed Cases']/parent::*"))).click()
+#  time.sleep(5)
 
   wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[aria-label=' Page navigation Button. Demographics']"))).click()
   df_cases = get_df('Cases')
@@ -2431,6 +2445,8 @@ def runNV(ws,write):
   df.drop(df.index[0:10],inplace=True)
   display(df)
 
+  wd.quit()
+
   #Template for writing to state page
   if write == True:
     # Write Paste Date To Sheet
@@ -2439,6 +2455,7 @@ def runNV(ws,write):
 
     # Write Data To Sheet
     writeTable(df,'','A38',ws)
+    writeTable(df_tots,'','A38',ws)
 
 # NY
 #import pandas as pd

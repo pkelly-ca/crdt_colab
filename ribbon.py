@@ -806,12 +806,48 @@ def runOR(path,date,state,keys):
   # Return ribbon
   return df_st
 
+def runPA(path,date,state,keys):
+  # Read state file(s)
+  num_files = 5 ### Edit this to equal the number of files in the repo
+  df = {}
+  for i in range(1,num_files+1):
+    df[i] = st_csv(i,path,date,state)
+    df[i]=df[i].drop(['Unnamed: 0'],axis=1)
+    display(df[i])
+  # Pre-processing
+  df[1] = df[1].set_index('Race').rename(columns={'Positive_Cases':'Cases'})
+  df[2] = df[2].set_index('Ethnicity')
+  df[3] = df[3].set_index('Race').rename(index={'African American':'Black'})
+  df[4] = df[4].set_index('Ethnicity').rename(columns={'F__of_Deaths':'Deaths'})
+  totals = [df[5].loc[0,'Cases'],df[5].loc[0,'Deaths']]
+  display(totals)
+  for i in range(1,5):
+    if i%2 == 1:
+      df[i].loc['Known Race']=df[i].sum()
+    else:
+      df[i].loc['Known Eth']=df[i].sum()
+  df_cases = df[1].append(df[2]).reset_index().rename(columns={'index':'Category'})
+  df_deaths = df[3].append(df[4]).reset_index().rename(columns={'index':'Category'})
+  display(df_cases)
+  display(df_deaths)
+  df = df_cases.merge(df_deaths,how='left',on='Category').fillna(-1)
+  df['Deaths']=df['Deaths'].astype('int')
+  df.loc[len(df.index)]=['Total',totals[0],totals[1]]
+  df.loc[len(df.index)]=['Unk Race',totals[0]-df.loc[5,'Cases']+df.loc[4,'Cases'],totals[1]-df.loc[5,'Deaths']]
+  df.loc[len(df.index)]=['Unk Eth',totals[0]-df.loc[9,'Cases']+df.loc[6,'Cases'],totals[1]-df.loc[9,'Deaths']]
+  # Common processing
+  df_st = state_common(df,keys,state)
+  # Custom Mapping
+  # Return ribbon
+  return df_st
+
 def template(path,date,state,keys):
   # Read state file(s)
   num_files = 2 ### Edit this to equal the number of files in the repo
   df = {}
   for i in range(1,num_files+1):
     df[i] = st_csv(i,path,date,state)
+    df[i]=df[i].drop(['Unnamed: 0'],axis=1)
     display(df[i])
   # Pre-processing
   # Common processing

@@ -2809,14 +2809,25 @@ def runTN(ws, write):
 #runTX(ws)
 def runTX(ws,write):
 
+  url_tots = 'https://dshs.texas.gov/coronavirus/TexasCOVID19CaseCountData.xlsx'
   #url = 'https://dshs.texas.gov/coronavirus/TexasCOVID19Demographics.xlsx.asp'
   url = 'https://dshs.texas.gov/coronavirus/TexasCOVID19Demographics.xlsx'
+  df_trends = pd.read_excel(url_tots, sheet_name='Trends', skiprows=3, engine='openpyxl', parse_dates=['Date'])
+  today = df_trends['Date'].max()
+  yesterday = today - timedelta(1)
+  conf_cases = df_trends.loc[df_trends['Date']==today]['Cumulative Confirmed Cases'].values[0]
+  prob_cases = df_trends.loc[df_trends['Date']==today]['Cumulative Probable Cases'].values[0]
+  deaths = df_trends.loc[df_trends['Date']==yesterday]['Cumulative Fatalities'].values[0]
+  cases = int(conf_cases) + int(prob_cases)
+  deaths = int(deaths)
 
   df_cases = pd.read_excel(url, sheet_name='Cases by RaceEthnicity', skiprows=0, engine='openpyxl')
+  df_cases.loc[len(df_cases.index)]=['Overall Total',cases,0]
   print("Cases by Race")
   display(df_cases)
 
   df_deaths = pd.read_excel(url, sheet_name='Fatalities by Race-Ethnicity', skiprows=0, engine='openpyxl')
+  df_deaths.loc[len(df_deaths.index)]=['Overall Total',deaths,0]
   print("\nDeaths by Race")
   display(df_deaths)
 

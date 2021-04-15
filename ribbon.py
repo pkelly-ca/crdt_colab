@@ -1094,12 +1094,13 @@ states_all = ["AK","AL","AR","CA","CO","CT","DC","DE","FL","GA","GU",
 #states_all = ["AK","AL","AR","CA","CO","CT","DC","DE","FL","GA","GU","HI","ID","IL","IN","KY","LA","MA","MD"]
 #states = ["FL"]
 date_str = datetime.datetime.now().strftime("%Y%m%d") 
+write = False
 
 args_list  = sys.argv[1:]
 
 # Options
-opts = "hays:"
-long_opts = ["help", "all", "state", "yesterday"]
+opts = "hawys:"
+long_opts = ["help", "all", "state", "yesterday", "write"]
 try:
     # Parsing argument
     args, vals = getopt.getopt(args_list, opts, long_opts)
@@ -1113,11 +1114,17 @@ try:
         elif arg in ("-a", "--all"):
             print ("Running All")
             states = states_all
+            run_type = 'all'
+
+        elif arg in ("-w", "--write"):
+            print ("Writing CSV")
+            write = True
 
         elif arg in ("-s", "--state"):
             print (("Running State = (% s)") % (val))
             states = [str(val)]
             debug = True
+            run_type = 'state'
 
         elif arg in ("-y", "--yesterday"):
             print ("Using Yesterday's Data")
@@ -1169,7 +1176,11 @@ for state in states:
 df_dates = pd.DataFrame([[date_str for i in range(len(df.columns))]],columns=df.columns,index=[['Date'],['']])
 df = df_dates.append(df)
 display(df)
-df.T.to_csv('crdt_'+date_str+'.csv')
+if write:
+  if run_type == 'all':
+    df.T.to_csv(gd_path+'ribbon/'+'crdt_'+date_str+'.csv')
+  else:
+    df.T.to_csv('crdt_'+states[0]+'_'+date_str+'.csv')
 
 
 end_run = time.time()

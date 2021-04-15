@@ -1085,13 +1085,13 @@ begin_run = time.time()
 
 key = load_state_keys('crdt_key.csv')
 
-#states_all = ["AK","AL","AR","CA","CO","CT","DC","DE","FL","GA","GU",
-#          "HI","ID","IL","IN","KY","LA","MA","MD","ME","MI",
-#          "MO","MN","MS","MT","NC","ND","NE","NH","NM","NV",
-#          "NY","OR","PA","RI","SD","TN","TX","UT","VA","VT",
-#          "WA","WI","WY"]
+states_all = ["AK","AL","AR","CA","CO","CT","DC","DE","FL","GA","GU",
+          "HI","ID","IL","IN","KY","LA","MA","MD","ME","MI",
+          "MO","MN","MS","MT","NC","ND","NE","NH","NM","NV",
+          "OR","PA","RI","SD","TN","TX","UT","VA","VT",
+          "WA","WI","WY"]
 
-states_all = ["AK","AL","AR","CA","CO","CT","DC","DE","FL","GA","GU","HI","ID","IL","IN","KY","LA","MA","MD"]
+#states_all = ["AK","AL","AR","CA","CO","CT","DC","DE","FL","GA","GU","HI","ID","IL","IN","KY","LA","MA","MD"]
 #states = ["FL"]
 date_str = datetime.datetime.now().strftime("%Y%m%d") 
 

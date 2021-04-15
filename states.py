@@ -114,8 +114,13 @@ def runAK(ws, write):
   soup = BeautifulSoup(wd.page_source, "html.parser")
   csv_tag = soup.find("a", class_="csv")
   csv = csv_tag["href"]
+  display(csv)
   data = pd.read_csv(csv)[13:]
-  df_dem = data[["Demographic", "Hospitalizations", "Deaths"]]
+  df_dem = data.loc[:,["Demographic","All_Cases", "Hospitalizations", "Deaths"]]
+  df_dem.columns = ["Category", "Cases", "Hospitalizations", "Deaths"]
+  df_dem = df_dem.set_index('Category')
+  df_dem.loc['Total'] = df_dem.iloc[0:4].sum()
+  df_dem = df_dem.reset_index()
   display(df_dem)
   wd.quit()
 

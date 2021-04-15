@@ -2948,6 +2948,10 @@ def runVT(ws, write):
   wd.get(url)
   time.sleep(20)
   soup = BeautifulSoup(wd.page_source, 'html.parser')
+  texts = soup.find_all('text',style=re.compile('^fill'))
+  cases = texts[1].text
+  deaths = int(texts[9].text)
+  cases = int(cases.replace(' Total','').replace(',',''))
 
   # Find Totals
   g_all = soup.find_all('g',{"class": "amcharts-pie-item"})
@@ -2966,15 +2970,15 @@ def runVT(ws, write):
   df_demo = pd.DataFrame(demo).loc[:,[0,2]]
   df_demo.iloc[:,1].replace(',','', regex=True, inplace=True)
   df_demo.iloc[:,1] = df_demo.iloc[:,1].astype('int')
-  display(df_demo)
 
-  df_demo_cases = df_demo.loc[5:11,:]
+  df_demo_cases = df_demo.loc[5:11,:].copy().reset_index(drop=True)
   df_demo_cases.columns = ['Category','Cases']
+  df_demo_cases.loc[len(df_demo_cases.index)]=['Total',cases]
 
-  df_demo_deaths = df_demo.loc[15:21,:]
-  display(df_demo_deaths)
+  df_demo_deaths = df_demo.loc[15:21,:].copy().reset_index(drop=True)
 #  df_demo.loc[14] = ['Hispanic:', 0]
   df_demo_deaths.columns = ['Category','Deaths']
+  df_demo_deaths.loc[len(df_demo_deaths.index)]=['Total',deaths]
 
   display(df_demo_cases)
   display(df_demo_deaths)

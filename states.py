@@ -2422,8 +2422,8 @@ def runNV(ws,write):
   wd.maximize_window()
   wait = WebDriverWait(wd, 20)
 
-  wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Current Status']/parent::*"))).click()
-  wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Confirmed Cases']/parent::*"))).click()
+#  wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Current Status']/parent::*"))).click()
+#  wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Confirmed Cases']/parent::*"))).click()
 
   cases = wait.until(EC.visibility_of_element_located((By.XPATH,"//span[text()='Cumulative cases']/parent::*/span[3]"))).text
   wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Deaths']/parent::*"))).click()
@@ -2961,12 +2961,14 @@ def runVT(ws, write):
   df_demo = pd.DataFrame(demo).loc[:,[0,2]]
   df_demo.iloc[:,1].replace(',','', regex=True, inplace=True)
   df_demo.iloc[:,1] = df_demo.iloc[:,1].astype('int')
+  display(df_demo)
 
   df_demo_cases = df_demo.loc[5:11,:]
   df_demo_cases.columns = ['Category','Cases']
 
-  df_demo_deaths = df_demo.loc[14:20,:]
-  df_demo.loc[14] = ['Hispanic:', 0]
+  df_demo_deaths = df_demo.loc[15:21,:]
+  display(df_demo_deaths)
+#  df_demo.loc[14] = ['Hispanic:', 0]
   df_demo_deaths.columns = ['Category','Deaths']
 
   display(df_demo_cases)

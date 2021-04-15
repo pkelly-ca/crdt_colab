@@ -1002,6 +1002,41 @@ def runWA(path,date,state,keys):
   # Return ribbon
   return df_st
 
+def runWI(path,date,state,keys):
+  # Read state file(s)
+  num_files = 9 ### Edit this to equal the number of files in the repo
+  df = {}
+  for i in range(1,num_files+1):
+    df[i] = st_csv(i,path,date,state)
+    if i > 1:
+      if i%2 == 0:
+        ver = 'Race'
+      else:
+        ver = 'Eth'
+      df[i]['Demographic']=df[i]['Demographic'].replace('Unknown','Unk '+ver,regex=True)
+      df[i]=df[i].drop(['Unnamed: 0'],axis=1).set_index('Demographic')
+      df[i].loc['Total '+ver]=df[i].sum()
+    else:
+      df[i]=df[i].drop(['DATE'],axis=1)
+    display(df[i])
+  # Pre-processing
+  df_conf_cases = df[2].append(df[3])
+  df_prob_cases = df[4].append(df[5])
+  df_conf_deaths = df[6].append(df[7])
+  df_prob_deaths = df[8].append(df[9])
+  df_cases = df_conf_cases.add(df_prob_cases,fill_value=0).astype('int')
+  df_deaths = df_conf_deaths.add(df_prob_deaths,fill_value=0).astype('int')
+  display(df_cases)
+  display(df_deaths)
+  df = df_cases.merge(df_deaths,how='outer',left_index=True,right_index=True)
+  df.columns=['Cases','Deaths']
+  df = df.reset_index()
+  # Common processing
+  df_st = state_common(df,keys,state)
+  # Custom Mapping
+  # Return ribbon
+  return df_st
+
 def template(path,date,state,keys):
   # Read state file(s)
   num_files = 2 ### Edit this to equal the number of files in the repo

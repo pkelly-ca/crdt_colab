@@ -1178,7 +1178,7 @@ df = df_dates.append(df)
 display(df)
 if write:
   if run_type == 'all':
-    df.T.to_csv(gd_path+'ribbon/'+'crdt_'+date_str+'.csv')
+    df.T.to_csv(gd_path+'/ribbon/'+'crdt_'+date_str+'.csv')
   else:
     df.T.to_csv('crdt_'+states[0]+'_'+date_str+'.csv')
 

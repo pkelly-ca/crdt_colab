@@ -17,7 +17,7 @@ def colstr2int(df,col):
   df[col] = df[col].astype('int')
 
 def init_ribbon():
-  headings = ['Total','White','Black','Hispanic','Asian','AIAN','NHPI','Multiple','Other','Unknown','Hispanic','Non-Hispanic','Unknown']
+  headings = ['Total','White','Black','Latinx','Asian','AIAN','NHPI','Multiracial','Other','Unknown','Ethnicity_Hispanic','Ethnicity_NonHispanic','Ethnicity_Unknown']
   headings = headings*4
   types = ['Cases','Deaths','Tests','Hospitalizations']
   types = np.repeat(types,13)
@@ -71,14 +71,19 @@ def state_common(df,keys,state):
 def runAK(path,date,state,keys):
   # Read state file(s)
   df = st_csv(1,path,date,state)
+  df = df.drop('Unnamed: 0',axis=1)
+  df = df.set_index('Category')
+  df.loc['Unk Race (calc)']=df.loc['UI Race']+df.loc['Unknown Race']
+  df.loc['Unk Eth (calc)']=df.loc['UI Ethnicity']+df.loc['Unknown Ethnicity']
+  df = df.reset_index()
   # State file prep
   # Common processing
   df_st = state_common(df,keys,state)
   # Custom Mapping
-  df_st.iloc[48]=df.iloc[11,2]+df.iloc[12,2]
-  df_st.iloc[51]=df.iloc[2,2]+df.iloc[3,2]
-  df_st.iloc[22]=df.iloc[11,3]+df.iloc[12,3]
-  df_st.iloc[25]=df.iloc[2,3]+df.iloc[3,3]
+#  df_st.iloc[48]=df.iloc[11,2]+df.iloc[12,2]
+#  df_st.iloc[51]=df.iloc[2,2]+df.iloc[3,2]
+#  df_st.iloc[22]=df.iloc[11,3]+df.iloc[12,3]
+#  df_st.iloc[25]=df.iloc[2,3]+df.iloc[3,3]
   # Return ribbon
   return df_st
 
@@ -611,6 +616,7 @@ def runMT(path,date,state,keys):
     display(df[i])
   # Pre-processing
   df_tot = df[2]
+  df_tot['Totals']=df_tot['Totals'].replace(' \([^)]*\)','',regex=True).astype('int')
   i = 0
   for bool in df[1].loc[:,'Unnamed: 0'].str.isalpha():
     if bool:
@@ -619,6 +625,7 @@ def runMT(path,date,state,keys):
     i+=1
   df=df[1][~df[1].loc[:,'Unnamed: 0'].str.isalpha()]
   df=df.drop(['Unnamed: 0'],axis=1).reset_index(drop=True)
+  df[['Cases','Deaths']] = df[['Cases','Deaths']].astype('int')
   df.loc[len(df.index)] = ['Total',df_tot.loc[0,'Totals']+df_tot.loc[1,'Totals'],df_tot.loc[2,'Totals']]
   df.loc[len(df.index)] = ['Race Unknown',df.loc[11,'Cases']-df.loc[6,'Cases'],df.loc[11,'Deaths']-df.loc[6,'Deaths']]
   df.loc[len(df.index)] = ['Eth Unknown',df.loc[11,'Cases']-df.loc[10,'Cases'],df.loc[11,'Deaths']-df.loc[10,'Deaths']]
@@ -917,6 +924,7 @@ def runTX(path,date,state,keys):
   df[2].columns = ['Category','Deaths']
   df = df[1].merge(df[2],how='outer',on='Category').set_index('Category')
   df.loc['NH'] = df.loc['Total']-df.loc['Hispanic']-df.loc['Unknown']
+  df.loc['Unk (calc)'] = df.loc['OverallTotal']-df.loc['Total']+df.loc['Unknown']
   df = df.reset_index()
   # Common processing
   df_st = state_common(df,keys,state)
@@ -976,6 +984,10 @@ def runVT(path,date,state,keys):
     display(df[i])
   # Pre-processing
   df = df[1].merge(df[2],how='outer',on='Category')
+  df = df.set_index('Category')
+  df.loc['Unk Race (calc)']=df.loc['Total']-df.iloc[2:7].sum()
+  df.loc['Unk Eth (calc)']=df.loc['Total']-df.iloc[0:2].sum()
+  df = df.reset_index()
   # Common processing
   df_st = state_common(df,keys,state)
   # Custom Mapping

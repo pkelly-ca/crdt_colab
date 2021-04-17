@@ -1372,7 +1372,8 @@ def runMD(ws,write):
   # Convert URL codes to characters
   win_url = unquote(script.text[win_start:-5])
   race_string = win_url[re.search("By Race and Ethnicity",win_url).start():]
-  race_table = race_string[race_string.find('<table'):race_string.find('</table>"')+8]
+  race_table = race_string[race_string.find('<table'):race_string.find('</table>')+8]
+  #race_table = race_string[race_string.find('<table'):race_string.find('</table>"')+8]
   # Clean data, move first row to column names
   df = pd.read_html(race_table)[0]
   df = df.fillna('')

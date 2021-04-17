@@ -657,16 +657,18 @@ def runNC(path,date,state,keys):
 
 def runND(path,date,state,keys):
   # Read state file(s)
-  num_files = 1 ### Edit this to equal the number of files in the repo
+  num_files = 2 ### Edit this to equal the number of files in the repo
   df = {}
   for i in range(1,num_files+1):
     df[i] = st_csv(i,path,date,state)
     df[i]=df[i].drop(['Unnamed: 0'],axis=1)
     display(df[i])
   # Pre-processing
+  df_deaths=df[2]
   df=df[1].set_index('Category')
   df.loc['Total']=df.sum()
   df=df.reset_index()
+  df=df.merge(df_deaths,on='Category',how='left').fillna(0)
   # Common processing
   df_st = state_common(df,keys,state)
   # Custom Mapping

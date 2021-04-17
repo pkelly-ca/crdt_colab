@@ -2058,7 +2058,14 @@ def runND(ws,write):
   df.columns = ['Category', 'Cases']
   colstr2int(df,'Cases')
   df.sort_values('Category',ascending=True,inplace=True)
+  df = df.reset_index(drop=True)
   display(df)
+
+  url =  'https://www.health.nd.gov/diseases-conditions/coronavirus/north-dakota-coronavirus-cases'
+  wd.get(url)
+  deaths=wait.until(EC.presence_of_element_located((By.XPATH,"//tbody/tr[5]/td[2]")))
+  df_deaths = pd.DataFrame([['Total',int(deaths.text)]],columns=['Category','Deaths'])
+  display(df_deaths)
   wd.quit()
 
   if write == 1:
@@ -2068,6 +2075,7 @@ def runND(ws,write):
 
     # Write Data To Sheet
     writeTable(df,'','C23',ws)
+    writeTable(df_deaths,'','',ws)
 
 #NE
 def runNE(ws, write):

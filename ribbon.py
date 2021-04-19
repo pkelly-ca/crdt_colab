@@ -116,7 +116,11 @@ def runAR(path,date,state,keys):
     df[i]=df[i].reset_index()
     print('i =',i)
   df = df[1].join(df[2],lsuffix='_l',rsuffix='_r')
-  df.columns = ['','Cases','','Deaths']
+  df.columns = ['Category','Cases','Category2','Deaths']
+  df = df.drop('Category2',axis=1).set_index('Category')
+  df.loc['unk eth (calc)']=df.loc['positives']-df.loc['hispanic']-df.loc['nonhispanic']
+  df.loc['unk race (calc)']=df.loc['positives']-df.iloc[4:10].sum()-df.loc['multi_race']
+  df = df.reset_index()
   # Common processing
   df_st = state_common(df,keys,state)
   # Custom Mapping

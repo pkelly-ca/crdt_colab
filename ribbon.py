@@ -523,18 +523,25 @@ def runME(path,date,state,keys):
 
 def runMI(path,date,state,keys):
   # Read state file(s)
-  num_files = 1 ### Edit this to equal the number of files in the repo
+  num_files = 2 ### Edit this to equal the number of files in the repo
   df = {}
   for i in range(1,num_files+1):
     df[i] = st_csv(i,path,date,state)
     df[i]=df[i].drop(['Unnamed: 0'],axis=1)
     display(df[i])
+  df[2].columns = ['Category','Cases','Deaths']
+  df[2] = df[2].set_index('Category')
+  df_tots = df[2].replace('%','',regex=True).astype('float') / 100
   df = df[1].fillna(0)
   df['Cases'] = df['Confirmed Cases']+df['Probable Cases']
   df['Deaths'] = df['Confirmed Deaths']+df['Probable Deaths']
   df = df.loc[:,['Category','Cases','Deaths']]
   df = df.set_index(['Category'],drop=True)
   df.loc['Total'] = df.sum()
+  df_tots = df_tots * df.loc['Total']
+  df_tots = df_tots.apply(np.floor).astype('int')
+  df = df.append(df_tots)
+  df.loc['Unk Eth (calc)']=df.loc['Total']-df.loc['Hispanic/Latino']-df.loc['Non-Hispanic Latino']
   df = df.reset_index()
   # Pre-processing
   # Common processing

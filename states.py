@@ -947,12 +947,27 @@ def runMI(ws,write):
   from selenium.webdriver.support import expected_conditions as EC
   from selenium.webdriver import ActionChains
 
-  url = 'https://app.powerbigov.us/view?r=eyJrIjoiNDY0ZGVlMDItMzUzNC00ZGE5LWFjYzQtNzliOGJkZWQ4YTgzIiwidCI6ImQ1ZmI3MDg3LTM3NzctNDJhZC05NjZhLTg5MmVmNDcyMjVkMSJ9'
-
   def colstr2int(df,col):
     df.loc[:,col] = df.loc[:,col].replace(',','', regex=True)
     df[col] = df[col].astype('int')
 
+  url = 'https://www.michigan.gov/coronavirus/0,9753,7-406-98163_98173---,00.html'
+  req = requests.get(url)
+  soup = BeautifulSoup(req.text, 'html5lib')
+  tables = soup.find_all('table')
+
+  rows = tables[0].find_all('tr')
+  headers = rows[0].find_all('th') 
+  headers = [ele.text.strip() for ele in headers]
+  data = []
+  for row in rows[1:len(rows)]:
+    cols = row.find_all('td')
+    cols = [ele.text.strip() for ele in cols]
+    data.append([ele for ele in cols if ele]) # Get rid of empty values
+  df_eth = pd.DataFrame(data,columns=headers)
+  display(df_eth)
+
+  url = 'https://app.powerbigov.us/view?r=eyJrIjoiNDY0ZGVlMDItMzUzNC00ZGE5LWFjYzQtNzliOGJkZWQ4YTgzIiwidCI6ImQ1ZmI3MDg3LTM3NzctNDJhZC05NjZhLTg5MmVmNDcyMjVkMSJ9'
   wd = init_driver()
   wd.get(url)
   wait = WebDriverWait(wd, 20)
@@ -1088,6 +1103,7 @@ def runMI(ws,write):
 
     # Write Data To Sheet
     writeTable(df,'','L20',ws)
+    writeTable(df_eth,'','L20',ws)
 
 def runIL(ws,write):
 

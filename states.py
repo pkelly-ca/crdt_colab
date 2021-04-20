@@ -1316,6 +1316,9 @@ def runKY(ws, write):
 
 # LA
 def runLA(ws,write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
 
   url = 'https://services5.arcgis.com/O5K6bb5dZVZcTo5M/ArcGIS/rest/services/Case_Deaths_Race_Region_new/FeatureServer/0/query?where=1%3D1&outFields=LDH_region%2C+Race%2C+Deaths%2C+Cases&returnGeometry=false&f=json'
 
@@ -1336,6 +1339,27 @@ def runLA(ws,write):
 
   display(df_demo)
 
+  url = 'https://public.tableau.com/views/COVID19demog/DataonCOVIN-19RelatedDeathsToDate?:embed=y&:showVizHome=no&:host_url=https%3A%2F%2Fpublic.tableau.com%2F&:embed_code_version=3&:tabs=no&:toolbar=no&:showAppBanner=false&:display_spinner=no&:loadOrderID=0'
+  wd = init_driver()
+  wd.get(url)
+
+  wait = WebDriverWait(wd, 20)
+  wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".tab-icon-download"))).click()
+  print('Clicked download')
+  wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='PDF']"))).click()
+  print('Clicked PDF')
+  wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Download']"))).click()
+  print('Clicked download')
+  time.sleep(5)
+
+  wd.quit()
+  
+
+  tables = tabula.read_pdf('Data on COVIN-19 Related Deaths To Date.pdf',pages=1,multiple_tables=True,pandas_options={'header': None})
+  df_eth = tables[1]
+  df_eth.columns = ['Category','Deaths']
+  display(df_eth)
+
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
@@ -1343,6 +1367,7 @@ def runLA(ws,write):
 
     # Write Data To Sheet
     writeTable(df_demo,'','J27',ws)
+    writeTable(df_eth,'','J27',ws)
 
 # MA
 

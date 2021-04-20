@@ -438,15 +438,20 @@ def runKY(path,date,state,keys):
 
 def runLA(path,date,state,keys):
   # Read state file(s)
-  num_files = 1 ### Edit this to equal the number of files in the repo
+  num_files = 2 ### Edit this to equal the number of files in the repo
   df = {}
   for i in range(1,num_files+1):
     df[i] = st_csv(i,path,date,state)
     df[i]=df[i].drop('Unnamed: 0',axis=1)
     display(df[i])
+  df_eth = df[2].replace('%','',regex=True).set_index('Category').astype('float') / 100
   df = df[1].set_index(['LDH_Region','Race'])
   df = df.sum(level=1)
   df.loc['Total']=df.sum()
+  df_eth = df_eth * df.loc['Total','Deaths']
+  df_eth = df_eth.apply(np.floor).astype('int')
+  df_eth.loc['Unk (calc)']=df.loc['Total','Deaths']-df_eth.loc['Hispanic/Latino']-df_eth.loc['Non-Hispanic/Latino']
+  df = df.append(df_eth).fillna(0).astype('int')
   df = df.reset_index()
   # Pre-processing
   # Common processing

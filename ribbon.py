@@ -91,8 +91,10 @@ def runAK(path,date,state,keys):
 def runAL(path,date,state,keys):
   # Read state file(s)
   df = {}
-  for i in range(1,5):
+  for i in range(1,6):
     df[i] = st_csv(i,path,date,state)
+    display(df[i])
+  df_prob = df[5].drop('Unnamed: 0',axis=1).set_index('Category')
   df_eth = df[1].merge(df[3])
   df_eth = df_eth.drop(['Unnamed: 0','EthnicityCat'],axis=1)
   df_eth.columns = ['Category','Cases','Deaths']
@@ -101,6 +103,14 @@ def runAL(path,date,state,keys):
   df_race.columns = ['Category','Cases','Deaths']
   df = df_race.append(df_eth)
   df = df.reset_index(drop=True)
+  df = df.set_index('Category')
+  df.loc['Confirmed Race Total']=df.iloc[0:5].sum()
+  df.loc['Confirmed Eth Total']=df.iloc[5:len(df.index)-1].sum()
+  df = df.append(df_prob)
+  df.loc['Overall Total']=df.loc['Confirmed Race Total']+df.loc['Probable']
+  df.loc['Unk Race (calc)']=df.iloc[3]+df.loc['Probable']
+  df.loc['Unk Eth (calc)']=df.iloc[7]+df.loc['Probable']
+  df = df.reset_index()
   # Common processing
   df_st = state_common(df,keys,state)
   # Custom Mapping

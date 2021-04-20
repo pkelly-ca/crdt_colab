@@ -134,6 +134,32 @@ def runAK(ws, write):
 
 # AL
 def runAL(ws, write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
+  from selenium.webdriver import ActionChains
+
+  def colstr2int(df,col):
+    df.loc[:,col] = df.loc[:,col].replace(',','', regex=True)
+    df[col] = df[col].astype('int')
+
+  url = 'https://alpublichealth.maps.arcgis.com/apps/dashboards/6d2771faa9da4a2786a509d82c8cf0f7'
+
+  wd = init_driver()
+  wd.get(url)
+  wd.maximize_window()
+  wait = WebDriverWait(wd, 60)
+  prob_cases = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR,"div:nth-child(36) > margin-container > full-container > div > div.widget-body.flex-fluid.full-width.flex-vertical.justify-content-center.overflow-hidden > div > div > svg > g:nth-child(2) > text"))).text
+  prob_deaths = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR,"div:nth-child(45) > margin-container > full-container > div > div.widget-body.flex-fluid.full-width.flex-vertical.justify-content-center.overflow-hidden > div > div > svg > g.responsive-text-label > text"))).text
+  wd.quit()
+
+  df_prob = pd.DataFrame([['Probable',prob_cases,prob_deaths]],columns=['Category','Cases','Deaths'])
+  colstr2int(df_prob,'Cases')
+  colstr2int(df_prob,'Deaths')
+  display(df_prob)
+
+
+
   url = 'https://services7.arcgis.com/4RQmZZ0yaZkGR1zy/ArcGIS/rest/services/DIED_FROM_COVID19_STWD_DEMO_PUBLIC/FeatureServer/0/query?where=1%3D1&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&returnGeodetic=false&outFields=EthnicityCat%2C+DiedFromCovid19&returnGeometry=false&returnCentroid=false&featureEncoding=esriDefault&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnQueryGeometry=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=none&f=pjson&token='
   req = requests.get(url)
   df_deaths_eth = pd.json_normalize(req.json()['features'], sep='_')
@@ -170,6 +196,7 @@ def runAL(ws, write):
     writeTable(df_cases_race,'Race Cases','A43',ws)
     writeTable(df_deaths_eth,'Ethnicity Deaths','E38',ws)
     writeTable(df_deaths_race,'Race Deaths','E43',ws)
+    writeTable(df_prob,'','',ws)
 
 # AR
 def runAR(ws, write):

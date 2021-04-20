@@ -368,7 +368,8 @@ def runIL(path,date,state,keys):
   df.index = df['Category']
   df = df.drop('Category',axis=1)
   df.loc['Total']=df.sum()
-  df.loc['Non-Hispanic']=df.loc['Total']-df.loc['Left Blank']-df.loc['Hispanic']
+  df.loc['Non-Hispanic']=df.loc['Total']-df.loc['Left Blank']-df.loc['Hispanic']-df.loc['Probable']
+  df.loc['Unknown (calc)']=df.loc['Left Blank']+df.loc['Probable']
   df = df.reset_index()
   # Pre-processing
   # Common processing
@@ -379,9 +380,9 @@ def runIL(path,date,state,keys):
 
 def runIN(path,date,state,keys):
   # Read state file(s)
-  num_files = 2 ### Edit this to equal the number of files in the repo
+  num_files = 3 ### Edit this to equal the number of files in the repo
   df = {}
-  for i in range(1,num_files+1):
+  for i in range(1,num_files):
     df[i] = st_csv(i,path,date,state)
     df[i]=df[i].drop('Unnamed: 0',axis=1)
     df[i]=df[i].loc[:,~df[i].columns.str.contains('PCT')]
@@ -390,7 +391,17 @@ def runIN(path,date,state,keys):
     df[i] = df[i].drop('Category',axis=1)
     df[i].loc['Total']=df[i].sum()
     display(df[i])
+  # Handle new file of probables
+  df[3] = st_csv(3,path,date,state)
+  df_prob=df[3].drop('Unnamed: 0',axis=1)
+  display(df_prob)
   df = df[1].append(df[2]).reset_index()
+  df = df.append(df_prob).fillna(0).reset_index(drop=True)
+  df = df.set_index('Category').astype('int')
+  df.loc['Overall Total'] = df.iloc[5]+df.loc['Probable']
+  df.loc['Unk race (calc)'] = df.iloc[3]+df.loc['Probable']
+  df.loc['Unk eth (calc)'] = df.iloc[8]+df.loc['Probable']
+  df = df.reset_index()
   # Pre-processing
   # Common processing
   df_st = state_common(df,keys,state)

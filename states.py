@@ -1132,6 +1132,8 @@ def runIL(ws,write):
 
   # Cases
   soup = BeautifulSoup(wd.page_source, 'html.parser')
+  prob_deaths = soup.find('h3',{"id": "covid19probabledeaths"})
+  prob_deaths = int(prob_deaths.text.replace(',',''))
   div_race = soup.find('div',{"id": "pieRace"})
   cases_race = div_race.find_all_next('text',{"class": "slicetext"})
 
@@ -1159,7 +1161,8 @@ def runIL(ws,write):
   df.loc[:,cols] = df.loc[:,cols].replace(',','', regex=True)
   df[cols] = df[cols].astype('int')
   df['Category'] = df['Category'].replace('\*','', regex=True)
-  df = df.sort_values(by='Category')
+  df = df.sort_values(by='Category').reset_index(drop=True)
+  df.loc[len(df.index)] = ['Probable',0,prob_deaths,0]
   display(df)
 
   wd.quit()
@@ -1178,6 +1181,10 @@ def runIL(ws,write):
 #import requests
 
 def runIN(ws, write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
+  from selenium.webdriver import ActionChains
 
   url = 'https://hub.mph.in.gov/dataset/62ddcb15-bbe8-477b-bb2e-175ee5af8629/resource/2538d7f1-391b-4733-90b3-9e95cd5f3ea6/download/covid_report_demographics.xlsx'
   df_IN_casesRace = pd.read_excel(url, sheet_name='Race', skiprows=0, engine='openpyxl')
@@ -1187,6 +1194,23 @@ def runIN(ws, write):
   print("\nCases by Ethnicity")
   display(df_IN_casesEthnicity)
 
+  url = 'https://www.coronavirus.in.gov/2393.htm'
+
+  wd = init_driver()
+  wd.get(url)
+  wd.maximize_window()
+  wait = WebDriverWait(wd, 20)
+  height = wd.execute_script("return Math.max( document.body.scrollHeight, document.body.offsetHeight, document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight )")
+  wd.set_window_size(1920, height)
+  wait.until(EC.frame_to_be_available_and_switch_to_it((By.CSS_SELECTOR, "iframe[src='./map/test.htm']")))
+  wd.save_screenshot("in_probable.png");
+  soup = BeautifulSoup(wd.page_source, 'html.parser')
+  p_tag = soup.find('p',attrs={'class':'h5'})
+  h2_tag = p_tag.findNext('h2')
+  df_prob = pd.DataFrame([['Probable',h2_tag.text]],columns=['Category','Deaths'])
+  display(df_prob)
+  wd.quit()
+
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
@@ -1195,6 +1219,7 @@ def runIN(ws, write):
     # Write Data To Sheet
     writeTable(df_IN_casesRace,'Cases by Race','H22',ws)
     writeTable(df_IN_casesEthnicity,'Cases by Ethnicity','H29',ws)
+    writeTable(df_prob,'Cases by Ethnicity','H29',ws)
 
 # KY
 #from io import StringIO, BytesIO

@@ -1543,6 +1543,19 @@ def runME(ws, write):
     print("-" *10)
     return df
 
+ #New Eth
+  print("\nDemographics by Ethnicity")
+  wd=init_driver()
+  wd.get(raceethsrc)
+  wait = WebDriverWait(wd, 160)
+  wait.until(EC.element_to_be_clickable((By.XPATH,"//span[@aria-label='Toggle race / ethnicity Race']"))).click()
+  wait.until(EC.element_to_be_clickable((By.XPATH,"//span[text()='Ethnicity']"))).click()
+  wait.until(EC.element_to_be_clickable((By.XPATH,race_hosp_xpath))).click()
+  df_casesEth = getCSV(csv_Eth)
+  df_casesEth=df_casesEth.drop(['Population'],1).fillna('0')
+  display(df_casesEth)
+  wd.quit()
+
  #Race
   wd=init_driver()
   wd.get(raceethsrc)
@@ -1559,61 +1572,6 @@ def runME(ws, write):
   display(df_casesRace)
   wd.quit()
 
-  #Ethnicity
-  wd=init_driver()
-  wd.get(raceethsrc)
-  wait = WebDriverWait(wd, 120)
-  print(raceethsrc)
-
-  #Demographics by Ethnicity
-  print("\nDemographics by Ethnicity")
-  wd.save_screenshot("eth_Begin.png");
-
- 
-  toggle_zero='//*[@id="tableau_base_widget_ParameterControl_0"]/div/div[2]/span/div[2]/span' # Widget
- #Ethnicity
-  toggle_one='//*[@id="tab-menuItem2"]/div/span'
-  toggle_xpath_eth='//*[@id="tab-menuItem2"]'
-  toggle_last='//*[@id="tab-menuItem2"]/div/span'
-
-  toggle_eth_xpath='//*[@id="tab-menuItem2"]/div/span'
-  #toggle_eth_xpath='//*[@aria-activedescendant="tab-menuItem2"]'
-
-  toggle_xpath='//*[@id="tab-ui-id-1616981554102"]'
-  choose_eth='//*[@id="tab-menuItem2"]/div/span'
-
-  little_widget='//*[@aria-label="Toggle race / ethnicity Ethnicity"]'
-  raceeth_xpath='//*[@aria-label="Toggle race / ethnicity"]'
-  eth_hosp_xpath='//*[@class="tab-tooltip tab-widget tab-tooltipBR"]'
-
-  #print("Toggle 0")
-  #time.sleep(10)
-  #wd.find_element_by_xpath(toggle_zero).click()
-  #wd.save_screenshot("ethToggleZero.png");
-
-  #print("Toggle One")
-  #time.sleep(20)
-  #toggle_btn=wd.find_element_by_xpath(toggle_one).click()
-  #wd.save_screenshot("ethToggleOne.png");
-  #print("Toggle one done, now choosing Toggle two")
-  #wd.save_screenshot("ethToggleOne.png");
-
-  #print("Toggle Xpath Eth")
-  #toggle_btn=wd.find_element_by_xpath(toggle_xpath_eth).click()
-  #wd.save_screenshot("ethToggleXpath.png");
-  #print("Toggle xpath eth done, now choosing xpath last")
-  #wd.save_screenshot("ethToggleXpath.png");  
-
-  #wait.until(EC.element_to_be_clickable((By.XPATH, eth_hosp_xpath))).click()
-  #print("clicked Hospitalization")
-
-  #df_casesEth = getCSV(csv_Eth)
-  #df_casesEth.fillna('0')
-  #Get rid of extra rows
-  #df_casesEth=df_casesEth.drop(['Population'],1).fillna('0')
-  #display(df_casesEth)
-  #wd.quit()
-  
   if write == 1:
       # Write Paste Date To Sheet
       dataToWrite = [[date.today().strftime('%m/%d')]]
@@ -1621,7 +1579,7 @@ def runME(ws, write):
       #Write Demographic Data
       #writeTable(df_totals,'Confirmed Case & Death Totals','L15')
       writeTable(df_casesRace,'','H27',ws)
-      #writeTable(df_casesEth,'Demographics by Ethnicity','L23')
+      writeTable(df_casesEth,'Demographics by Ethnicity','L23',ws)
 
 #MN
 #ARCGIS

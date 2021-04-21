@@ -534,14 +534,15 @@ def runMD(path,date,state,keys):
 
 def runME(path,date,state,keys):
   # Read state file(s)
-  num_files = 1 ### Edit this to equal the number of files in the repo
+  num_files = 2 ### Edit this to equal the number of files in the repo
   df = {}
   for i in range(1,num_files+1):
     df[i] = st_csv(i,path,date,state)
+    df[i] = df[i].loc[:,['Race / Ethnicity Dimension','Cases','Hospitalizations','Deaths']]
+    df[i] = df[i].set_index(['Race / Ethnicity Dimension'],drop=True)
+    df[i].loc['Total'] = df[i].sum()
     display(df[i])
-  df = df[1].loc[:,['Race / Ethnicity Dimension','Cases','Hospitalizations','Deaths']]
-  df = df.set_index(['Race / Ethnicity Dimension'],drop=True)
-  df.loc['Total'] = df.sum()
+  df = df[1].append(df[2])
   df = df.reset_index()
   # Pre-processing
   # Common processing

@@ -140,13 +140,16 @@ def runAR(path,date,state,keys):
 def runCA(path,date,state,keys):
   # Read state file(s)
   df = {}
-  for i in range(1,2):
+  for i in range(1,3):
     df[i] = st_csv(i,path,date,state)
-  df = df[1]
-  df.columns = ['','Category','Cases','Deaths','']
-  non_h_cases = df['Cases'].sum() - df['Cases'].iloc[7] - df['Cases'].iloc[3]
-  non_h_deaths = df['Deaths'].sum() - df['Deaths'].iloc[7] - df['Deaths'].iloc[3]
-  df.loc[len(df.index)] = [0,'Non-Hispanic',non_h_cases,non_h_deaths,'2021-03-31']
+    display(df[i])
+  df[1] = df[1].drop(['Unnamed: 0','report_date'],axis=1)
+  df[1].columns = ['Category','Cases','Deaths']
+  df[2].columns = ['Category','Cases','Deaths']
+  df = df[1].append(df[2]).set_index('Category')
+  df.loc['NH']=df.sum()-df.loc['California']-df.loc['Total']-df.loc['Latino']
+  df.loc['Unk (calc)']=df.loc['California']-df.loc['Total']
+  df = df.reset_index()
   # Common processing
   df_st = state_common(df,keys,state)
   # Custom Mapping

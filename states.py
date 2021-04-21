@@ -233,17 +233,15 @@ def runAR(ws, write):
 def runCA(ws, write):
   # CA Case & Deaths Totals, Confirmed & Probables"
   #url = 'https://data.ca.gov/dataset/590188d5-8545-4c93-a9a0-e230f0db7290/resource/926fd08f-cc91-4828-af38-bd45de97f8c3/download/statewide_cases.csv'
-  #url = 'https://data.chhs.ca.gov/dataset/f333528b-4d38-4814-bebb-12db1f10f535/resource/046cdd2b-31e5-4d34-9ed3-b48cdbc4be7a/download/covid19cases_test.csv'
-  #df_totals = pd.read_csv(url,parse_dates=['date'])
-  #maxdateTot = df_totals ['date'].max()
-  #print('\nCase & Death Totals')
-  #print(maxdateTot,'\n')
-  #display(df_totals)
-  #df_cases = df_totals.groupby(['date'])[['totalcountconfirmed','totalcountdeaths']].sum()
-  #df_cases = df_totals[df_totals['date'] == maxdateTot]
-  #df_cases = df_cases.groupby(['date'])[['totalcountconfirmed','totalcountdeaths']].sum()
-  #df_cases = df_cases.astype('int')
-  #display(df_cases)
+  url = 'https://data.chhs.ca.gov/dataset/f333528b-4d38-4814-bebb-12db1f10f535/resource/046cdd2b-31e5-4d34-9ed3-b48cdbc4be7a/download/covid19cases_test.csv'
+  df_totals = pd.read_csv(url,parse_dates=['date'])
+  maxdateTot = df_totals ['date'].max()
+  print('\nCase & Death Totals')
+  print(maxdateTot,'\n')
+  df_totals = df_totals.groupby(['area'])[['reported_cases','reported_deaths']].sum()
+  df_totals = df_totals[df_totals.index.isin(['California'])]
+  df_totals = df_totals.astype('int')
+  display(df_totals)
 
   # CA Race & Ethnicity
   #url = 'https://data.ca.gov/dataset/590188d5-8545-4c93-a9a0-e230f0db7290/resource/7e477adb-d7ab-4d4b-a198-dc4c6dc634c9/download/case_demographics_ethnicity.csv'
@@ -266,8 +264,8 @@ def runCA(ws, write):
     #ws.update('F16',dataToWrite)
 
     # Write Data To Sheet
-    #writeTable(df_cases,'Case & Death Totals','G18',ws)
     writeTable(df_dem,'CA Race and Ethnicity Totals','G23',ws)
+    writeTable(df_totals,'Case & Death Totals','G18',ws)
 
 #CO
 

@@ -30,6 +30,7 @@ os.environ['TZ'] = 'America/New_York'
 time.tzset()
 import json
 from selenium import webdriver
+from webdriver_manager.chrome import ChromeDriverManager
 import inspect
 
 # for S3 backup
@@ -44,7 +45,8 @@ def init_driver():
   options.add_argument('--headless')
   options.add_argument('--no-sandbox')
   options.add_argument('--disable-dev-shm-usage')
-  wd = webdriver.Chrome('chromedriver',options=options)
+  #wd = webdriver.Chrome('chromedriver',options=options)
+  wd = webdriver.Chrome(ChromeDriverManager().install(),options=options)
   return wd
 
 def writeTable(df,title,startCell,ws):
@@ -1540,21 +1542,42 @@ def runME(ws, write):
   csv_Race = "case-by-race-bars_data.csv"
   csv_Eth = "case-by-race-bars_data.csv"
 
+  def retry_wait_click(path):
+    result = False
+    attempts = 0
+    while attempts < 5:
+        try:
+          display('Trying...',path)
+          ele = wait.until(EC.element_to_be_clickable((By.XPATH,path)))
+          ele.click()
+          display('number of attempts = ',attempts+1)
+          result = True;
+          break
+        except Exception as e:
+          display('...failed (sleeping)')
+          display('Exception:',e)
+          time.sleep(5)
+          attempts+=1
+    return result
+
   def getCSV(metric_csv):
 
-    wait.until(EC.element_to_be_clickable((By.XPATH,tab_btn_xpath))).click()
+    retry_wait_click(tab_btn_xpath)
+    #wait.until(EC.element_to_be_clickable((By.XPATH,tab_btn_xpath))).click()
     time.sleep(10)
     print("clicked download button")
     print('record the windows that are open')
     window_before = wd.window_handles[0]
     print(window_before)
     #switch to the new window that opens up
-    wait.until(EC.element_to_be_clickable((By.XPATH,data_btn_xpath))).click()
+    retry_wait_click(data_btn_xpath)
+    #wait.until(EC.element_to_be_clickable((By.XPATH,data_btn_xpath))).click()
     print("clicked data button")
     window_after = wd.window_handles[1]
     wd.switch_to_window(window_after)
     print("window after")
-    wait.until(EC.element_to_be_clickable((By.XPATH,"//*[@class='csvLink_summary']"))).click()
+    retry_wait_click("//*[@class='csvLink_summary']")
+    #wait.until(EC.element_to_be_clickable((By.XPATH,"//*[@class='csvLink_summary']"))).click()
     print("clicked text file option")
     time.sleep(5)
     #make df
@@ -1567,9 +1590,14 @@ def runME(ws, write):
   wd=init_driver()
   wd.get(raceethsrc)
   wait = WebDriverWait(wd, 160)
-  wait.until(EC.element_to_be_clickable((By.XPATH,"//span[@aria-label='Toggle race / ethnicity Race']"))).click()
-  wait.until(EC.element_to_be_clickable((By.XPATH,"//span[text()='Ethnicity']"))).click()
-  wait.until(EC.element_to_be_clickable((By.XPATH,race_hosp_xpath))).click()
+  #time.sleep(10)
+  #race_eth_toggle = wait.until(EC.element_to_be_clickable((By.XPATH,"//span[@aria-label='Toggle race / ethnicity Race']")))
+  #race_eth_toggle.click()
+  retry_wait_click("//span[@aria-label='Toggle race / ethnicity Race']")
+  retry_wait_click("//span[text()='Ethnicity']")
+  retry_wait_click(race_hosp_xpath)
+  #wait.until(EC.element_to_be_clickable((By.XPATH,"//span[text()='Ethnicity']"))).click()
+  #wait.until(EC.element_to_be_clickable((By.XPATH,race_hosp_xpath))).click()
   df_casesEth = getCSV(csv_Eth)
   df_casesEth=df_casesEth.drop(['Population'],1).fillna('0')
   display(df_casesEth)
@@ -1582,7 +1610,9 @@ def runME(ws, write):
   print(raceethsrc)
   #Demographics by Race
   print("\nDemographics by Race")
-  wait.until(EC.element_to_be_clickable((By.XPATH,race_hosp_xpath))).click()
+  #time.sleep(10)
+  #wait.until(EC.element_to_be_clickable((By.XPATH,race_hosp_xpath))).click()
+  retry_wait_click(race_hosp_xpath)
   print("selected Hospitalizations")
   df_casesRace = getCSV(csv_Race)
   df_casesRace.fillna('0')

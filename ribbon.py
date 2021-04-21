@@ -124,10 +124,13 @@ def runAR(path,date,state,keys):
     df[i] = st_csv(i,path,date,state)
     df[i]=df[i].T
     df[i]=df[i].reset_index()
-    print('i =',i)
+  df_hisp_eth = st_csv(3,path,date,state)
+  df_hisp_eth['Deaths']=df_hisp_eth['Deaths'].replace('%','',regex=True).astype('float')/100
   df = df[1].join(df[2],lsuffix='_l',rsuffix='_r')
   df.columns = ['Category','Cases','Category2','Deaths']
   df = df.drop('Category2',axis=1).set_index('Category')
+  df.loc['hispanic','Deaths']=int(df_hisp_eth.loc[0,'Deaths']*df.loc['positives','Deaths'])
+  df.loc['nonhispanic','Deaths']=df.iloc[4:10,1].sum()+df.loc['multi_race','Deaths']-df.loc['hispanic','Deaths']
   df.loc['unk eth (calc)']=df.loc['positives']-df.loc['hispanic']-df.loc['nonhispanic']
   df.loc['unk race (calc)']=df.loc['positives']-df.iloc[4:10].sum()-df.loc['multi_race']
   df = df.reset_index()

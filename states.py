@@ -200,9 +200,27 @@ def runAL(ws, write):
 
 # AR
 def runAR(ws, write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
+  from selenium.webdriver import ActionChains
+
+  print("\nAR Hispanic Ethnicity % Deaths")
+  url = 'https://adem.maps.arcgis.com/apps/opsdashboard/index.html#/f09960f2948d43d39913400dad1af77c'
+
+  wd=init_driver()
+  wd.get(url)
+  wd.maximize_window()
+  wait = WebDriverWait(wd, 160)
+  hisp_eth = wait.until(EC.presence_of_element_located((By.XPATH,"//*[text()[contains(.,'are Hispanic:')]]")))
+  hisp_eth = hisp_eth.get_attribute('innerHTML').split(': ')[1]
+  wd.quit()
+
+  df_eth_d = pd.DataFrame([['Hispanic',hisp_eth]],columns=['Category','Deaths'])
+  display(df_eth_d)
 
   #totals, case dems, death dems
-  print("AR Cases")
+  print("\nAR Cases")
   urlCases='https://services.arcgis.com/PwY9ZuZRDiI5nXUB/ArcGIS/rest/services/UPDATED_ADH_COVID19_STATE_METRICS/FeatureServer/0/query?where=1%3D1&objectIds=&time=&resultType=none&outFields=positives%2C+black%2C+white%2C+na%2C+asian%2C+pi%2C+other_race%2C+unk_race%2C+multi_race%2C+nonhispanic%2C+hispanic&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&sqlFormat=none&f=pgeojson&token='
   req=requests.get(urlCases)
   df_cases=pd.json_normalize(req.json()['features'])
@@ -225,6 +243,7 @@ def runAR(ws, write):
     # Write Data To Sheet
     writeTable(df_cases,'Case Demographics','A34',ws)
     writeTable(df_deaths,'Death Demographics','A37',ws)
+    writeTable(df_eth_d,'','',ws)
 
 # CA
 #import pandas as pd

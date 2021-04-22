@@ -3357,6 +3357,56 @@ def runWI(ws, write):
     writeTable(df_deathsProbsRace, 'Probable Deaths by Race', 'N34',ws)
     writeTable(df_deathsProbsEth, 'Probable Deaths by Ethnicity', 'N43',ws)
 
+
+# WV
+def runWV(ws, write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
+  from selenium.webdriver import ActionChains
+
+  def get_elements():
+    elements = []
+    while len(elements)<7:
+      elements = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "tspan[x='0'],[y='0']")))
+      time.sleep(1)
+    return elements
+
+
+  url = 'https://app.powerbigov.us/view?r=eyJrIjoiNDAwZjU3ZTAtMWM3OS00M2NjLWFiMGMtOTYwYjdmYTAwMGZjIiwidCI6IjhhMjZjZjAyLTQzNGEtNDMxZS04Y2FkLTdlYWVmOTdlZjQ4NCJ9'
+
+  wd=init_driver()
+  wd.get(url)
+  wd.maximize_window()
+  wait = WebDriverWait(wd, 160)
+  data = []
+  cats = ['White','Unknown','Black','Other']
+  time.sleep(10)
+  print('Clicking Cumulative Summary')
+  wait.until(EC.element_to_be_clickable((By.XPATH, "//*[text()[contains(.,'Cumulative Summary')]]/parent::*"))).click()
+#  time.sleep(5)
+  print('Getting Totals')
+  elements = get_elements()
+  data_row = ['Total',elements[0].text,elements[1].text,elements[3].text]
+  data.append(data_row)
+  for i in range(1,5):
+    print('Getting',cats[i-1])
+    wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "g > rect:nth-child("+str(i)+")"))).click()
+    time.sleep(5)
+    elements = get_elements()
+    data_row = [cats[i-1],elements[0].text,elements[1].text,elements[3].text]
+    display(data_row)
+    data.append(data_row)
+  wd.quit()
+
+  df = pd.DataFrame(data,columns=['Category','Confirmed','Probable','Deaths'])
+
+  display(df)
+
+  if write == 1:
+    # Write Data To Sheet
+    writeTable(df,'','',ws)
+
 # WY ************
 
 def runWY(ws,write):

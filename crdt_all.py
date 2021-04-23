@@ -24,8 +24,8 @@ states = []
 states_all = ["AK","AL","AR","CA","CO","CT","DC","DE","FL","GA","GU",
           "HI","ID","IL","IN","KY","LA","MA","MD","ME","MI",
           "MO","MN","MS","MT","NC","ND","NE","NH","NM","NV",
-          "NY","OR","PA","RI","SD","TN","TX","UT","VA","VT",
-          "WA","WI","WY"]
+          "NY","OK","OR","PA","RI","SD","TN","TX","UT","VA","VT",
+          "WA","WI","WV","WY"]
 
 args_list  = sys.argv[1:]
 
@@ -87,8 +87,13 @@ for state in states:
       func = globals()["run" + state]
       func(write_local,write_sheet)
     except Exception as e:
-      display("Skipping state %s due to error: %s" % (state, str(e)))
-      failed_states_list.append(state)
+      display("First run failed, retrying...")
+      try:
+        func = globals()["run" + state]
+        func(write_local,write_sheet)
+      except Exception as e:
+        display("Skipping state %s due to error: %s" % (state, str(e)))
+        failed_states_list.append(state)
   else:
     try:
       func = globals()["run" + state]

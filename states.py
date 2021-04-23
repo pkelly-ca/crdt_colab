@@ -279,8 +279,7 @@ def runCO(ws, write):
   df_caseDems['Case Count']=df_caseDems['value']
   display(df_caseDems)
   for i in range(len(df_caseDems)):
-    df_caseDems.iloc[i, 4]=round(df_caseDems.iloc[i, 4] * cases.iloc[0]) # PK fix
-  display(df_caseDems)
+    df_caseDems.iloc[i, 4]=round(df_caseDems.iloc[i, 4] * cases[0]) # PK fix
 
   # find the Death Demographics
   df_deathDems = df_totals[df_totals['description'] == 'Percent of Deaths by Race and Ethnicity']
@@ -290,7 +289,7 @@ def runCO(ws, write):
   df_deathDems['Death Count']=df_deathDems['value']
   print('6')
   for i in range(len(df_deathDems)):
-    df_deathDems.iloc[i, 4]=round(df_deathDems.iloc[i, 4] * deaths.iloc[0]) # PK fix
+    df_deathDems.iloc[i, 4]=round(df_deathDems.iloc[i, 4] * deaths[5]) # PK fix
 
   print("CO Case Demographic %")
   display(df_caseDems)
@@ -456,7 +455,7 @@ def runDE(ws,write):
   
   for i in range(0,len(span)):
     if ("State of Delaware" in span[i]) & (num_found[4]<2):
-      if num_found[4] == 0:
+      if num_found[4] == 1:
         total_tests = find_val(span[i+1])
       num_found[4] += 1 
   
@@ -1181,56 +1180,242 @@ def runKS(ws, write):
   #System.setProperty("sun.java2d.cmm", "sun.java2d.cmm.kcms.KcmsServiceProvider")
 
   url='https://public.tableau.com/views/COVID-19TableauVersion2/COVID-19Overview?:embed=y&:showVizHome=no&:host_url=https%3A%2F%2Fpublic.tableau.com%2F&:embed_code_version=3&:tabs=no&:toolbar=yes&:animate_transition=yes&:display_static_image=no&:display_spinner=no&:display_overlay=yes&:display_count=yes&:language=en&publish=yes&:loadOrderID=0'
-  #case_dems_xpath='//*[@id="tabZoneId434"]/div/div/div/div/div'
   case_dems_xpath='//*[@id="tabZoneId434"]/div/div/div/div/div/div'
-  #death_dems_xpath='//*[@id="tabZoneId439"]/div/div/div/div/div'
   death_dems_xpath='//*[@id="tabZoneId439"]/div/div/div/div/div/div'
+  hosp_dems_xpath='//*[@id="tabZoneId440"]/div/div/div/div/div/div'
 
 
   dnld_xpath='//*[@id="download-ToolbarButton"]/span[1]'
   pdf_xpath='//*[@id="DownloadDialog-Dialog-Body-Id"]/div/fieldset/button[4]'
   download_xpath='//*[@id="export-pdf-dialog-Dialog-Body-Id"]/div/div[4]/button'
-  pdf_Cases='Case Characteristics.pdf'
-  pdf_Deaths='Death_Summary.pdf'
-
-  #Cases PDF
-  
+ 
   def getPDF(metric_xpath,pdf_file):
-     wait = WebDriverWait(wd, 20)
+     wait = WebDriverWait(wd, 60)
      print("Wait")
-     btn=wd.find_element_by_xpath(metric_xpath)
-     btn.click()
-     time.sleep(30)
-     #wait.until(EC.element_to_be_clickable((By.XPATH,metric_xpath))).click()
-     print("Metric - case dems or death dems")
-     dnld_btn=wd.find_element_by_xpath(dnld_xpath)
-     dnld_btn.click()
-     time.sleep(60)
-     #wait.until(EC.element_to_be_clickable((By.XPATH, dnld_xpath))).click()
+     wait.until(EC.element_to_be_clickable((By.XPATH,metric_xpath))).click()
+     print("Metric - case, hosp or death dems")
+     wait.until(EC.element_to_be_clickable((By.XPATH, dnld_xpath))).click()
      print("clicked download on tableau frame")
      wait.until(EC.element_to_be_clickable((By.XPATH, pdf_xpath))).click()
      print("chose PDF option")
      wait.until(EC.element_to_be_clickable((By.XPATH, download_xpath))).click()
      print("Chose Download as is option")
-     time.sleep(5)
+     time.sleep(10)
      tables=tabula.read_pdf(pdf_file, pages="all", multiple_tables=True, lattice=False, encoding='utf-8', guess=False)
+
      return tables
 
+  #Cases PDF
   #initialize the driver
   wd=init_driver()
   wd.get(url)
   wait = WebDriverWait(wd, 160)
   print(url)
 
-  case_tables=getPDF(case_dems_xpath, pdf_Cases)
-  case_tables[0].fillna('0')
-  display(case_tables[0])
+  Race_Eth=['Total', 'White', 'Black', 'AIAN', 'Asian', 'Other', 'Race Missing', 'Hispanic', 'Not Hispanic', 'Eth Missing']
 
-  #death_tables=getPDF(death_dems_xpath, pdf_Deaths)
-  #display(death_tables[0])
+  #Cases
+  print("Getting Case Demographics")
+  case_tables=getPDF(case_dems_xpath, 'Case Characteristics.pdf')
+  case_info=case_tables[0]
+  case_info.columns=['Drop 0', 'Race/Ethnicity', 'Cases', 'Drop 1', 'Drop 2']
+  case_info0=case_info.drop(['Drop 0', 'Drop 1', 'Drop 2'], axis=1)
+  #print("deleted 2 columns")
 
+  case_info1=case_info0.iloc[23:-24].reset_index(drop=True) #from 24 to 11
+  #print("remove big span 24:-24")
+  case_info1=case_info1.drop(case_info0.index[7:10]).reset_index(drop=True)
+  #print("removed 3 rows")
+
+  #Going after Total number of Cases
+  case_info0=case_info0.iloc[10:-47].reset_index(drop=True)
+  case_info0_label=case_info0
+  #print("about to split Race/Ethnicity Cases by space")
+  case_info0_label[['Word1','Word2','Word3','Word4']]=case_info0_label['Race/Ethnicity'].str.split(' ',expand=True)
+  #print("finished split")
+
+  case_info0_label.columns=['Total', 'Drop0', 'Cases', 'Word2', 'Word3', 'Word4']
+  case_info0_label=case_info0_label.drop(['Drop0', 'Word2', 'Word3', 'Word4'], axis=1)
+
+  #Reassemble Dataframe with Totals on top
+  case_final=case_info1
+  case_final.iloc[0]=case_info0_label.iloc[1]
+  case_final['Cases']=case_final['Cases'].str.replace(r",","").astype(float)
+  case_final['Race/Ethnicity']=Race_Eth
+  #display(case_final)
 
   wd.quit()
+
+
+  #Hospitalizations PDF
+  #initialize the driver
+  wd=init_driver()
+  wd.get(url)
+  wait = WebDriverWait(wd, 160)
+
+  #Hospitalizations
+  print("Getting Hospitalization Demographics")
+  hosp_tables=getPDF(hosp_dems_xpath, 'Hospital Summary.pdf')
+  hosp_tables[0].fillna('0')
+  hosp_info=hosp_tables[0]
+  hosp_info.columns=['Race/Ethnicity', 'Drop 0', 'Drop 1', 'Drop 2', 'Drop 3']
+  hosp_info=hosp_info.drop(['Drop 1', 'Drop 2','Drop 3'], axis=1)
+  #print("dropped 3 columns")
+
+  hosp_info0=hosp_info.iloc[8:-20].reset_index(drop=True) 
+  hosp_prefinal=hosp_info0.drop(hosp_info0.index[7:14]).reset_index(drop=True)
+  print("reset indices")
+  hosp_prefinal.columns=['Race/Ethnicity', 'Drop 0']
+  #print("adjust columns")
+
+  #remove commas from the mega Race/Ethnicity column
+  hosp_prefinal['Race/Ethnicity']=hosp_prefinal['Race/Ethnicity'].str.replace(r",","")
+  #print("remove commas in Race/Ethnicity")
+
+  #explode out the Race/Ethnicity column - split by space
+  hosp_final_label=hosp_prefinal
+  hosp_final_label[['Word1','Word2','Word3','Word4','Word5', 'Word6', 'Word7', 'Word8', 'Word9']]=hosp_final_label['Race/Ethnicity'].str.split(' ',expand=True)
+  print("Exploding columns, removing columns and rearranging")
+  
+  #Try to convert the data frame to numeric
+  hosp_final_label2=hosp_final_label.apply(pd.to_numeric, errors='coerce')
+  hosp_final_label2=hosp_final_label2.fillna('0')
+  #print("trying to convert df to numeric")
+  
+  #See what got converted
+  #display(hosp_final_label2['Word2'].apply(type))
+
+  hosp_final_label2.columns=['Race/Ethnicity', 'Hospitalizations', 'Word1','Word2','Word3','Word4','Word5', 'Word6', 'Word7', 'Word8', 'Word9']
+  #print("Renamed Hosp")
+
+  #Iterate over the hosp data frame because tabula is not clean and adds numbers to the race/ethnicity column  
+  print("starting iterating")
+  for i in range(len(hosp_final_label2)):
+      if isinstance(hosp_final_label2.loc[i, 'Word1'], float):
+                #print("Label had a number Word1")
+                hosp_final_label2.loc[i, 'Hospitalizations'] = hosp_final_label2.loc[i, 'Word1']
+      elif isinstance(hosp_final_label2.loc[i, 'Word2'], float):
+                #print("Label had a number Word2")
+                hosp_final_label2.loc[i, 'Hospitalizations'] = hosp_final_label2.loc[i, 'Word2']
+      elif isinstance(hosp_final_label2.loc[i, 'Word3'], float):
+                #print("Label had a number Word3")
+                hosp_final_label2.loc[i, 'Hospitalizations'] = hosp_final_label2.loc[i, 'Word3']
+      elif isinstance(hosp_final_label2.loc[i, 'Word4'], float):
+                #print("Label had a number Word4")
+                hosp_final_label2.loc[i, 'Hospitalizations'] = hosp_final_label2.loc[i, 'Word4']
+      elif isinstance(hosp_final_label2.loc[i, 'Word5'], float):
+                #print("Label had a number Word5")
+                hosp_final_label2.loc[i, 'Hospitalizations'] = hosp_final_label2.loc[i, 'Word5']
+      elif isinstance(hosp_final_label2.loc[i, 'Word6'], float):
+                #print("Label had a number Word6")
+                hosp_final_label2.loc[i, 'Hospitalizations'] = hosp_final_label2.loc[i, 'Word6']
+      elif isinstance(hosp_final_label2.loc[i, 'Word7'], float):
+                #print("Label had a number Word7")
+                hosp_final_label2.loc[i, 'Hospitalizations'] = hosp_final_label2.loc[i, 'Word7']
+      elif isinstance(hosp_final_label2.loc[i, 'Word8'], float):
+                #print("Label had a number Word8")
+                hosp_final_label2.loc[i, 'Hospitalizations'] = hosp_final_label2.loc[i, 'Word8']
+      elif isinstance(hosp_final_label2.loc[i, 'Word9'], float):
+                #print("Label had a number Word9")
+                hosp_final_label2.loc[i, 'Hospitalizations'] = hosp_final_label2.loc[i, 'Word9']
+
+  print("stopping iterating")
+
+  #Drop extra columns & move Totals to the top
+  hosp_final_label2=hosp_final_label2.drop(['Word1', 'Word2', 'Word3', 'Word4', 'Word5', 'Word6', 'Word7', 'Word8', 'Word9'], axis=1) 
+  hosp_final_label2.iloc[0]=hosp_final_label2.iloc[10]
+  hosp_final=hosp_final_label2.drop(hosp_final_label2.index[10]).reset_index(drop=True)
+  hosp_final['Race/Ethnicity']=Race_Eth
+  #display(hosp_final)
+
+  wd.quit()
+
+
+
+  #Deaths PDF
+  #initialize the driver
+  wd=init_driver()
+  wd.get(url)
+  wait = WebDriverWait(wd, 160)
+  print("Getting Death Demographics")
+
+  #Deaths
+  death_tables=getPDF(death_dems_xpath, 'Death Summary.pdf')
+  death_tables[0].fillna('0')
+  death_info=death_tables[0]
+  #display(death_info)
+
+  #print("about to drop deaths extra columns")
+  death_info.columns=['Race/Ethnicity', 'Deaths', 'Drop 1', 'Drop 2']
+  death_info1=death_info.drop(['Drop 1', 'Drop 2'], axis=1)
+
+  #Going after Total number of Deaths
+  death_tot0=death_info1.iloc[5:-24].reset_index(drop=True)
+
+  #print("dropping extra rows")
+  death_final=death_tot0.drop(death_tot0.index[1:18]).reset_index(drop=True)
+  death_final=death_final.drop(death_final.index[7:9]).reset_index(drop=True)
+  #display(death_final)
+
+  death_final_label=death_final
+  #Race/Ethnicity label sometimes has numbers in it - so split the strings by spaces
+  death_final_label['Race/Ethnicity']=death_final_label['Race/Ethnicity'].str.replace(r",","")
+  death_final_label[['Word1','Word2','Word3','Word4','Word5']]=death_final_label['Race/Ethnicity'].str.split(' ',expand=True)
+
+  #split out any extra numbers from Deaths column
+  death_final_label['Deaths']=death_final_label['Deaths'].str.replace(r",","")
+  death_final_label[['Deaths','Extra']]=death_final_label['Deaths'].str.split(' ',expand=True)
+
+  #Try to convert the dataframe to numeric
+  death_final_label2=death_final_label.apply(pd.to_numeric, errors='coerce').fillna('0')
+  #display(death_final_label2)
+
+  #See what got converted
+  #display(death_final_label2['Word2'].apply(type))
+
+  #Iterate over the deaths data frame because tabula is not clean and adds a number to the race/ethnicity column  
+  print("starting iterating")
+  for i in range(len(death_final_label2)):
+      if isinstance(death_final_label2.loc[i, 'Word1'], float):
+                #print("Label had a number Word1")
+                death_final_label2.loc[i, 'Deaths'] = death_final_label2.loc[i, 'Word1']
+      elif isinstance(death_final_label2.loc[i, 'Word2'], float):
+                #print("Label had a number Word2")
+                death_final_label2.loc[i, 'Deaths'] = death_final_label2.loc[i, 'Word2']  
+      elif isinstance(death_final_label2.loc[i, 'Word3'], float):
+                #print("Label had a number Word3")
+                death_final_label2.loc[i, 'Deaths'] = death_final_label2.loc[i, 'Word3']
+      elif isinstance(death_final_label2.loc[i, 'Word4'], float):
+                #print("Label had a number Word4")
+                death_final_label2.loc[i, 'Deaths'] = death_final_label2.loc[i, 'Word4']
+      elif isinstance(death_final_label2.loc[i, 'Word5'], float):
+                #print("Label had a number Word5")
+                death_final_label2.loc[i, 'Deaths'] = death_final_label2.loc[i, 'Word5']
+
+  print("stopping iterating")
+  death_final_label2=death_final_label2.drop(['Extra', 'Word1', 'Word2', 'Word3', 'Word4', 'Word5'], axis=1)
+  death_final_label2['Race/Ethnicity']=Race_Eth
+  #display(death_final_label2)
+
+  wd.quit()
+
+  #Combine 3 dataframes to get a total dataframe
+  print("combining data frames")
+  df_tot=pd.concat([case_final,hosp_final,death_final_label2],axis=1)
+  df_tot.columns=['Race/Ethnicity', 'Cases', 'Drop0', 'Hospitalizations', 'Drop1', 'Deaths']
+  df_tot=df_tot.drop(['Drop0', 'Drop1'], axis=1)
+  display(df_tot)
+
+  if write == 1:
+      # Write Paste Date To Sheet
+      dataToWrite = [[date.today().strftime('%m/%d')]]
+      #ws.update('G21',dataToWrite)
+
+      # Write Data To Sheet
+      #writeTable(case_final,'Cases by Race & Ethnicity','H22',ws)
+      #writeTable(hosp_final,'Hosp by Race & Ethnicity', 'H32', ws)
+      #writeTable(death_final_label2,'Deaths by Race & Ethnicity','H42',ws)
+      writeTable(df_tot, 'KS Demographics', K22,ws)
 
 # KY
 #from io import StringIO, BytesIO
@@ -2429,10 +2614,8 @@ def runNM(ws, write):
   soup = BeautifulSoup(req.text, 'html.parser')
   a = soup.find('a', string=re.compile("Download The Latest COVID-19 Mortality Report"))
   url_mort = a['href']
-  tables = tabula.read_pdf(url_mort,pages=6,multiple_tables=False,stream=True,pandas_options={'header': 1})
-  display(tables)
+  tables = tabula.read_pdf(url_mort,pages=6,multiple_tables=False,stream=True)
   death_table=tables[0].iloc[:,[0,-1]]
-  display(death_table)
   death_table['Total']=death_table['Total'].fillna('0')
   #slice the split header rows
   death_table2=death_table.drop([1,3,5]).reset_index()
@@ -2532,22 +2715,15 @@ def runOR(ws, write):
   def getCSV_OR(csv_file,first=1,contains='',header='infer'):
     wait = WebDriverWait(wd, 20)
     if first == 1:
-      print('Waiting on frame...')
       wait.until(EC.frame_to_be_available_and_switch_to_it((By.CSS_SELECTOR, "iframe[title='Data Visualization']")))
     wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".tab-icon-download"))).click()
-    print('Clicked download')
     wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Crosstab']"))).click()
-    print('Clicked crosstab')
     wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label[data-tb-test-id='crosstab-options-dialog-radio-csv-Label']"))).click()
-    print('Clicked csv button')
     if contains == '':
       wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[title='" + csv_file + "']"))).click()
     else:
-      wait.until(EC.element_to_be_clickable((By.XPATH, "//div[contains(@title," + contains + ")]")))
-      #wait.until(EC.element_to_be_clickable((By.XPATH, "//div[contains(@title," + contains + ")]"))).click()
-    print('Clicked sheet')
+      wait.until(EC.element_to_be_clickable((By.XPATH, "//div[contains(@title," + contains + ")]"))).click()
     wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Download']"))).click()
-    print('Clicked download')
     time.sleep(5)
     return pd.read_csv(csv_file + '.csv',skiprows=1,sep="\t", encoding="utf-16",header=header)
 
@@ -2839,8 +3015,7 @@ def runTN(ws, write):
 #runTX(ws)
 def runTX(ws,write):
 
-  #url = 'https://dshs.texas.gov/coronavirus/TexasCOVID19Demographics.xlsx.asp'
-  url = 'https://dshs.texas.gov/coronavirus/TexasCOVID19Demographics.xlsx'
+  url = 'https://dshs.texas.gov/coronavirus/TexasCOVID19Demographics.xlsx.asp'
 
   df_cases = pd.read_excel(url, sheet_name='Cases by RaceEthnicity', skiprows=0, engine='openpyxl')
   print("Cases by Race")

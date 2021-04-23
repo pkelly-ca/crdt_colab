@@ -1095,6 +1095,27 @@ def runWI(path,date,state,keys):
   # Return ribbon
   return df_st
 
+def runWV(path,date,state,keys):
+  # Read state file(s)
+  num_files = 1 ### Edit this to equal the number of files in the repo
+  df = {}
+  for i in range(1,num_files+1):
+    df[i] = st_csv(i,path,date,state)
+    df[i]=df[i].drop(['Unnamed: 0'],axis=1)
+    display(df[i])
+  df = df[1].set_index('Category')
+  df = df.replace(',','',regex=True).astype('int')
+  df['Cases'] = df['Confirmed']+df['Probable']
+  df = df.drop(['Confirmed','Probable'],axis=1)
+  df.loc['Unknown (calc)']=df.loc['Total']-df.iloc[1:len(df.index)].sum()+df.loc['Unknown']
+  df = df.reset_index()
+  # Pre-processing
+  # Common processing
+  df_st = state_common(df,keys,state)
+  # Custom Mapping
+  # Return ribbon
+  return df_st
+
 def runWY(path,date,state,keys):
   # Read state file(s)
   num_files = 5 ### Edit this to equal the number of files in the repo
@@ -1147,7 +1168,7 @@ states_all = ["AK","AL","AR","CA","CO","CT","DC","DE","FL","GA","GU",
           "HI","ID","IL","IN","KY","LA","MA","MD","ME","MI",
           "MO","MN","MS","MT","NC","ND","NE","NH","NM","NV",
           "OR","PA","RI","SD","TN","TX","UT","VA","VT",
-          "WA","WI","WY"]
+          "WA","WI","WV","WY"]
 
 #states_all = ["AK","AL","AR","CA","CO","CT","DC","DE","FL","GA","GU","HI","ID","IL","IN","KY","LA","MA","MD"]
 #states = ["FL"]

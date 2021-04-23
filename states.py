@@ -32,6 +32,10 @@ import json
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 import inspect
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.action_chains import ActionChains
 
 # for S3 backup
 import boto3
@@ -2535,7 +2539,7 @@ def runNV(ws,write):
   wait = WebDriverWait(wd, 20)
 
 #  wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Current Status']/parent::*"))).click()
-#  wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Confirmed Cases']/parent::*"))).click()
+  wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Confirmed Cases']/parent::*"))).click()
 
   cases = wait.until(EC.visibility_of_element_located((By.XPATH,"//span[text()='Cumulative cases']/parent::*/span[3]"))).text
   wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Deaths']/parent::*"))).click()
@@ -2599,6 +2603,87 @@ def runNY(ws, write):
     # Write Data To Sheet
     writeTable(df_nyc_deaths,'','J17',ws)
     writeTable(df_nyc_cases_hosp,'','O17',ws)
+
+#OK
+def runOK(ws, write):
+  url = 'https://looker-dashboards.oklahoma.gov/embed/dashboards/75'
+  url_deaths = 'https://looker-dashboards.oklahoma.gov/embed/dashboards/76'
+  data = []
+  ind = []
+
+  wd = init_driver()
+  wd.get(url)
+  wd.maximize_window()
+  wait = WebDriverWait(wd, 20)
+
+  element = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "highcharts-series-group")))
+  print('Charts present')
+
+  elements = wait.until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "path.highcharts-point.highcharts-color-0")))
+  print('Moving to first element')
+  ActionChains(wd).move_to_element(elements[0]).move_by_offset(25,0).perform()
+  time.sleep(1)
+
+  values = wait.until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "div[class='value']")))
+  names  = wait.until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "div[class='section value']")))
+  ind.append(names[0].text)
+  data.append(values[0].text)
+
+  for i in range(1,6):
+    elements = wait.until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "path.highcharts-point.highcharts-color-"+str(i))))
+    print('Moving to next element')
+    hover = ActionChains(wd).move_to_element(elements[0]).perform()
+    time.sleep(1)
+  
+    values = wait.until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "div[class='value']")))
+    names  = wait.until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "div[class='section value']")))
+    ind.append(names[0].text)
+    data.append(values[0].text)
+
+  df_cases = pd.DataFrame(data,index=ind,columns=['Cases']).reset_index()
+  df_cases = df_cases.rename(columns={"index": "Category"})
+  display(df_cases)
+
+  data = []
+  ind = []
+  wd.get(url_deaths)
+  wd.maximize_window()
+  
+  element = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "highcharts-series-group")))
+  print('Charts present')
+  
+  elements = wait.until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "path.highcharts-point.highcharts-color-0")))
+  print('Moving to first element')
+  ActionChains(wd).move_to_element(elements[0]).move_by_offset(35,0).perform()
+  time.sleep(1)
+  
+  values = wait.until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "div[class='value']")))
+  names  = wait.until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "div[class='section value']")))
+  ind.append(names[0].text)
+  data.append(values[0].text)
+  
+  for i in range(1,6):
+    elements = wait.until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "path.highcharts-point.highcharts-color-"+str(i))))
+    print('Moving to next element')
+    hover = ActionChains(wd).move_to_element(elements[0]).perform()
+    time.sleep(1)
+  
+    values = wait.until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "div[class='value']")))
+    names  = wait.until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "div[class='section value']")))
+    ind.append(names[0].text)
+    data.append(values[0].text)
+  
+  df_deaths = pd.DataFrame(data,index=ind,columns=['Deaths']).reset_index()
+  df_deaths = df_deaths.rename(columns={"index": "Category"})
+  display(df_deaths)
+
+  wd.quit()
+
+  #Template for writing to state page
+  if write == True:
+    # Write Data To Sheet
+    writeTable(df_cases,'','',ws)
+    writeTable(df_deaths,'','',ws)
 
 # OR
 def runOR(ws, write):

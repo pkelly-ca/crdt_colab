@@ -2679,11 +2679,30 @@ def runOK(ws, write):
 
   wd.quit()
 
+  #Ethnicity
+  url = 'https://oklahoma.gov/covid19/newsroom/weekly-epidemiology-and-surveillance-report.html'
+  req = requests.get(url)
+  soup = BeautifulSoup(req.text, 'html.parser')
+  pdfs = soup.findAll('a', attrs={'href': re.compile('Report.pdf')})
+  pdf_url = 'https://oklahoma.gov' + pdfs[0].get('href')
+  display(pdf_url)
+  
+  tables = tabula.read_pdf(pdf_url,pages=11,multiple_tables = False)
+  df_table = tables[0]
+  for i in range(1,9,2):
+    df_table = df_table.drop('Unnamed: '+str(i),axis=1)
+  df_table = df_table[df_table.columns.drop(list(df_table.filter(regex='Cumulative')))]
+  df_table.columns = ['Category','Cases','Deaths']
+  df_table = df_table.loc[25:28].reset_index(drop=True)
+  df_table = df_table.replace('\s+\([^)]*\)','',regex=True)
+  display(df_table)
+
   #Template for writing to state page
   if write == True:
     # Write Data To Sheet
     writeTable(df_cases,'','',ws)
     writeTable(df_deaths,'','',ws)
+    writeTable(df_table,'','',ws)
 
 # OR
 def runOR(ws, write):

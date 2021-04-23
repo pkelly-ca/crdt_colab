@@ -30,7 +30,12 @@ os.environ['TZ'] = 'America/New_York'
 time.tzset()
 import json
 from selenium import webdriver
+from webdriver_manager.chrome import ChromeDriverManager
 import inspect
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.action_chains import ActionChains
 
 # for S3 backup
 import boto3
@@ -44,7 +49,8 @@ def init_driver():
   options.add_argument('--headless')
   options.add_argument('--no-sandbox')
   options.add_argument('--disable-dev-shm-usage')
-  wd = webdriver.Chrome('chromedriver',options=options)
+  #wd = webdriver.Chrome('chromedriver',options=options)
+  wd = webdriver.Chrome(ChromeDriverManager().install(),options=options)
   return wd
 
 def writeTable(df,title,startCell,ws):
@@ -114,8 +120,13 @@ def runAK(ws, write):
   soup = BeautifulSoup(wd.page_source, "html.parser")
   csv_tag = soup.find("a", class_="csv")
   csv = csv_tag["href"]
+  display(csv)
   data = pd.read_csv(csv)[13:]
-  df_dem = data[["Demographic", "Hospitalizations", "Deaths"]]
+  df_dem = data.loc[:,["Demographic","All_Cases", "Hospitalizations", "Deaths"]]
+  df_dem.columns = ["Category", "Cases", "Hospitalizations", "Deaths"]
+  df_dem = df_dem.set_index('Category')
+  df_dem.loc['Total'] = df_dem.iloc[0:4].sum()
+  df_dem = df_dem.reset_index()
   display(df_dem)
   wd.quit()
 
@@ -129,6 +140,32 @@ def runAK(ws, write):
 
 # AL
 def runAL(ws, write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
+  from selenium.webdriver import ActionChains
+
+  def colstr2int(df,col):
+    df.loc[:,col] = df.loc[:,col].replace(',','', regex=True)
+    df[col] = df[col].astype('int')
+
+  url = 'https://alpublichealth.maps.arcgis.com/apps/dashboards/6d2771faa9da4a2786a509d82c8cf0f7'
+
+  wd = init_driver()
+  wd.get(url)
+  wd.maximize_window()
+  wait = WebDriverWait(wd, 60)
+  prob_cases = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR,"div:nth-child(36) > margin-container > full-container > div > div.widget-body.flex-fluid.full-width.flex-vertical.justify-content-center.overflow-hidden > div > div > svg > g:nth-child(2) > text"))).text
+  prob_deaths = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR,"div:nth-child(45) > margin-container > full-container > div > div.widget-body.flex-fluid.full-width.flex-vertical.justify-content-center.overflow-hidden > div > div > svg > g.responsive-text-label > text"))).text
+  wd.quit()
+
+  df_prob = pd.DataFrame([['Probable',prob_cases,prob_deaths]],columns=['Category','Cases','Deaths'])
+  colstr2int(df_prob,'Cases')
+  colstr2int(df_prob,'Deaths')
+  display(df_prob)
+
+
+
   url = 'https://services7.arcgis.com/4RQmZZ0yaZkGR1zy/ArcGIS/rest/services/DIED_FROM_COVID19_STWD_DEMO_PUBLIC/FeatureServer/0/query?where=1%3D1&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&returnGeodetic=false&outFields=EthnicityCat%2C+DiedFromCovid19&returnGeometry=false&returnCentroid=false&featureEncoding=esriDefault&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnQueryGeometry=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=none&f=pjson&token='
   req = requests.get(url)
   df_deaths_eth = pd.json_normalize(req.json()['features'], sep='_')
@@ -165,12 +202,31 @@ def runAL(ws, write):
     writeTable(df_cases_race,'Race Cases','A43',ws)
     writeTable(df_deaths_eth,'Ethnicity Deaths','E38',ws)
     writeTable(df_deaths_race,'Race Deaths','E43',ws)
+    writeTable(df_prob,'','',ws)
 
 # AR
 def runAR(ws, write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
+  from selenium.webdriver import ActionChains
+
+  print("\nAR Hispanic Ethnicity % Deaths")
+  url = 'https://adem.maps.arcgis.com/apps/opsdashboard/index.html#/f09960f2948d43d39913400dad1af77c'
+
+  wd=init_driver()
+  wd.get(url)
+  wd.maximize_window()
+  wait = WebDriverWait(wd, 160)
+  hisp_eth = wait.until(EC.presence_of_element_located((By.XPATH,"//*[text()[contains(.,'are Hispanic:')]]")))
+  hisp_eth = hisp_eth.get_attribute('innerHTML').split(': ')[1]
+  wd.quit()
+
+  df_eth_d = pd.DataFrame([['Hispanic',hisp_eth]],columns=['Category','Deaths'])
+  display(df_eth_d)
 
   #totals, case dems, death dems
-  print("AR Cases")
+  print("\nAR Cases")
   urlCases='https://services.arcgis.com/PwY9ZuZRDiI5nXUB/ArcGIS/rest/services/UPDATED_ADH_COVID19_STATE_METRICS/FeatureServer/0/query?where=1%3D1&objectIds=&time=&resultType=none&outFields=positives%2C+black%2C+white%2C+na%2C+asian%2C+pi%2C+other_race%2C+unk_race%2C+multi_race%2C+nonhispanic%2C+hispanic&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&sqlFormat=none&f=pgeojson&token='
   req=requests.get(urlCases)
   df_cases=pd.json_normalize(req.json()['features'])
@@ -193,6 +249,7 @@ def runAR(ws, write):
     # Write Data To Sheet
     writeTable(df_cases,'Case Demographics','A34',ws)
     writeTable(df_deaths,'Death Demographics','A37',ws)
+    writeTable(df_eth_d,'','',ws)
 
 # CA
 #import pandas as pd
@@ -201,17 +258,15 @@ def runAR(ws, write):
 def runCA(ws, write):
   # CA Case & Deaths Totals, Confirmed & Probables"
   #url = 'https://data.ca.gov/dataset/590188d5-8545-4c93-a9a0-e230f0db7290/resource/926fd08f-cc91-4828-af38-bd45de97f8c3/download/statewide_cases.csv'
-  #url = 'https://data.chhs.ca.gov/dataset/f333528b-4d38-4814-bebb-12db1f10f535/resource/046cdd2b-31e5-4d34-9ed3-b48cdbc4be7a/download/covid19cases_test.csv'
-  #df_totals = pd.read_csv(url,parse_dates=['date'])
-  #maxdateTot = df_totals ['date'].max()
-  #print('\nCase & Death Totals')
-  #print(maxdateTot,'\n')
-  #display(df_totals)
-  #df_cases = df_totals.groupby(['date'])[['totalcountconfirmed','totalcountdeaths']].sum()
-  #df_cases = df_totals[df_totals['date'] == maxdateTot]
-  #df_cases = df_cases.groupby(['date'])[['totalcountconfirmed','totalcountdeaths']].sum()
-  #df_cases = df_cases.astype('int')
-  #display(df_cases)
+  url = 'https://data.chhs.ca.gov/dataset/f333528b-4d38-4814-bebb-12db1f10f535/resource/046cdd2b-31e5-4d34-9ed3-b48cdbc4be7a/download/covid19cases_test.csv'
+  df_totals = pd.read_csv(url,parse_dates=['date'])
+  maxdateTot = df_totals ['date'].max()
+  print('\nCase & Death Totals')
+  print(maxdateTot,'\n')
+  df_totals = df_totals.groupby(['area'])[['reported_cases','reported_deaths']].sum()
+  df_totals = df_totals[df_totals.index.isin(['California'])]
+  df_totals = df_totals.astype('int')
+  display(df_totals)
 
   # CA Race & Ethnicity
   #url = 'https://data.ca.gov/dataset/590188d5-8545-4c93-a9a0-e230f0db7290/resource/7e477adb-d7ab-4d4b-a198-dc4c6dc634c9/download/case_demographics_ethnicity.csv'
@@ -234,8 +289,8 @@ def runCA(ws, write):
     #ws.update('F16',dataToWrite)
 
     # Write Data To Sheet
-    #writeTable(df_cases,'Case & Death Totals','G18',ws)
     writeTable(df_dem,'CA Race and Ethnicity Totals','G23',ws)
+    writeTable(df_totals,'Case & Death Totals','G18',ws)
 
 #CO
 
@@ -250,6 +305,7 @@ def runCO(ws, write):
   #dnld_xpath_caret='//*[@class="caret"]'
   #url='https://opendata.arcgis.com/datasets/15883575464d46f686044d2c1aa84ef9_0.csv'
   url='https://prod-hub-indexer.s3.amazonaws.com/files/a0f52ab12eb4466bb6a76cc175923e62/0/full/4326/a0f52ab12eb4466bb6a76cc175923e62_0_full_4326.csv'
+
   df_totals = pd.read_csv(url,parse_dates=['date'])
   print(url)
   #display(df_totals)
@@ -280,7 +336,7 @@ def runCO(ws, write):
   display(df_caseDems)
   for i in range(len(df_caseDems)):
     df_caseDems.iloc[i, 4]=round(df_caseDems.iloc[i, 4] * cases.iloc[0]) # PK fix
-    display(df_caseDems)
+  display(df_caseDems)
 
   # find the Death Demographics
   df_deathDems = df_totals[df_totals['description'] == 'Percent of Deaths by Race and Ethnicity']
@@ -941,12 +997,27 @@ def runMI(ws,write):
   from selenium.webdriver.support import expected_conditions as EC
   from selenium.webdriver import ActionChains
 
-  url = 'https://app.powerbigov.us/view?r=eyJrIjoiNDY0ZGVlMDItMzUzNC00ZGE5LWFjYzQtNzliOGJkZWQ4YTgzIiwidCI6ImQ1ZmI3MDg3LTM3NzctNDJhZC05NjZhLTg5MmVmNDcyMjVkMSJ9'
-
   def colstr2int(df,col):
     df.loc[:,col] = df.loc[:,col].replace(',','', regex=True)
     df[col] = df[col].astype('int')
 
+  url = 'https://www.michigan.gov/coronavirus/0,9753,7-406-98163_98173---,00.html'
+  req = requests.get(url)
+  soup = BeautifulSoup(req.text, 'html5lib')
+  tables = soup.find_all('table')
+
+  rows = tables[0].find_all('tr')
+  headers = rows[0].find_all('th') 
+  headers = [ele.text.strip() for ele in headers]
+  data = []
+  for row in rows[1:len(rows)]:
+    cols = row.find_all('td')
+    cols = [ele.text.strip() for ele in cols]
+    data.append([ele for ele in cols if ele]) # Get rid of empty values
+  df_eth = pd.DataFrame(data,columns=headers)
+  display(df_eth)
+
+  url = 'https://app.powerbigov.us/view?r=eyJrIjoiNDY0ZGVlMDItMzUzNC00ZGE5LWFjYzQtNzliOGJkZWQ4YTgzIiwidCI6ImQ1ZmI3MDg3LTM3NzctNDJhZC05NjZhLTg5MmVmNDcyMjVkMSJ9'
   wd = init_driver()
   wd.get(url)
   wait = WebDriverWait(wd, 20)
@@ -975,6 +1046,7 @@ def runMI(ws,write):
   df_conf_cases.columns = ['Category', 'Confirmed Cases']
   colstr2int(df_conf_cases,'Confirmed Cases')
   df_conf_cases.sort_values('Category',ascending=True,inplace=True)
+  display(df_conf_cases)
 
   back_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='pvExplorationHost']/div/div/exploration/div/explore-canvas-modern/div/div[2]/div/div[2]/div[2]/visual-container-repeat/visual-container-modern[3]/transform/div/div[3]/visual-container-pop-out-bar/div/div[1]/button")))
   back_button.click()
@@ -1004,6 +1076,7 @@ def runMI(ws,write):
   df_prob_cases.columns = ['Category', 'Probable Cases']
   colstr2int(df_prob_cases,'Probable Cases')
   df_prob_cases.sort_values('Category',ascending=True,inplace=True)
+  display(df_prob_cases)
 
   back_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='pvExplorationHost']/div/div/exploration/div/explore-canvas-modern/div/div[2]/div/div[2]/div[2]/visual-container-repeat/visual-container-modern[3]/transform/div/div[3]/visual-container-pop-out-bar/div/div[1]/button")))
   back_button.click()
@@ -1034,6 +1107,7 @@ def runMI(ws,write):
   df_conf_deaths.columns = ['Category', 'Confirmed Deaths']
   colstr2int(df_conf_deaths,'Confirmed Deaths')
   df_conf_deaths.sort_values('Category',ascending=True,inplace=True)
+  display(df_conf_deaths)
 
   back_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='pvExplorationHost']/div/div/exploration/div/explore-canvas-modern/div/div[2]/div/div[2]/div[2]/visual-container-repeat/visual-container-modern[19]/transform/div/div[3]/visual-container-pop-out-bar/div/div[1]/button")))
   back_button.click()
@@ -1063,6 +1137,7 @@ def runMI(ws,write):
   df_prob_deaths.columns = ['Category', 'Probable Deaths']
   colstr2int(df_prob_deaths,'Probable Deaths')
   df_prob_deaths.sort_values('Category',ascending=True,inplace=True)
+  display(df_prob_deaths)
 
   df = df_conf_cases.merge(df_prob_cases,how='left',on='Category')
   df = df.merge(df_conf_deaths,how='left',on='Category')
@@ -1078,6 +1153,7 @@ def runMI(ws,write):
 
     # Write Data To Sheet
     writeTable(df,'','L20',ws)
+    writeTable(df_eth,'','L20',ws)
 
 def runIL(ws,write):
 
@@ -1106,6 +1182,8 @@ def runIL(ws,write):
 
   # Cases
   soup = BeautifulSoup(wd.page_source, 'html.parser')
+  prob_deaths = soup.find('h3',{"id": "covid19probabledeaths"})
+  prob_deaths = int(prob_deaths.text.replace(',',''))
   div_race = soup.find('div',{"id": "pieRace"})
   cases_race = div_race.find_all_next('text',{"class": "slicetext"})
 
@@ -1133,7 +1211,8 @@ def runIL(ws,write):
   df.loc[:,cols] = df.loc[:,cols].replace(',','', regex=True)
   df[cols] = df[cols].astype('int')
   df['Category'] = df['Category'].replace('\*','', regex=True)
-  df = df.sort_values(by='Category')
+  df = df.sort_values(by='Category').reset_index(drop=True)
+  df.loc[len(df.index)] = ['Probable',0,prob_deaths,0]
   display(df)
 
   wd.quit()
@@ -1152,6 +1231,10 @@ def runIL(ws,write):
 #import requests
 
 def runIN(ws, write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
+  from selenium.webdriver import ActionChains
 
   url = 'https://hub.mph.in.gov/dataset/62ddcb15-bbe8-477b-bb2e-175ee5af8629/resource/2538d7f1-391b-4733-90b3-9e95cd5f3ea6/download/covid_report_demographics.xlsx'
   df_IN_casesRace = pd.read_excel(url, sheet_name='Race', skiprows=0, engine='openpyxl')
@@ -1161,6 +1244,23 @@ def runIN(ws, write):
   print("\nCases by Ethnicity")
   display(df_IN_casesEthnicity)
 
+  url = 'https://www.coronavirus.in.gov/2393.htm'
+
+  wd = init_driver()
+  wd.get(url)
+  wd.maximize_window()
+  wait = WebDriverWait(wd, 20)
+  height = wd.execute_script("return Math.max( document.body.scrollHeight, document.body.offsetHeight, document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight )")
+  wd.set_window_size(1920, height)
+  wait.until(EC.frame_to_be_available_and_switch_to_it((By.CSS_SELECTOR, "iframe[src='./map/test.htm']")))
+  wd.save_screenshot("in_probable.png");
+  soup = BeautifulSoup(wd.page_source, 'html.parser')
+  p_tag = soup.find('p',attrs={'class':'h5'})
+  h2_tag = p_tag.findNext('h2')
+  df_prob = pd.DataFrame([['Probable',h2_tag.text]],columns=['Category','Deaths'])
+  display(df_prob)
+  wd.quit()
+
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
@@ -1169,7 +1269,7 @@ def runIN(ws, write):
     # Write Data To Sheet
     writeTable(df_IN_casesRace,'Cases by Race','H22',ws)
     writeTable(df_IN_casesEthnicity,'Cases by Ethnicity','H29',ws)
-
+    writeTable(df_prob,'Cases by Ethnicity','H29',ws)
 
 # KS
 def runKS(ws, write):
@@ -1418,6 +1518,7 @@ def runKS(ws, write):
       #writeTable(death_final_label2,'Deaths by Race & Ethnicity','H42',ws)
       writeTable(df_tot, 'KS Demographics', K22,ws)
 
+
 # KY
 #from io import StringIO, BytesIO
 #from bs4 import BeautifulSoup
@@ -1513,6 +1614,9 @@ def runKY(ws, write):
 
 # LA
 def runLA(ws,write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
 
   url = 'https://services5.arcgis.com/O5K6bb5dZVZcTo5M/ArcGIS/rest/services/Case_Deaths_Race_Region_new/FeatureServer/0/query?where=1%3D1&outFields=LDH_region%2C+Race%2C+Deaths%2C+Cases&returnGeometry=false&f=json'
 
@@ -1533,6 +1637,27 @@ def runLA(ws,write):
 
   display(df_demo)
 
+  url = 'https://public.tableau.com/views/COVID19demog/DataonCOVIN-19RelatedDeathsToDate?:embed=y&:showVizHome=no&:host_url=https%3A%2F%2Fpublic.tableau.com%2F&:embed_code_version=3&:tabs=no&:toolbar=no&:showAppBanner=false&:display_spinner=no&:loadOrderID=0'
+  wd = init_driver()
+  wd.get(url)
+
+  wait = WebDriverWait(wd, 20)
+  wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".tab-icon-download"))).click()
+  print('Clicked download')
+  wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='PDF']"))).click()
+  print('Clicked PDF')
+  wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Download']"))).click()
+  print('Clicked download')
+  time.sleep(5)
+
+  wd.quit()
+  
+
+  tables = tabula.read_pdf('Data on COVIN-19 Related Deaths To Date.pdf',pages=1,multiple_tables=True,pandas_options={'header': None})
+  df_eth = tables[1]
+  df_eth.columns = ['Category','Deaths']
+  display(df_eth)
+
   if write == 1:
     # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
@@ -1540,6 +1665,7 @@ def runLA(ws,write):
 
     # Write Data To Sheet
     writeTable(df_demo,'','J27',ws)
+    writeTable(df_eth,'','J27',ws)
 
 # MA
 
@@ -1610,7 +1736,8 @@ def runMD(ws,write):
   # Convert URL codes to characters
   win_url = unquote(script.text[win_start:-5])
   race_string = win_url[re.search("By Race and Ethnicity",win_url).start():]
-  race_table = race_string[race_string.find('<table'):race_string.find('</table>"')+8]
+  race_table = race_string[race_string.find('<table'):race_string.find('</table>')+8]
+  #race_table = race_string[race_string.find('<table'):race_string.find('</table>"')+8]
   # Clean data, move first row to column names
   df = pd.read_html(race_table)[0]
   df = df.fillna('')
@@ -1667,27 +1794,66 @@ def runME(ws, write):
   csv_Race = "case-by-race-bars_data.csv"
   csv_Eth = "case-by-race-bars_data.csv"
 
+  def retry_wait_click(path):
+    result = False
+    attempts = 0
+    while attempts < 5:
+        try:
+          display('Trying...',path)
+          ele = wait.until(EC.element_to_be_clickable((By.XPATH,path)))
+          ele.click()
+          display('number of attempts = ',attempts+1)
+          result = True;
+          break
+        except Exception as e:
+          display('...failed (sleeping)')
+          display('Exception:',e)
+          time.sleep(5)
+          attempts+=1
+    return result
+
   def getCSV(metric_csv):
 
-    wait.until(EC.element_to_be_clickable((By.XPATH,tab_btn_xpath))).click()
+    retry_wait_click(tab_btn_xpath)
+    #wait.until(EC.element_to_be_clickable((By.XPATH,tab_btn_xpath))).click()
     time.sleep(10)
     print("clicked download button")
     print('record the windows that are open')
     window_before = wd.window_handles[0]
     print(window_before)
     #switch to the new window that opens up
-    wait.until(EC.element_to_be_clickable((By.XPATH,data_btn_xpath))).click()
+    retry_wait_click(data_btn_xpath)
+    #wait.until(EC.element_to_be_clickable((By.XPATH,data_btn_xpath))).click()
     print("clicked data button")
     window_after = wd.window_handles[1]
     wd.switch_to_window(window_after)
     print("window after")
-    wait.until(EC.element_to_be_clickable((By.XPATH,"//*[@class='csvLink_summary']"))).click()
+    retry_wait_click("//*[@class='csvLink_summary']")
+    #wait.until(EC.element_to_be_clickable((By.XPATH,"//*[@class='csvLink_summary']"))).click()
     print("clicked text file option")
     time.sleep(5)
     #make df
     df = pd.read_csv(metric_csv, sep="\t", encoding="utf-16") #dumb tableau encoding
     print("-" *10)
     return df
+
+ #New Eth
+  print("\nDemographics by Ethnicity")
+  wd=init_driver()
+  wd.get(raceethsrc)
+  wait = WebDriverWait(wd, 160)
+  #time.sleep(10)
+  #race_eth_toggle = wait.until(EC.element_to_be_clickable((By.XPATH,"//span[@aria-label='Toggle race / ethnicity Race']")))
+  #race_eth_toggle.click()
+  retry_wait_click("//span[@aria-label='Toggle race / ethnicity Race']")
+  retry_wait_click("//span[text()='Ethnicity']")
+  retry_wait_click(race_hosp_xpath)
+  #wait.until(EC.element_to_be_clickable((By.XPATH,"//span[text()='Ethnicity']"))).click()
+  #wait.until(EC.element_to_be_clickable((By.XPATH,race_hosp_xpath))).click()
+  df_casesEth = getCSV(csv_Eth)
+  df_casesEth=df_casesEth.drop(['Population'],1).fillna('0')
+  display(df_casesEth)
+  wd.quit()
 
  #Race
   wd=init_driver()
@@ -1696,7 +1862,9 @@ def runME(ws, write):
   print(raceethsrc)
   #Demographics by Race
   print("\nDemographics by Race")
-  wait.until(EC.element_to_be_clickable((By.XPATH,race_hosp_xpath))).click()
+  #time.sleep(10)
+  #wait.until(EC.element_to_be_clickable((By.XPATH,race_hosp_xpath))).click()
+  retry_wait_click(race_hosp_xpath)
   print("selected Hospitalizations")
   df_casesRace = getCSV(csv_Race)
   df_casesRace.fillna('0')
@@ -1705,61 +1873,6 @@ def runME(ws, write):
   display(df_casesRace)
   wd.quit()
 
-  #Ethnicity
-  wd=init_driver()
-  wd.get(raceethsrc)
-  wait = WebDriverWait(wd, 120)
-  print(raceethsrc)
-
-  #Demographics by Ethnicity
-  print("\nDemographics by Ethnicity")
-  wd.save_screenshot("eth_Begin.png");
-
- 
-  toggle_zero='//*[@id="tableau_base_widget_ParameterControl_0"]/div/div[2]/span/div[2]/span' # Widget
- #Ethnicity
-  toggle_one='//*[@id="tab-menuItem2"]/div/span'
-  toggle_xpath_eth='//*[@id="tab-menuItem2"]'
-  toggle_last='//*[@id="tab-menuItem2"]/div/span'
-
-  toggle_eth_xpath='//*[@id="tab-menuItem2"]/div/span'
-  #toggle_eth_xpath='//*[@aria-activedescendant="tab-menuItem2"]'
-
-  toggle_xpath='//*[@id="tab-ui-id-1616981554102"]'
-  choose_eth='//*[@id="tab-menuItem2"]/div/span'
-
-  little_widget='//*[@aria-label="Toggle race / ethnicity Ethnicity"]'
-  raceeth_xpath='//*[@aria-label="Toggle race / ethnicity"]'
-  eth_hosp_xpath='//*[@class="tab-tooltip tab-widget tab-tooltipBR"]'
-
-  #print("Toggle 0")
-  #time.sleep(10)
-  #wd.find_element_by_xpath(toggle_zero).click()
-  #wd.save_screenshot("ethToggleZero.png");
-
-  #print("Toggle One")
-  #time.sleep(20)
-  #toggle_btn=wd.find_element_by_xpath(toggle_one).click()
-  #wd.save_screenshot("ethToggleOne.png");
-  #print("Toggle one done, now choosing Toggle two")
-  #wd.save_screenshot("ethToggleOne.png");
-
-  #print("Toggle Xpath Eth")
-  #toggle_btn=wd.find_element_by_xpath(toggle_xpath_eth).click()
-  #wd.save_screenshot("ethToggleXpath.png");
-  #print("Toggle xpath eth done, now choosing xpath last")
-  #wd.save_screenshot("ethToggleXpath.png");  
-
-  #wait.until(EC.element_to_be_clickable((By.XPATH, eth_hosp_xpath))).click()
-  #print("clicked Hospitalization")
-
-  #df_casesEth = getCSV(csv_Eth)
-  #df_casesEth.fillna('0')
-  #Get rid of extra rows
-  #df_casesEth=df_casesEth.drop(['Population'],1).fillna('0')
-  #display(df_casesEth)
-  #wd.quit()
-  
   if write == 1:
       # Write Paste Date To Sheet
       dataToWrite = [[date.today().strftime('%m/%d')]]
@@ -1767,7 +1880,7 @@ def runME(ws, write):
       #Write Demographic Data
       #writeTable(df_totals,'Confirmed Case & Death Totals','L15')
       writeTable(df_casesRace,'','H27',ws)
-      #writeTable(df_casesEth,'Demographics by Ethnicity','L23')
+      writeTable(df_casesEth,'Demographics by Ethnicity','L23',ws)
 
 #MN
 #ARCGIS
@@ -2101,8 +2214,10 @@ def runMT(ws, write):
   #print("did fillna on totals and lopped the top row")
   #display(totals)
 
-  hosp=hosp.fillna('0').drop(hosp.index[0])
-  #hosp=hosp.fillna('0')
+  if len(hosp) == 4:
+    hosp=hosp.fillna('0').drop(hosp.index[0])
+  else:
+    hosp=hosp.fillna('0')
   #print("did fillna on hosp and lopped the top row")
   #display(hosp)
 
@@ -2293,7 +2408,14 @@ def runND(ws,write):
   df.columns = ['Category', 'Cases']
   colstr2int(df,'Cases')
   df.sort_values('Category',ascending=True,inplace=True)
+  df = df.reset_index(drop=True)
   display(df)
+
+  url =  'https://www.health.nd.gov/diseases-conditions/coronavirus/north-dakota-coronavirus-cases'
+  wd.get(url)
+  deaths=wait.until(EC.presence_of_element_located((By.XPATH,"//tbody/tr[5]/td[2]")))
+  df_deaths = pd.DataFrame([['Total',int(deaths.text)]],columns=['Category','Deaths'])
+  display(df_deaths)
   wd.quit()
 
   if write == 1:
@@ -2303,6 +2425,7 @@ def runND(ws,write):
 
     # Write Data To Sheet
     writeTable(df,'','C23',ws)
+    writeTable(df_deaths,'','',ws)
 
 #NE
 def runNE(ws, write):
@@ -2615,15 +2738,15 @@ def runNM(ws, write):
   soup = BeautifulSoup(req.text, 'html.parser')
   a = soup.find('a', string=re.compile("Download The Latest COVID-19 Mortality Report"))
   url_mort = a['href']
-  tables = tabula.read_pdf(url_mort,pages=6,multiple_tables=False,stream=True, pandas_options={'header': 1})
+  tables = tabula.read_pdf(url_mort,pages=6,multiple_tables=False,stream=True,pandas_options={'header': 1})
   display(tables)
   death_table=tables[0].iloc[:,[0,-1]]
   display(death_table)
   death_table['Total']=death_table['Total'].fillna('0')
   #slice the split header rows
-  death_table2=death_table.drop([1,3,5]).reset_index()
-  death_table2=death_table2.drop(['index'],1)
-  display(death_table2)
+  #death_table2=death_table.drop([1,3,5]).reset_index()
+  #death_table2=death_table2.drop(['index'],1)
+  #display(death_table2)
 
   if write == 1:
     # Write Paste Date To Sheet
@@ -2632,7 +2755,7 @@ def runNM(ws, write):
 
     # Write Data To Sheet
     writeTable(df_casesR,'','B37',ws)
-    writeTable(death_table2,'','E36',ws)
+    writeTable(death_table,'','E36',ws)
 
 # NV
 def runNV(ws,write):
@@ -2657,9 +2780,26 @@ def runNV(ws,write):
 
   url = 'https://app.powerbigov.us/view?r=eyJrIjoiMjA2ZThiOWUtM2FlNS00MGY5LWFmYjUtNmQwNTQ3Nzg5N2I2IiwidCI6ImU0YTM0MGU2LWI4OWUtNGU2OC04ZWFhLTE1NDRkMjcwMzk4MCJ9'
 
+
   wd = init_driver()
   wd.get(url)
+  wd.maximize_window()
   wait = WebDriverWait(wd, 20)
+
+#  wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Current Status']/parent::*"))).click()
+  wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Confirmed Cases']/parent::*"))).click()
+
+  cases = wait.until(EC.visibility_of_element_located((By.XPATH,"//span[text()='Cumulative cases']/parent::*/span[3]"))).text
+  wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Deaths']/parent::*"))).click()
+  deaths = wait.until(EC.visibility_of_element_located((By.XPATH,"//span[text()='Cumulative Deaths  ']/parent::*/span[2]"))).text
+  wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[aria-label=' Page navigation Button. Trends']"))).click()
+  wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Testing']/parent::*"))).click()
+  tests  = wait.until(EC.visibility_of_element_located((By.XPATH,"//span[text()='People tested']/parent::*/span[2]"))).text
+  df_tots = pd.DataFrame([['Totals',cases,deaths,tests]],columns=['Category','Cases','Deaths','Tests'])
+  display(df_tots)
+
+  wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Confirmed Cases']/parent::*"))).click()
+#  time.sleep(5)
 
   wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[aria-label=' Page navigation Button. Demographics']"))).click()
   df_cases = get_df('Cases')
@@ -2675,6 +2815,8 @@ def runNV(ws,write):
   df.drop(df.index[0:10],inplace=True)
   display(df)
 
+  wd.quit()
+
   #Template for writing to state page
   if write == True:
     # Write Paste Date To Sheet
@@ -2683,6 +2825,7 @@ def runNV(ws,write):
 
     # Write Data To Sheet
     writeTable(df,'','A38',ws)
+    writeTable(df_tots,'','A38',ws)
 
 # NY
 #import pandas as pd
@@ -2708,6 +2851,106 @@ def runNY(ws, write):
     # Write Data To Sheet
     writeTable(df_nyc_deaths,'','J17',ws)
     writeTable(df_nyc_cases_hosp,'','O17',ws)
+
+#OK
+def runOK(ws, write):
+  url = 'https://looker-dashboards.oklahoma.gov/embed/dashboards/75'
+  url_deaths = 'https://looker-dashboards.oklahoma.gov/embed/dashboards/76'
+  data = []
+  ind = []
+
+  wd = init_driver()
+  wd.get(url)
+  wd.maximize_window()
+  wait = WebDriverWait(wd, 20)
+
+  element = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "highcharts-series-group")))
+  print('Charts present')
+
+  elements = wait.until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "path.highcharts-point.highcharts-color-0")))
+  print('Moving to first element')
+  ActionChains(wd).move_to_element(elements[0]).move_by_offset(25,0).perform()
+  time.sleep(1)
+
+  values = wait.until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "div[class='value']")))
+  names  = wait.until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "div[class='section value']")))
+  ind.append(names[0].text)
+  data.append(values[0].text)
+
+  for i in range(1,6):
+    elements = wait.until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "path.highcharts-point.highcharts-color-"+str(i))))
+    print('Moving to next element')
+    hover = ActionChains(wd).move_to_element(elements[0]).perform()
+    time.sleep(1)
+  
+    values = wait.until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "div[class='value']")))
+    names  = wait.until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "div[class='section value']")))
+    ind.append(names[0].text)
+    data.append(values[0].text)
+
+  df_cases = pd.DataFrame(data,index=ind,columns=['Cases']).reset_index()
+  df_cases = df_cases.rename(columns={"index": "Category"})
+  display(df_cases)
+
+  data = []
+  ind = []
+  wd.get(url_deaths)
+  wd.maximize_window()
+  
+  element = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "highcharts-series-group")))
+  print('Charts present')
+  
+  elements = wait.until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "path.highcharts-point.highcharts-color-0")))
+  print('Moving to first element')
+  ActionChains(wd).move_to_element(elements[0]).move_by_offset(35,0).perform()
+  time.sleep(1)
+  
+  values = wait.until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "div[class='value']")))
+  names  = wait.until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "div[class='section value']")))
+  ind.append(names[0].text)
+  data.append(values[0].text)
+  
+  for i in range(1,6):
+    elements = wait.until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "path.highcharts-point.highcharts-color-"+str(i))))
+    print('Moving to next element')
+    hover = ActionChains(wd).move_to_element(elements[0]).perform()
+    time.sleep(1)
+  
+    values = wait.until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "div[class='value']")))
+    names  = wait.until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "div[class='section value']")))
+    ind.append(names[0].text)
+    data.append(values[0].text)
+  
+  df_deaths = pd.DataFrame(data,index=ind,columns=['Deaths']).reset_index()
+  df_deaths = df_deaths.rename(columns={"index": "Category"})
+  display(df_deaths)
+
+  wd.quit()
+
+  #Ethnicity
+  url = 'https://oklahoma.gov/covid19/newsroom/weekly-epidemiology-and-surveillance-report.html'
+  req = requests.get(url)
+  soup = BeautifulSoup(req.text, 'html.parser')
+  pdfs = soup.findAll('a', attrs={'href': re.compile('Report.pdf')})
+  pdf_url = 'https://oklahoma.gov' + pdfs[0].get('href')
+  display(pdf_url)
+  
+  tables = tabula.read_pdf(pdf_url,pages=11,multiple_tables = False)
+  df_table = tables[0]
+  for i in range(1,9,2):
+    df_table = df_table.drop('Unnamed: '+str(i),axis=1)
+  df_table = df_table[df_table.columns.drop(list(df_table.filter(regex='Cumulative')))]
+  df_table.columns = ['Category','Cases','Deaths']
+  df_table = df_table.loc[25:28].reset_index(drop=True)
+  df_table = df_table.replace('\s+\([^)]*\)','',regex=True)
+  display(df_table)
+
+  #Template for writing to state page
+  if write == True:
+    # Write Data To Sheet
+    writeTable(df_cases,'','',ws)
+    writeTable(df_deaths,'','',ws)
+    writeTable(df_table,'','',ws)
 
 # OR
 def runOR(ws, write):
@@ -3025,14 +3268,25 @@ def runTN(ws, write):
 #runTX(ws)
 def runTX(ws,write):
 
+  url_tots = 'https://dshs.texas.gov/coronavirus/TexasCOVID19CaseCountData.xlsx'
   #url = 'https://dshs.texas.gov/coronavirus/TexasCOVID19Demographics.xlsx.asp'
   url = 'https://dshs.texas.gov/coronavirus/TexasCOVID19Demographics.xlsx'
+  df_trends = pd.read_excel(url_tots, sheet_name='Trends', skiprows=3, engine='openpyxl', parse_dates=['Date'])
+  today = df_trends['Date'].max()
+  yesterday = today - timedelta(1)
+  conf_cases = df_trends.loc[df_trends['Date']==today]['Cumulative Confirmed Cases'].values[0]
+  prob_cases = df_trends.loc[df_trends['Date']==today]['Cumulative Probable Cases'].values[0]
+  deaths = df_trends.loc[df_trends['Date']==yesterday]['Cumulative Fatalities'].values[0]
+  cases = int(conf_cases) + int(prob_cases)
+  deaths = int(deaths)
 
   df_cases = pd.read_excel(url, sheet_name='Cases by RaceEthnicity', skiprows=0, engine='openpyxl')
+  df_cases.loc[len(df_cases.index)]=['Overall Total',cases,0]
   print("Cases by Race")
   display(df_cases)
 
   df_deaths = pd.read_excel(url, sheet_name='Fatalities by Race-Ethnicity', skiprows=0, engine='openpyxl')
+  df_deaths.loc[len(df_deaths.index)]=['Overall Total',deaths,0]
   print("\nDeaths by Race")
   display(df_deaths)
 
@@ -3164,6 +3418,10 @@ def runVT(ws, write):
   wd.get(url)
   time.sleep(20)
   soup = BeautifulSoup(wd.page_source, 'html.parser')
+  texts = soup.find_all('text',style=re.compile('^fill'))
+  cases = texts[1].text
+  deaths = int(texts[9].text)
+  cases = int(cases.replace(' Total','').replace(',',''))
 
   # Find Totals
   g_all = soup.find_all('g',{"class": "amcharts-pie-item"})
@@ -3183,12 +3441,14 @@ def runVT(ws, write):
   df_demo.iloc[:,1].replace(',','', regex=True, inplace=True)
   df_demo.iloc[:,1] = df_demo.iloc[:,1].astype('int')
 
-  df_demo_cases = df_demo.loc[5:11,:]
+  df_demo_cases = df_demo.loc[5:11,:].copy().reset_index(drop=True)
   df_demo_cases.columns = ['Category','Cases']
+  df_demo_cases.loc[len(df_demo_cases.index)]=['Total',cases]
 
-  df_demo_deaths = df_demo.loc[14:20,:]
-  df_demo.loc[14] = ['Hispanic:', 0]
+  df_demo_deaths = df_demo.loc[15:21,:].copy().reset_index(drop=True)
+#  df_demo.loc[14] = ['Hispanic:', 0]
   df_demo_deaths.columns = ['Category','Deaths']
+  df_demo_deaths.loc[len(df_demo_deaths.index)]=['Total',deaths]
 
   display(df_demo_cases)
   display(df_demo_deaths)
@@ -3448,6 +3708,56 @@ def runWI(ws, write):
     writeTable(df_deathsConfirmEth, 'Confirmed Deaths by Ethnicity', 'K43',ws)
     writeTable(df_deathsProbsRace, 'Probable Deaths by Race', 'N34',ws)
     writeTable(df_deathsProbsEth, 'Probable Deaths by Ethnicity', 'N43',ws)
+
+
+# WV
+def runWV(ws, write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
+  from selenium.webdriver import ActionChains
+
+  def get_elements():
+    elements = []
+    while len(elements)<7:
+      elements = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "tspan[x='0'],[y='0']")))
+      time.sleep(1)
+    return elements
+
+
+  url = 'https://app.powerbigov.us/view?r=eyJrIjoiNDAwZjU3ZTAtMWM3OS00M2NjLWFiMGMtOTYwYjdmYTAwMGZjIiwidCI6IjhhMjZjZjAyLTQzNGEtNDMxZS04Y2FkLTdlYWVmOTdlZjQ4NCJ9'
+
+  wd=init_driver()
+  wd.get(url)
+  wd.maximize_window()
+  wait = WebDriverWait(wd, 160)
+  data = []
+  cats = ['White','Unknown','Black','Other']
+  time.sleep(10)
+  print('Clicking Cumulative Summary')
+  wait.until(EC.element_to_be_clickable((By.XPATH, "//*[text()[contains(.,'Cumulative Summary')]]/parent::*"))).click()
+#  time.sleep(5)
+  print('Getting Totals')
+  elements = get_elements()
+  data_row = ['Total',elements[0].text,elements[1].text,elements[3].text]
+  data.append(data_row)
+  for i in range(1,5):
+    print('Getting',cats[i-1])
+    wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "g > rect:nth-child("+str(i)+")"))).click()
+    time.sleep(5)
+    elements = get_elements()
+    data_row = [cats[i-1],elements[0].text,elements[1].text,elements[3].text]
+    display(data_row)
+    data.append(data_row)
+  wd.quit()
+
+  df = pd.DataFrame(data,columns=['Category','Confirmed','Probable','Deaths'])
+
+  display(df)
+
+  if write == 1:
+    # Write Data To Sheet
+    writeTable(df,'','',ws)
 
 # WY ************
 

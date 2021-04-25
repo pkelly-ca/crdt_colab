@@ -268,10 +268,13 @@ def runAR(ws, write):
   wd.maximize_window()
   wait = WebDriverWait(wd, 160)
   hisp_eth = wait.until(EC.presence_of_element_located((By.XPATH,"//*[text()[contains(.,'are Hispanic:')]]")))
+  time.sleep(15)
+  display(hisp_eth.get_attribute('innerHTML'))
   hisp_eth = hisp_eth.get_attribute('innerHTML').split(': ')[1]
+  hisp_eth = re.sub(r'[%\n ]','',hisp_eth)
   wd.quit()
 
-  df_eth_d = pd.DataFrame([['Hispanic',hisp_eth]],columns=['Category','Deaths'])
+  df_eth_d = pd.DataFrame([['Hispanic',hisp_eth + '%']],columns=['Category','Deaths'])
   display(df_eth_d)
 
   #totals, case dems, death dems

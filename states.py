@@ -1307,11 +1307,11 @@ def runIN(ws, write):
   p_tag = soup.find('p',attrs={'class':'h5'})
   h2_tag = p_tag.findNext('h2')
   df_prob = pd.DataFrame([['Probable',h2_tag.text]],columns=['Category','Deaths'])
-  display(df_prb)
+  display(df_prob)
   wd.quit()
 
   if write == 1:
-    # Write Paste _Date To Sheet
+    # Write Paste Date To Sheet
     dataToWrite = [[date.today().strftime('%m/%d')]]
     #ws.update('G21',dataToWrite)
 

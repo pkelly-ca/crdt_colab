@@ -94,8 +94,57 @@ def writeTable(df,title,startCell,ws):
     except Exception as e:
         display('Skipping S3 upload for %s' % state)
     
-    
+def retry_wait_click_all(wd, type, path):
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
+    from selenium.webdriver import ActionChains
+    from webdriver_manager.chrome import ChromeDriverManager
+    wait = WebDriverWait(wd, 60)
+   
+    result = False
+    attempts = 0
+    while attempts < 5:
+        try:
+          display('Trying...',path)
+          if type == xpath:
+              ele = wait.until(EC.element_to_be_clickable((By.XPATH,path)))
+              ele.click()
+   
+          display('number of attempts = ',attempts+1)
+          result = True;
+          break
+        except Exception as e:
+          display('...failed (sleeping)')
+          display('Exception:',e)
+          time.sleep(5)
+          attempts+=1
+    return result   
 
+def retry_wait_click(wd, interval, path):
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
+    from selenium.webdriver import ActionChains
+    from webdriver_manager.chrome import ChromeDriverManager
+    wait = WebDriverWait(wd, interval)
+   
+    result = False
+    attempts = 0
+    while attempts < 5:
+        try:
+          display('Trying...',path)
+          ele = wait.until(EC.element_to_be_clickable((By.XPATH,path)))
+          ele.click()
+          display('number of attempts = ',attempts+1)
+          result = True;
+          break
+        except Exception as e:
+          display('...failed (sleeping)')
+          display('Exception:',e)
+          time.sleep(5)
+          attempts+=1
+    return result  
 
 # -*- coding: utf-8 -*-
 """[CTP] CRDT Long Calculations (Official)
@@ -1278,44 +1327,136 @@ def runKS(ws, write):
   from selenium.webdriver.support import expected_conditions as EC
   from selenium.webdriver import ActionChains 
 
-  #System.setProperty("sun.java2d.cmm", "sun.java2d.cmm.kcms.KcmsServiceProvider")
 
   url='https://public.tableau.com/views/COVID-19TableauVersion2/COVID-19Overview?:embed=y&:showVizHome=no&:host_url=https%3A%2F%2Fpublic.tableau.com%2F&:embed_code_version=3&:tabs=no&:toolbar=yes&:animate_transition=yes&:display_static_image=no&:display_spinner=no&:display_overlay=yes&:display_count=yes&:language=en&publish=yes&:loadOrderID=0'
   case_dems_xpath='//*[@id="tabZoneId434"]/div/div/div/div/div/div'
   death_dems_xpath='//*[@id="tabZoneId439"]/div/div/div/div/div/div'
   hosp_dems_xpath='//*[@id="tabZoneId440"]/div/div/div/div/div/div'
+  test_dems_xpath='//*[@id="tabZoneId437"]/div/div/div/div/div/div'
   dnld_xpath='//*[@id="download-ToolbarButton"]/span[1]'
   pdf_xpath='//*[@id="DownloadDialog-Dialog-Body-Id"]/div/fieldset/button[4]'
   download_xpath='//*[@id="export-pdf-dialog-Dialog-Body-Id"]/div/div[4]/button'
+
+  Race_Eth=['Total', 'White', 'Black', 'AIAN', 'Asian', 'Other', 'Race Missing', 'Hispanic', 'Not Hispanic', 'Eth Missing']
  
-  def getPDF(metric_xpath,pdf_file):
-     wait = WebDriverWait(wd, 60)
-     print("Wait")
-     wait.until(EC.element_to_be_clickable((By.XPATH,metric_xpath))).click()
+  def getPDF(metric_xpath,pdf_file,interval):
+     retry_wait_click(wd, interval, metric_xpath)
+     #wait.until(EC.element_to_be_clickable((By.XPATH,metric_xpath))).click()
      print("Metric - case, hosp or death dems")
-     wait.until(EC.element_to_be_clickable((By.XPATH, dnld_xpath))).click()
+     retry_wait_click(wd, interval, dnld_xpath)
+     #wait.until(EC.element_to_be_clickable((By.XPATH, dnld_xpath))).click()
      print("clicked download on tableau frame")
-     wait.until(EC.element_to_be_clickable((By.XPATH, pdf_xpath))).click()
+     retry_wait_click(wd, interval, pdf_xpath)
+     #wait.until(EC.element_to_be_clickable((By.XPATH, pdf_xpath))).click()
      print("chose PDF option")
-     wait.until(EC.element_to_be_clickable((By.XPATH, download_xpath))).click()
+     retry_wait_click(wd, interval, download_xpath)
+     #wait.until(EC.element_to_be_clickable((By.XPATH, download_xpath))).click()
      print("Chose Download as is option")
      time.sleep(10)
      tables=tabula.read_pdf(pdf_file, pages="all", multiple_tables=True, lattice=False, encoding='utf-8', guess=False)
 
      return tables
 
-  #Cases PDF
+  ########
+  #Tests
+  #######
   #initialize the driver
   wd=init_driver()
   wd.get(url)
-  wait = WebDriverWait(wd, 160)
+  print("Getting Test Demographics\n")
+
+  test_tables=getPDF(test_dems_xpath, 'Testing Rates.pdf', 60)
+  test_info=test_tables[0]
+  #display(test_info)
+  test_info.columns=['Race/Ethnicity', 'TestNums', 'Drop1', 'EthNums']
+  test_info=test_info.drop(['Drop1'], axis=1)
+  #test_info0=test_info
+  print("deleted 1 columns")
+ 
+  #Code with incorrect totals - here for reference on the rows to cut
+  #test_info1=test_info.iloc[14:-102].reset_index(drop=True) 
+  #print("remove big span 14:-102")
+  #display(test_info1)
+
+  #Code with corrected totals
+  test_info1=test_info.iloc[4:-102].reset_index(drop=True) 
+  #display(test_info1)
+  test_info1=test_info1.drop(test_info1.index[1:15]).reset_index(drop=True)
+  print("remove big span of rows - but keep in totals row")
+  #display(test_info1)
+
+  #Old totals code
+  #test_info1=test_info1.drop(test_info1.index[1:4]).reset_index(drop=True)
+  #print("removed 3 rows")
+  #display(test_info1)
+
+  #Remove commas & Split the Test Column Between Numbers and Ethnicity Labels by space
+  
+  print("split for total search")
+  #test_info1[['tdrop1', 'tdrop2', 'tdrop3', 'tdrop4', 'tdrop5', 'tdrop6', 'tdrop7']]=test_info1['Race/Ethnicity'].str.split(' ', expand=True)
+  test_info1[['tdrop1', 'tdrop2', 'tdrop3', 'tdrop4', 'tdrop5']]=test_info1['Race/Ethnicity'].str.split(' ', expand=True)
+  #display(test_info1)
+
+  print("split for Race Test Numbers")
+  test_info1[['Tests', 'Drop1', 'EthName', 'Drop2', 'Drop3','Drop4']]=test_info1['TestNums'].str.split(' ',expand=True)
+  print("about to assign totals values")
+  #assign first value in tests to the first value in tdrop1 for totals
+  test_info1.loc[0, 'Tests'] = test_info1.loc[0, 'tdrop1']
+
+  print("split for Ethnicity Test Numbers")
+  test_info1[['Test_Eth', 'EDrop1', 'EDrop2']]=test_info1['EthNums'].str.split(' ', expand=True)
+  #Take out what we don't need
+  test_info1=test_info1.drop(['tdrop1', 'tdrop2', 'tdrop3', 'tdrop4', 'tdrop5'], axis=1)
+  test_info1=test_info1.drop(['TestNums', 'EthNums', 'Drop1', 'Drop2', 'Drop3', 'Drop4', 'EDrop1', 'EDrop2'], axis=1)
+  #display (test_info1)
+
+  print("finished split- now drop columns getting ready for dataframe merge")
+  test_eth=test_info1
+  test_eth=test_eth.drop(['Race/Ethnicity', 'Tests'], axis=1) #drop these columns for ethnicity
+  test_eth.columns=['Race/Ethnicity', 'Tests'] #rename remaining columns for ethnicity
+  #display(test_eth)
+
+  test_info1=test_info1.drop(['EthName', 'Test_Eth'], axis=1)
+  #display(test_info1)
+
+  #reorder Asian and AIAN values to match Cases/Hosp/Deaths by storing Asian values in an empty row of test_eth
+  test_eth.iloc[0]=test_info1.iloc[3]
+
+  #put AIAN values where Asian was
+  test_info1.iloc[3]=test_info1.iloc[4] 
+  test_info1.iloc[4]=test_eth.iloc[0]
+  #display(test_info1)
+
+  #remove 4 empty rows of test_eth
+  test_eth=test_eth.iloc[4:].reset_index(drop=True)
+  #display(test_eth)
+
+  
+  print("Append dataframes")
+  test_info1=test_info1.append(test_eth, ignore_index=True)
+  display(test_info1)
+  test_final=test_info1
+  test_final['Tests']=test_final['Tests'].str.replace(r",","").astype(int)
+
+  test_final['Race/Ethnicity']=Race_Eth
+  #display(test_final)
+
+  wd.quit()
+  
+
+  ########
+  #Cases
+  #######
+  #initialize the driver
+  wd=init_driver()
+  wd.get(url)
   print(url)
 
-  Race_Eth=['Total', 'White', 'Black', 'AIAN', 'Asian', 'Other', 'Race Missing', 'Hispanic', 'Not Hispanic', 'Eth Missing']
+
 
   #Cases
   print("Getting Case Demographics")
-  case_tables=getPDF(case_dems_xpath, 'Case Characteristics.pdf')
+  case_tables=getPDF(case_dems_xpath, 'Case Characteristics.pdf', 60)
   case_info=case_tables[0]
   case_info.columns=['Drop 0', 'Race/Ethnicity', 'Cases', 'Drop 1', 'Drop 2']
   case_info0=case_info.drop(['Drop 0', 'Drop 1', 'Drop 2'], axis=1)
@@ -1348,15 +1489,16 @@ def runKS(ws, write):
   wd.quit()
 
 
-  #Hospitalizations PDF
+  ########
+  #Hospitalizations
+  #######
   #initialize the driver
   wd=init_driver()
   wd.get(url)
-  wait = WebDriverWait(wd, 160)
 
   #Hospitalizations
   print("Getting Hospitalization Demographics")
-  hosp_tables=getPDF(hosp_dems_xpath, 'Hospital Summary.pdf')
+  hosp_tables=getPDF(hosp_dems_xpath, 'Hospital Summary.pdf', 60)
   hosp_tables[0].fillna('0')
   hosp_info=hosp_tables[0]
   hosp_info.columns=['Race/Ethnicity', 'Drop 0', 'Drop 1', 'Drop 2', 'Drop 3']
@@ -1432,16 +1574,16 @@ def runKS(ws, write):
   wd.quit()
 
 
-
-  #Deaths PDF
+  ########
+  #Deaths
+  #######
   #initialize the driver
   wd=init_driver()
   wd.get(url)
-  wait = WebDriverWait(wd, 160)
   print("Getting Death Demographics")
 
   #Deaths
-  death_tables=getPDF(death_dems_xpath, 'Death Summary.pdf')
+  death_tables=getPDF(death_dems_xpath, 'Death Summary.pdf', 60)
   death_tables[0].fillna('0')
   death_info=death_tables[0]
   #display(death_info)
@@ -1500,11 +1642,12 @@ def runKS(ws, write):
 
   wd.quit()
 
+
   #Combine 3 dataframes to get a total dataframe
   print("combining data frames")
-  df_tot=pd.concat([case_final,hosp_final,death_final_label2],axis=1)
-  df_tot.columns=['Race/Ethnicity', 'Cases', 'Drop0', 'Hospitalizations', 'Drop1', 'Deaths']
-  df_tot=df_tot.drop(['Drop0', 'Drop1'], axis=1)
+  df_tot=pd.concat([case_final,hosp_final,death_final_label2, test_final],axis=1)
+  df_tot.columns=['Race/Ethnicity', 'Cases', 'Drop0', 'Hospitalizations', 'Drop1', 'Deaths', 'Drop2', 'Tests']
+  df_tot=df_tot.drop(['Drop0', 'Drop1', 'Drop2'], axis=1)
   display(df_tot)
 
   if write == 1:
@@ -1794,27 +1937,10 @@ def runME(ws, write):
   csv_Race = "case-by-race-bars_data.csv"
   csv_Eth = "case-by-race-bars_data.csv"
 
-  def retry_wait_click(path):
-    result = False
-    attempts = 0
-    while attempts < 5:
-        try:
-          display('Trying...',path)
-          ele = wait.until(EC.element_to_be_clickable((By.XPATH,path)))
-          ele.click()
-          display('number of attempts = ',attempts+1)
-          result = True;
-          break
-        except Exception as e:
-          display('...failed (sleeping)')
-          display('Exception:',e)
-          time.sleep(5)
-          attempts+=1
-    return result
 
-  def getCSV(metric_csv):
+  def getCSV(interval, metric_csv):
 
-    retry_wait_click(tab_btn_xpath)
+    retry_wait_click(wd, interval, tab_btn_xpath)
     #wait.until(EC.element_to_be_clickable((By.XPATH,tab_btn_xpath))).click()
     time.sleep(10)
     print("clicked download button")
@@ -1822,13 +1948,13 @@ def runME(ws, write):
     window_before = wd.window_handles[0]
     print(window_before)
     #switch to the new window that opens up
-    retry_wait_click(data_btn_xpath)
+    retry_wait_click(wd, interval, data_btn_xpath)
     #wait.until(EC.element_to_be_clickable((By.XPATH,data_btn_xpath))).click()
     print("clicked data button")
     window_after = wd.window_handles[1]
     wd.switch_to_window(window_after)
     print("window after")
-    retry_wait_click("//*[@class='csvLink_summary']")
+    retry_wait_click(wd, interval, "//*[@class='csvLink_summary']")
     #wait.until(EC.element_to_be_clickable((By.XPATH,"//*[@class='csvLink_summary']"))).click()
     print("clicked text file option")
     time.sleep(5)
@@ -1841,16 +1967,15 @@ def runME(ws, write):
   print("\nDemographics by Ethnicity")
   wd=init_driver()
   wd.get(raceethsrc)
-  wait = WebDriverWait(wd, 160)
   #time.sleep(10)
   #race_eth_toggle = wait.until(EC.element_to_be_clickable((By.XPATH,"//span[@aria-label='Toggle race / ethnicity Race']")))
   #race_eth_toggle.click()
-  retry_wait_click("//span[@aria-label='Toggle race / ethnicity Race']")
-  retry_wait_click("//span[text()='Ethnicity']")
-  retry_wait_click(race_hosp_xpath)
+  retry_wait_click(wd, 160, "//span[@aria-label='Toggle race / ethnicity Race']")
+  retry_wait_click(wd, 160, "//span[text()='Ethnicity']")
+  retry_wait_click(wd, 160, race_hosp_xpath)
   #wait.until(EC.element_to_be_clickable((By.XPATH,"//span[text()='Ethnicity']"))).click()
   #wait.until(EC.element_to_be_clickable((By.XPATH,race_hosp_xpath))).click()
-  df_casesEth = getCSV(csv_Eth)
+  df_casesEth = getCSV(160, csv_Eth)
   df_casesEth=df_casesEth.drop(['Population'],1).fillna('0')
   display(df_casesEth)
   wd.quit()
@@ -1864,9 +1989,9 @@ def runME(ws, write):
   print("\nDemographics by Race")
   #time.sleep(10)
   #wait.until(EC.element_to_be_clickable((By.XPATH,race_hosp_xpath))).click()
-  retry_wait_click(race_hosp_xpath)
+  retry_wait_click(wd, 160, race_hosp_xpath)
   print("selected Hospitalizations")
-  df_casesRace = getCSV(csv_Race)
+  df_casesRace = getCSV(160, csv_Race)
   df_casesRace.fillna('0')
   #Get rid of extra rows
   df_casesRace=df_casesRace.drop(['Population'],1).fillna('0')

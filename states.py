@@ -2432,31 +2432,23 @@ def runNC(ws, write):
 
   #define getCSV NC style
   def getCSV(metric_xpath,metric_csv,eth):
-      demos_dnld_btn=wd.find_element_by_xpath(demos_dnld_xpath)
-      demos_dnld_btn.click()
-      print("clicked download on tableau frame")
-      time.sleep(5)
-      crosstab_btn=wd.find_element_by_xpath(crosstab_xpath)
-      crosstab_btn.click()
-      print("clicked crosstab")
-      time.sleep(15)
-      ##select csv option
-      csv_btn=wd.find_element_by_xpath(csv_xpath)
-      csv_btn.click()
-      print("clicked csv option")
-      time.sleep(5)
-      if eth:
-        wd.find_element_by_xpath(metric_xpath).click()
-        print("clicked metric on tableau frame")
-        time.sleep(5)
-      dnld_btn=wd.find_element_by_xpath(dnld_xpath)
-      dnld_btn.click()
-      print('clicked download button')
-      time.sleep(20)
+    wait = WebDriverWait(wd, 20)
+    wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".tab-icon-download"))).click()
+    print('clicked download')
+    wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Crosstab']"))).click()
+    print('clicked crosstab')
+    wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label[data-tb-test-id='crosstab-options-dialog-radio-csv-Label']"))).click()
+    print('clicked csv')
+    if eth:
+      wait.until(EC.element_to_be_clickable((By.XPATH, metric_xpath))).click()
+    print('clicked file')
+    wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Download']"))).click()
+    print('clicked download')
+    time.sleep(5)
 
-      df=pd.read_csv(metric_csv,sep="\t", encoding="utf-16")
-      df=df.fillna('0')
-      return df
+    df=pd.read_csv(metric_csv,sep="\t", encoding="utf-16")
+    df=df.fillna('0')
+    return df
 
   #inititalize the driver, get the url and take a nap
   wd=init_driver()
@@ -2469,10 +2461,10 @@ def runNC(ws, write):
   #get total counts
   print("Get Race Table")
   race = getCSV(race_xpath, race_csv, False)
-  time.sleep(5)
+
   print("Get Eth Table")
   ethnicity = getCSV(eth_xpath,ethnicity_csv, True)
-  time.sleep(5)
+
   wd.quit()
 
   #Remove , and convert to int for Race

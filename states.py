@@ -2418,7 +2418,8 @@ def runNC(ws, write):
   demos_dnld_xpath= '//*[@id="download-ToolbarButton"]'
   crosstab_xpath='//*[@id="DownloadDialog-Dialog-Body-Id"]/div/fieldset/button[3]'
   csv_xpath='//*[@id="export-crosstab-options-dialog-Dialog-BodyWrapper-Dialog-Body-Id"]/div/div[2]/div[2]/div/label[2]'
-  race_xpath='//*[@id="export-crosstab-options-dialog-Dialog-BodyWrapper-Dialog-Body-Id"]/div/div[1]/div[2]/div/div/div[4]/div/div/div/div'
+  race_xpath='//*[@id="export-crosstab-options-dialog-Dialog-BodyWrapper-Dialog-Body-Id"]/div/div[1]/div[2]/div/div/div[4]/div'
+  #race_xpath='//*[@id="export-crosstab-options-dialog-Dialog-BodyWrapper-Dialog-Body-Id"]/div/div[1]/div[2]/div/div/div[4]/div/div/div/div'
   eth_xpath='//*[@id="export-crosstab-options-dialog-Dialog-BodyWrapper-Dialog-Body-Id"]/div/div[1]/div[2]/div/div/div[2]/div/div/div/div'
   dnld_xpath='//*[@id="export-crosstab-options-dialog-Dialog-BodyWrapper-Dialog-Body-Id"]/div/div[3]/button'
 
@@ -2430,27 +2431,28 @@ def runNC(ws, write):
   #Go to url->demos_dnld_xpath->crosstab_xpath->csv_xpath->metric_xpath->dnld_xpath
 
   #define getCSV NC style
-  def getCSV(metric_xpath,metric_csv):
+  def getCSV(metric_xpath,metric_csv,eth):
       demos_dnld_btn=wd.find_element_by_xpath(demos_dnld_xpath)
       demos_dnld_btn.click()
-      #print("clicked download on tableau frame")
+      print("clicked download on tableau frame")
       time.sleep(5)
       crosstab_btn=wd.find_element_by_xpath(crosstab_xpath)
       crosstab_btn.click()
-      #print("clicked crosstab")
+      print("clicked crosstab")
       time.sleep(15)
       ##select csv option
       csv_btn=wd.find_element_by_xpath(csv_xpath)
       csv_btn.click()
       print("clicked csv option")
       time.sleep(5)
-      wd.find_element_by_xpath(metric_xpath).click()
-      #print("clicked metric on tableau frame")
-      time.sleep(5)
+      if eth:
+        wd.find_element_by_xpath(metric_xpath).click()
+        print("clicked metric on tableau frame")
+        time.sleep(5)
       dnld_btn=wd.find_element_by_xpath(dnld_xpath)
       dnld_btn.click()
       print('clicked download button')
-      time.sleep(10)
+      time.sleep(20)
 
       df=pd.read_csv(metric_csv,sep="\t", encoding="utf-16")
       df=df.fillna('0')
@@ -2465,9 +2467,11 @@ def runNC(ws, write):
   time.sleep(5)
 
   #get total counts
-  race = getCSV(race_xpath, race_csv)
+  print("Get Race Table")
+  race = getCSV(race_xpath, race_csv, False)
   time.sleep(5)
-  ethnicity = getCSV(eth_xpath,ethnicity_csv)
+  print("Get Eth Table")
+  ethnicity = getCSV(eth_xpath,ethnicity_csv, True)
   time.sleep(5)
   wd.quit()
 
@@ -3853,7 +3857,8 @@ def runWV(ws, write):
     return elements
 
 
-  url = 'https://app.powerbigov.us/view?r=eyJrIjoiNDAwZjU3ZTAtMWM3OS00M2NjLWFiMGMtOTYwYjdmYTAwMGZjIiwidCI6IjhhMjZjZjAyLTQzNGEtNDMxZS04Y2FkLTdlYWVmOTdlZjQ4NCJ9'
+#  url = 'https://app.powerbigov.us/view?r=eyJrIjoiNDAwZjU3ZTAtMWM3OS00M2NjLWFiMGMtOTYwYjdmYTAwMGZjIiwidCI6IjhhMjZjZjAyLTQzNGEtNDMxZS04Y2FkLTdlYWVmOTdlZjQ4NCJ9'
+  url = 'https://app.powerbigov.us/view?r=eyJrIjoiMTFkN2ZkNzUtZGM4OS00MzEwLWIwN2UtMjk4ZjU5YTQ4MjlkIiwidCI6IjhhMjZjZjAyLTQzNGEtNDMxZS04Y2FkLTdlYWVmOTdlZjQ4NCJ9'
 
   wd=init_driver()
   wd.get(url)

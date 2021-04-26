@@ -95,11 +95,6 @@ def writeTable(df,title,startCell,ws):
         display('Skipping S3 upload for %s' % state)
     
 def retry_wait_click_all(wd, type, path):
-    from selenium.webdriver.common.by import By
-    from selenium.webdriver.support.ui import WebDriverWait
-    from selenium.webdriver.support import expected_conditions as EC
-    from selenium.webdriver import ActionChains
-    from webdriver_manager.chrome import ChromeDriverManager
     wait = WebDriverWait(wd, 60)
    
     result = False
@@ -122,11 +117,6 @@ def retry_wait_click_all(wd, type, path):
     return result   
 
 def retry_wait_click(wd, interval, path):
-    from selenium.webdriver.common.by import By
-    from selenium.webdriver.support.ui import WebDriverWait
-    from selenium.webdriver.support import expected_conditions as EC
-    from selenium.webdriver import ActionChains
-    from webdriver_manager.chrome import ChromeDriverManager
     wait = WebDriverWait(wd, interval)
    
     result = False
@@ -189,10 +179,6 @@ def runAK(ws, write):
 
 # AL
 def runAL(ws, write):
-  from selenium.webdriver.common.by import By
-  from selenium.webdriver.support.ui import WebDriverWait
-  from selenium.webdriver.support import expected_conditions as EC
-  from selenium.webdriver import ActionChains
 
   def colstr2int(df,col):
     df.loc[:,col] = df.loc[:,col].replace(',','', regex=True)
@@ -255,10 +241,6 @@ def runAL(ws, write):
 
 # AR
 def runAR(ws, write):
-  from selenium.webdriver.common.by import By
-  from selenium.webdriver.support.ui import WebDriverWait
-  from selenium.webdriver.support import expected_conditions as EC
-  from selenium.webdriver import ActionChains
 
   print("\nAR Hispanic Ethnicity % Deaths")
   url = 'https://adem.maps.arcgis.com/apps/opsdashboard/index.html#/f09960f2948d43d39913400dad1af77c'
@@ -347,9 +329,6 @@ def runCA(ws, write):
 #CO
 
 def runCO(ws, write):
-  from selenium.webdriver.common.by import By
-  from selenium.webdriver.support.ui import WebDriverWait
-  from selenium.webdriver.support import expected_conditions as EC
 
   # CO Total Cases, Total Deaths, Percent of Cases by Race, Percent of Cases by Ethnicity
   #url='https://data-cdphe.opendata.arcgis.com/datasets/cdphe-covid19-state-level-expanded-case-data/data'
@@ -798,9 +777,6 @@ def runGU(ws,write):
 # HI ************
 
 def runHI(ws,write):
-  from selenium.webdriver.common.by import By
-  from selenium.webdriver.support.ui import WebDriverWait
-  from selenium.webdriver.support import expected_conditions as EC
 
   #Tableau for Race
   src="https://public.tableau.com/views/HawaiiCOVID-19-RaceChart/Overview?:embed=y&:showVizHome=no&:host_url=https%3A%2F%2Fpublic.tableau.com%2F&:embed_code_version=3&:tabs=no&:toolbar=yes&:animate_transition=yes&:display_static_image=no&:display_spinner=no&:display_overlay=yes&:display_count=yes&null&:loadOrderID=11"
@@ -915,9 +891,6 @@ def runHI(ws,write):
 # ID
 #
 def runID(ws, write):
-  from selenium.webdriver.common.by import By
-  from selenium.webdriver.support.ui import WebDriverWait
-  from selenium.webdriver.support import expected_conditions as EC
 
   def download_CSV(csv_name):
     wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".tab-icon-download"))).click()
@@ -1044,10 +1017,6 @@ def runID(ws, write):
 
 #MI
 def runMI(ws,write):
-  from selenium.webdriver.common.by import By
-  from selenium.webdriver.support.ui import WebDriverWait
-  from selenium.webdriver.support import expected_conditions as EC
-  from selenium.webdriver import ActionChains
 
   def colstr2int(df,col):
     df.loc[:,col] = df.loc[:,col].replace(',','', regex=True)
@@ -1209,9 +1178,6 @@ def runMI(ws,write):
 
 def runIL(ws,write):
 
-  from selenium.webdriver.common.by import By
-  from selenium.webdriver.support.ui import WebDriverWait
-  from selenium.webdriver.support import expected_conditions as EC
 
   def getvals(html,title):
     cats = []
@@ -1283,10 +1249,6 @@ def runIL(ws,write):
 #import requests
 
 def runIN(ws, write):
-  from selenium.webdriver.common.by import By
-  from selenium.webdriver.support.ui import WebDriverWait
-  from selenium.webdriver.support import expected_conditions as EC
-  from selenium.webdriver import ActionChains
 
   url = 'https://hub.mph.in.gov/dataset/62ddcb15-bbe8-477b-bb2e-175ee5af8629/resource/2538d7f1-391b-4733-90b3-9e95cd5f3ea6/download/covid_report_demographics.xlsx'
   df_IN_casesRace = pd.read_excel(url, sheet_name='Race', skiprows=0, engine='openpyxl')
@@ -1325,10 +1287,6 @@ def runIN(ws, write):
 
 # KS
 def runKS(ws, write):
-  from selenium.webdriver.common.by import By
-  from selenium.webdriver.support.ui import WebDriverWait
-  from selenium.webdriver.support import expected_conditions as EC
-  from selenium.webdriver import ActionChains 
 
 
   url='https://public.tableau.com/views/COVID-19TableauVersion2/COVID-19Overview?:embed=y&:showVizHome=no&:host_url=https%3A%2F%2Fpublic.tableau.com%2F&:embed_code_version=3&:tabs=no&:toolbar=yes&:animate_transition=yes&:display_static_image=no&:display_spinner=no&:display_overlay=yes&:display_count=yes&:language=en&publish=yes&:loadOrderID=0'
@@ -1760,9 +1718,6 @@ def runKY(ws, write):
 
 # LA
 def runLA(ws,write):
-  from selenium.webdriver.common.by import By
-  from selenium.webdriver.support.ui import WebDriverWait
-  from selenium.webdriver.support import expected_conditions as EC
 
   url = 'https://services5.arcgis.com/O5K6bb5dZVZcTo5M/ArcGIS/rest/services/Case_Deaths_Race_Region_new/FeatureServer/0/query?where=1%3D1&outFields=LDH_region%2C+Race%2C+Deaths%2C+Cases&returnGeometry=false&f=json'
 
@@ -1917,10 +1872,6 @@ def runMD(ws,write):
 
 # ME #Race only
 def runME(ws, write):
-  from selenium.webdriver.common.by import By
-  from selenium.webdriver.support.ui import WebDriverWait
-  from selenium.webdriver.support import expected_conditions as EC
-  from selenium.webdriver import ActionChains
 
   #URLs
   raceethsrc='https://analytics.maine.gov/t/CDCExternal/views/covid-19-maine-cdc-dashboard/6_COVID-19databyrace?%3Aembed=y&amp%3B%3AshowVizHome=no&amp%3B%3Ahost_url=https%3A%2F%2Fanalytics.maine.gov%2F&amp%3B%3Aembed_code_version=3&amp%3B%3Atabs=no&amp%3B%3Atoolbar=yes&amp%3B%3AshowAppBanner=false&amp%3B%3Adisplay_spinner=no&amp%3B%3AloadOrderID=0'
@@ -2043,10 +1994,6 @@ def runMN(ws, write):
 
 #MO
 def runMO(ws, write):
-  from selenium.webdriver.common.by import By
-  from selenium.webdriver.support.ui import WebDriverWait
-  from selenium.webdriver.support import expected_conditions as EC
-  from selenium.webdriver import ActionChains
 
   #Sumary Dashboard
   url="https://showmestrong.mo.gov/data-download/"
@@ -2488,10 +2435,6 @@ def runNC(ws, write):
 
 #ND
 def runND(ws,write):
-  from selenium.webdriver.common.by import By
-  from selenium.webdriver.support.ui import WebDriverWait
-  from selenium.webdriver.support import expected_conditions as EC
-  from selenium.webdriver import ActionChains
 
   url = 'https://app.powerbigov.us/view?r=eyJrIjoiYTExNDg5YjctOTQxZi00YmU2LWI5Y2YtNWVkMDFmNDUyN2FlIiwidCI6IjJkZWEwNDY0LWRhNTEtNGE4OC1iYWUyLWIzZGI5NGJjMGM1NCJ9'
 
@@ -2618,10 +2561,6 @@ def runNE(ws, write):
 # NH
 def runNH(ws, write):
 
-  from selenium.webdriver.common.by import By
-  from selenium.webdriver.support.ui import WebDriverWait
-  from selenium.webdriver.support import expected_conditions as EC
-  from selenium.webdriver import ActionChains
 
   #interactive equity dash
   #iframe
@@ -2884,9 +2823,6 @@ def runNM(ws, write):
 # NV
 def runNV(ws,write):
 
-  from selenium.webdriver.common.by import By
-  from selenium.webdriver.support.ui import WebDriverWait
-  from selenium.webdriver.support import expected_conditions as EC
 
   def get_df(col2):
     cats = []
@@ -3078,9 +3014,6 @@ def runOK(ws, write):
 
 # OR
 def runOR(ws, write):
-  from selenium.webdriver.common.by import By
-  from selenium.webdriver.support.ui import WebDriverWait
-  from selenium.webdriver.support import expected_conditions as EC
 
   def getCSV_OR(csv_file,first=1,contains='',header='infer'):
     wait = WebDriverWait(wd, 20)
@@ -3284,10 +3217,6 @@ def runRI(ws,write):
 
 # SD
 def runSD(ws,write):
-  from selenium.webdriver.common.by import By
-  from selenium.webdriver.support.ui import WebDriverWait
-  from selenium.webdriver.support import expected_conditions as EC
-  from selenium.webdriver import ActionChains
 
   url = 'https://app.powerbigov.us/view?r=eyJrIjoiZGJjZWYwZmEtMWVjMy00OTUwLThkMzgtZDhkNzAwOWQ3YzNlIiwidCI6IjcwYWY1NDdjLTY5YWItNDE2ZC1iNGE2LTU0M2I1Y2U1MmI5OSJ9'
 #  url = 'https://app.powerbigov.us/view?r=eyJrIjoiZDUwODIyNGEtODdkZC00MmI4LWFmOTctZWJjOWRkYmIzNzhhIiwidCI6IjcwYWY1NDdjLTY5YWItNDE2ZC1iNGE2LTU0M2I1Y2U1MmI5OSJ9'
@@ -3642,9 +3571,6 @@ def runWA(ws,write):
 #from bs4 import BeautifulSoup
 #import pandas as pd
 def runWI(ws, write):
-  from selenium.webdriver.common.by import By
-  from selenium.webdriver.support.ui import WebDriverWait
-  from selenium.webdriver.support import expected_conditions as EC
 
   url = 'https://opendata.arcgis.com/datasets/859602b5d427456f821de3830f89301c_11.csv?outSR=%7B%22latestWkid%22%3A3857%2C%22wkid%22%3A102100%7D'
 
@@ -3836,10 +3762,6 @@ def runWI(ws, write):
 
 # WV
 def runWV(ws, write):
-  from selenium.webdriver.common.by import By
-  from selenium.webdriver.support.ui import WebDriverWait
-  from selenium.webdriver.support import expected_conditions as EC
-  from selenium.webdriver import ActionChains
 
   def get_elements():
     elements = []
@@ -3889,9 +3811,6 @@ def runWV(ws, write):
 # WY ************
 
 def runWY(ws,write):
-  from selenium.webdriver.common.by import By
-  from selenium.webdriver.support.ui import WebDriverWait
-  from selenium.webdriver.support import expected_conditions as EC
   #url = 'https://public.tableau.com/vizql/w/EpiCOVIDtest/v/Dashboard/tempfile/sessions/324E4F03F0184305838EC00E7A01CB86-0:0/?key=4098009697&keepfile=yes&attachment=yes'
   srcCases="https://public.tableau.com/views/EpiCOVIDtest/Dashboard?:embed=y&amp;:showVizHome=no&amp;:host_url=https%3A%2F%2Fpublic.tableau.com%2F&amp;:embed_code_version=3&amp;:tabs=no&amp;:toolbar=no&amp;:animate_transition=yes&amp;:display_static_image=no&amp;:display_spinner=no&amp;:display_overlay=yes&amp;:display_count=yes&amp;publish=yes&amp;:loadOrderID=0"
   srcDeaths="https://public.tableau.com/views/EpiCOVIDtest/COVID-19RelatedDeaths?%3Aembed=y&amp%3B%3AshowVizHome=no&amp%3B%3Ahost_url=https%3A%2F%2Fpublic.tableau.com%2F&amp%3B%3Aembed_code_version=3&amp%3B%3Atabs=no&amp%3B%3Atoolbar=no&amp%3B%3Aanimate_transition=yes&amp%3B%3Adisplay_static_image=no&amp%3B%3Adisplay_spinner=no&amp%3B%3Adisplay_overlay=yes&amp%3B%3Adisplay_count=yes&amp%3Bpublish=yes&amp%3B%3AloadOrderID=0"

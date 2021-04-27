@@ -128,31 +128,7 @@ def retry_wait_click_all(wd, interval, type, path):
           display('number of attempts = ',attempts+1)
 
     return result   
-
-def retry_wait_click(wd, interval, path):
-    from selenium.webdriver.common.by import By
-    from selenium.webdriver.support.ui import WebDriverWait
-    from selenium.webdriver.support import expected_conditions as EC
-    from selenium.webdriver import ActionChains
-    from webdriver_manager.chrome import ChromeDriverManager
-    wait = WebDriverWait(wd, interval)
-   
-    result = False
-    attempts = 0
-    while attempts < 5:
-        try:
-          display('Trying...',path)
-          ele = wait.until(EC.element_to_be_clickable((By.XPATH,path)))
-          ele.click()
-          display('number of attempts = ',attempts+1)
-          result = True;
-          break
-        except Exception as e:
-          display('...failed (sleeping)')
-          display('Exception:',e)
-          time.sleep(5)
-          attempts+=1
-    return result  
+  
 
 # -*- coding: utf-8 -*-
 """[CTP] CRDT Long Calculations (Official)
@@ -3935,7 +3911,7 @@ def runWY(ws,write):
       print("clicked download button")
 
       #click crosstab option
-      retry_wait_click(wd, interval, "//button[text()='Crosstab']")
+      retry_wait_click_all(wd, interval, 'xpath',"//button[text()='Crosstab']")
       #wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Crosstab']"))).click()
       print("clicked crosstab button")
 
@@ -3945,48 +3921,13 @@ def runWY(ws,write):
       print("clicked csv option")
 
       #select metric
-      retry_wait_click(wd, interval, metric_xpath)
+      retry_wait_click_all(wd, interval, 'xpath',metric_xpath)
       #wait.until(EC.element_to_be_clickable((By.XPATH, metric_xpath))).click()
       print("clicked metric")
 
       #download csv
-      retry_wait_click(wd, interval, "//button[text()='Download']")
+      retry_wait_click_all(wd, interval, 'xpath',"//button[text()='Download']")
       #wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Download']"))).click()
-      print("clicked download button")
-      time.sleep(2) #wait for download
-
-      #make df
-      df=pd.read_csv(csv_metric,sep="\t", encoding="utf-16")
-      df=df.fillna('0')
-      return df
-
-  def getCSV2(metric_xpath,csv_metric):
-      wait = WebDriverWait(wd, 20)
-      #interval=30
-
-      #retry_wait_click_all(wd, interval, 'css', ".tab-icon-download")
-      #click download button at button of tableau to open download dialog box 
-      wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".tab-icon-download"))).click()
-      print("clicked download button")
-
-      #click crosstab option
-      #retry_wait_click(wd, interval, "//button[text()='Crosstab']")
-      wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Crosstab']"))).click()
-      print("clicked crosstab button")
-
-      #click csv option
-      #retry_wait_click_all(wd, interval, 'css', "label[data-tb-test-id='crosstab-options-dialog-radio-csv-Label']")
-      wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label[data-tb-test-id='crosstab-options-dialog-radio-csv-Label']"))).click()
-      print("clicked csv option")
-
-      #select metric
-      #retry_wait_click(wd, interval, metric_xpath)
-      wait.until(EC.element_to_be_clickable((By.XPATH, metric_xpath))).click()
-      print("clicked metric")
-
-      #download csv
-      #retry_wait_click(wd, interval, "//button[text()='Download']")
-      wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Download']"))).click()
       print("clicked download button")
       time.sleep(2) #wait for download
 

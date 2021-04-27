@@ -22,7 +22,7 @@ write_local = False
 debug = False
 states = []
 states_all = ["AK","AL","AR","CA","CO","CT","DC","DE","FL","GA","GU",
-          "HI","ID","IL","IN","KY","LA","MA","MD","ME","MI",
+          "HI","ID","IL","IN","KS","KY","LA","MA","MD","ME","MI",
           "MO","MN","MS","MT","NC","ND","NE","NH","NM","NV",
           "NY","OK","OR","PA","RI","SD","TN","TX","UT","VA","VT",
           "WA","WI","WV","WY"]
@@ -70,30 +70,26 @@ except getopt.error as err:
 if len(states) == 0:
     sys.exit("ERROR: Must supply either -a or -s argumemnt")
 
-#maindir = 'crdt_' +  date.today().strftime('%m%d%y')
-#if os.path.exists(maindir):
-#  if os.path.exists(maindir + '_old'):
-#    shutil.rmtree(maindir + '_old')
-#  shutil.move(maindir,maindir + '_old')
-
-
 failed_states_list = []
 for state in states:
+  attempts = 0
   print("\n")
   display("***" + state + " Output:***")
   start = time.time()
   if debug == False:
-    try:
-      func = globals()["run" + state]
-      func(write_local,write_sheet)
-    except Exception as e:
-      display("First run failed, retrying...")
+    while attempts < 5:
       try:
         func = globals()["run" + state]
         func(write_local,write_sheet)
+        display("STATE PASSED")
+        break
       except Exception as e:
-        display("Skipping state %s due to error: %s" % (state, str(e)))
-        failed_states_list.append(state)
+        attempts+=1
+        display('Run',attempts,'failed:',str(e))
+        display('Retrying...')
+    if attempts == 5:
+      display("Skipping state %s due to error" % state)
+      failed_states_list.append(state)
   else:
     try:
       func = globals()["run" + state]

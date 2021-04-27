@@ -94,22 +94,28 @@ def writeTable(df,title,startCell,ws):
     except Exception as e:
         display('Skipping S3 upload for %s' % state)
     
-def retry_wait_click_all(wd, type, path):
+def retry_wait_click_all(wd, interval, type, path):
     from selenium.webdriver.common.by import By
     from selenium.webdriver.support.ui import WebDriverWait
     from selenium.webdriver.support import expected_conditions as EC
     from selenium.webdriver import ActionChains
     from webdriver_manager.chrome import ChromeDriverManager
-    wait = WebDriverWait(wd, 60)
+
+    wait = WebDriverWait(wd, interval)
    
     result = False
     attempts = 0
     while attempts < 5:
         try:
-          display('Trying...',path)
-          if type == xpath:
+          display('Trying...',type,path)
+          if type == 'xpath':
               ele = wait.until(EC.element_to_be_clickable((By.XPATH,path)))
               ele.click()
+          elif type == 'css':
+              ele = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR,path)))
+              ele.click()
+          else:
+              print("error in wait.until..... choice - not XPATH or CSS")
    
           display('number of attempts = ',attempts+1)
           result = True;
@@ -119,6 +125,8 @@ def retry_wait_click_all(wd, type, path):
           display('Exception:',e)
           time.sleep(5)
           attempts+=1
+          display('number of attempts = ',attempts+1)
+
     return result   
 
 def retry_wait_click(wd, interval, path):
@@ -268,13 +276,10 @@ def runAR(ws, write):
   wd.maximize_window()
   wait = WebDriverWait(wd, 160)
   hisp_eth = wait.until(EC.presence_of_element_located((By.XPATH,"//*[text()[contains(.,'are Hispanic:')]]")))
-  time.sleep(15)
-  display(hisp_eth.get_attribute('innerHTML'))
   hisp_eth = hisp_eth.get_attribute('innerHTML').split(': ')[1]
-  hisp_eth = re.sub(r'[%\n ]','',hisp_eth)
   wd.quit()
 
-  df_eth_d = pd.DataFrame([['Hispanic',hisp_eth + '%']],columns=['Category','Deaths'])
+  df_eth_d = pd.DataFrame([['Hispanic',hisp_eth]],columns=['Category','Deaths'])
   display(df_eth_d)
 
   #totals, case dems, death dems
@@ -1343,16 +1348,16 @@ def runKS(ws, write):
   Race_Eth=['Total', 'White', 'Black', 'AIAN', 'Asian', 'Other', 'Race Missing', 'Hispanic', 'Not Hispanic', 'Eth Missing']
  
   def getPDF(metric_xpath,pdf_file,interval):
-     retry_wait_click(wd, interval, metric_xpath)
+     retry_wait_click_all(wd, interval, 'xpath',metric_xpath)
      #wait.until(EC.element_to_be_clickable((By.XPATH,metric_xpath))).click()
      print("Metric - case, hosp or death dems")
-     retry_wait_click(wd, interval, dnld_xpath)
+     retry_wait_click_all(wd, interval,  'xpath',dnld_xpath)
      #wait.until(EC.element_to_be_clickable((By.XPATH, dnld_xpath))).click()
      print("clicked download on tableau frame")
-     retry_wait_click(wd, interval, pdf_xpath)
+     retry_wait_click_all(wd, interval,  'xpath',pdf_xpath)
      #wait.until(EC.element_to_be_clickable((By.XPATH, pdf_xpath))).click()
      print("chose PDF option")
-     retry_wait_click(wd, interval, download_xpath)
+     retry_wait_click_all(wd, interval,  'xpath',download_xpath)
      #wait.until(EC.element_to_be_clickable((By.XPATH, download_xpath))).click()
      print("Chose Download as is option")
      time.sleep(10)
@@ -1382,7 +1387,7 @@ def runKS(ws, write):
   #display(test_info1)
 
   #Code with corrected totals
-  test_info1=test_info.iloc[4:-102].reset_index(drop=True) 
+  test_info1=test_info.iloc[4:-101].reset_index(drop=True) 
   #display(test_info1)
   test_info1=test_info1.drop(test_info1.index[1:15]).reset_index(drop=True)
   print("remove big span of rows - but keep in totals row")
@@ -1437,12 +1442,12 @@ def runKS(ws, write):
   
   print("Append dataframes")
   test_info1=test_info1.append(test_eth, ignore_index=True)
-  display(test_info1)
+  #display(test_info1)
   test_final=test_info1
   test_final['Tests']=test_final['Tests'].str.replace(r",","").astype(int)
 
   test_final['Race/Ethnicity']=Race_Eth
-  #display(test_final)
+  display(test_final)
 
   wd.quit()
   
@@ -1465,17 +1470,17 @@ def runKS(ws, write):
   case_info0=case_info.drop(['Drop 0', 'Drop 1', 'Drop 2'], axis=1)
   #print("deleted 2 columns")
 
-  case_info1=case_info0.iloc[23:-23].reset_index(drop=True) #from 24 to 11
+  case_info1=case_info0.iloc[23:-24].reset_index(drop=True) #from 24 to 11
   #print("remove big span 23:-23")
   case_info1=case_info1.drop(case_info0.index[7:10]).reset_index(drop=True)
   #print("removed 3 rows")
 
   #Going after Total number of Cases
-  case_info0=case_info0.iloc[10:-47].reset_index(drop=True)
+  case_info0=case_info0.iloc[10:-48].reset_index(drop=True)
   case_info0_label=case_info0
   #print("about to split Race/Ethnicity Cases by space")
   case_info0_label[['Word1','Word2','Word3','Word4']]=case_info0_label['Race/Ethnicity'].str.split(' ',expand=True)
-  #print("finished split")
+  print("finished split")
 
   case_info0_label.columns=['Total', 'Drop0', 'Cases', 'Word2', 'Word3', 'Word4']
   case_info0_label=case_info0_label.drop(['Drop0', 'Word2', 'Word3', 'Word4'], axis=1)
@@ -1487,7 +1492,7 @@ def runKS(ws, write):
   #display(case_final)
   case_final['Cases']=case_final['Cases'].str.replace(r",","").astype(float)
   case_final['Race/Ethnicity']=Race_Eth
-  #display(case_final)
+  display(case_final)
 
   wd.quit()
 
@@ -1572,7 +1577,7 @@ def runKS(ws, write):
   hosp_final_label2.iloc[0]=hosp_final_label2.iloc[10]
   hosp_final=hosp_final_label2.drop(hosp_final_label2.index[10]).reset_index(drop=True)
   hosp_final['Race/Ethnicity']=Race_Eth
-  #display(hosp_final)
+  display(hosp_final)
 
   wd.quit()
 
@@ -1641,7 +1646,7 @@ def runKS(ws, write):
   print("stopping iterating")
   death_final_label2=death_final_label2.drop(['Extra', 'Word1', 'Word2', 'Word3', 'Word4', 'Word5'], axis=1)
   death_final_label2['Race/Ethnicity']=Race_Eth
-  #display(death_final_label2)
+  display(death_final_label2)
 
   wd.quit()
 
@@ -1943,7 +1948,7 @@ def runME(ws, write):
 
   def getCSV(interval, metric_csv):
 
-    retry_wait_click(wd, interval, tab_btn_xpath)
+    retry_wait_click_all(wd, interval, 'xpath',tab_btn_xpath)
     #wait.until(EC.element_to_be_clickable((By.XPATH,tab_btn_xpath))).click()
     time.sleep(10)
     print("clicked download button")
@@ -1951,13 +1956,13 @@ def runME(ws, write):
     window_before = wd.window_handles[0]
     print(window_before)
     #switch to the new window that opens up
-    retry_wait_click(wd, interval, data_btn_xpath)
+    retry_wait_click_all(wd, interval, 'xpath',data_btn_xpath)
     #wait.until(EC.element_to_be_clickable((By.XPATH,data_btn_xpath))).click()
     print("clicked data button")
     window_after = wd.window_handles[1]
     wd.switch_to_window(window_after)
     print("window after")
-    retry_wait_click(wd, interval, "//*[@class='csvLink_summary']")
+    retry_wait_click_all(wd, interval,  'xpath',"//*[@class='csvLink_summary']")
     #wait.until(EC.element_to_be_clickable((By.XPATH,"//*[@class='csvLink_summary']"))).click()
     print("clicked text file option")
     time.sleep(5)
@@ -1973,9 +1978,9 @@ def runME(ws, write):
   #time.sleep(10)
   #race_eth_toggle = wait.until(EC.element_to_be_clickable((By.XPATH,"//span[@aria-label='Toggle race / ethnicity Race']")))
   #race_eth_toggle.click()
-  retry_wait_click(wd, 160, "//span[@aria-label='Toggle race / ethnicity Race']")
-  retry_wait_click(wd, 160, "//span[text()='Ethnicity']")
-  retry_wait_click(wd, 160, race_hosp_xpath)
+  retry_wait_click_all(wd, 160, 'xpath',"//span[@aria-label='Toggle race / ethnicity Race']")
+  retry_wait_click_all(wd, 160, 'xpath',"//span[text()='Ethnicity']")
+  retry_wait_click_all(wd, 160, 'xpath',race_hosp_xpath)
   #wait.until(EC.element_to_be_clickable((By.XPATH,"//span[text()='Ethnicity']"))).click()
   #wait.until(EC.element_to_be_clickable((By.XPATH,race_hosp_xpath))).click()
   df_casesEth = getCSV(160, csv_Eth)
@@ -1992,7 +1997,7 @@ def runME(ws, write):
   print("\nDemographics by Race")
   #time.sleep(10)
   #wait.until(EC.element_to_be_clickable((By.XPATH,race_hosp_xpath))).click()
-  retry_wait_click(wd, 160, race_hosp_xpath)
+  retry_wait_click_all(wd, 160,  'xpath',race_hosp_xpath)
   print("selected Hospitalizations")
   df_casesRace = getCSV(160, csv_Race)
   df_casesRace.fillna('0')
@@ -3920,23 +3925,67 @@ def runWY(ws,write):
 
   #press download button
   def getCSV(metric_xpath,csv_metric):
+
+      #wait = WebDriverWait(wd, 20)
+      interval=30
+
+      retry_wait_click_all(wd, interval, 'css', ".tab-icon-download")
+      #click download button at button of tableau to open download dialog box 
+      #wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".tab-icon-download"))).click()
+      print("clicked download button")
+
+      #click crosstab option
+      retry_wait_click(wd, interval, "//button[text()='Crosstab']")
+      #wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Crosstab']"))).click()
+      print("clicked crosstab button")
+
+      #click csv option
+      retry_wait_click_all(wd, interval, 'css', "label[data-tb-test-id='crosstab-options-dialog-radio-csv-Label']")
+      #wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label[data-tb-test-id='crosstab-options-dialog-radio-csv-Label']"))).click()
+      print("clicked csv option")
+
+      #select metric
+      retry_wait_click(wd, interval, metric_xpath)
+      #wait.until(EC.element_to_be_clickable((By.XPATH, metric_xpath))).click()
+      print("clicked metric")
+
+      #download csv
+      retry_wait_click(wd, interval, "//button[text()='Download']")
+      #wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Download']"))).click()
+      print("clicked download button")
+      time.sleep(2) #wait for download
+
+      #make df
+      df=pd.read_csv(csv_metric,sep="\t", encoding="utf-16")
+      df=df.fillna('0')
+      return df
+
+  def getCSV2(metric_xpath,csv_metric):
       wait = WebDriverWait(wd, 20)
+      #interval=30
+
+      #retry_wait_click_all(wd, interval, 'css', ".tab-icon-download")
       #click download button at button of tableau to open download dialog box 
       wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".tab-icon-download"))).click()
       print("clicked download button")
 
       #click crosstab option
+      #retry_wait_click(wd, interval, "//button[text()='Crosstab']")
       wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Crosstab']"))).click()
       print("clicked crosstab button")
 
       #click csv option
+      #retry_wait_click_all(wd, interval, 'css', "label[data-tb-test-id='crosstab-options-dialog-radio-csv-Label']")
       wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label[data-tb-test-id='crosstab-options-dialog-radio-csv-Label']"))).click()
       print("clicked csv option")
 
       #select metric
+      #retry_wait_click(wd, interval, metric_xpath)
       wait.until(EC.element_to_be_clickable((By.XPATH, metric_xpath))).click()
       print("clicked metric")
+
       #download csv
+      #retry_wait_click(wd, interval, "//button[text()='Download']")
       wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Download']"))).click()
       print("clicked download button")
       time.sleep(2) #wait for download

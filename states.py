@@ -1644,7 +1644,7 @@ def runKS(ws, write):
       #writeTable(case_final,'Cases by Race & Ethnicity','H22',ws)
       #writeTable(hosp_final,'Hosp by Race & Ethnicity', 'H32', ws)
       #writeTable(death_final_label2,'Deaths by Race & Ethnicity','H42',ws)
-      writeTable(df_tot, 'KS Demographics', K22,ws)
+      writeTable(df_tot,'KS Demographics','K22',ws)
 
 
 # KY

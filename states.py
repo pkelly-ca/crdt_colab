@@ -94,7 +94,6 @@ def writeTable(df,title,startCell,ws):
     except Exception as e:
         display('Skipping S3 upload for %s' % state)
     
-
 def retry_wait_click_all(wd, interval, type, path):
     from selenium.webdriver.common.by import By
     from selenium.webdriver.support.ui import WebDriverWait
@@ -126,9 +125,7 @@ def retry_wait_click_all(wd, interval, type, path):
           display('Exception:',e)
           time.sleep(5)
           attempts+=1
-
     return result   
-
   
 
 # -*- coding: utf-8 -*-
@@ -174,6 +171,10 @@ def runAK(ws, write):
 
 # AL
 def runAL(ws, write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
+  from selenium.webdriver import ActionChains
 
   def colstr2int(df,col):
     df.loc[:,col] = df.loc[:,col].replace(',','', regex=True)
@@ -236,6 +237,10 @@ def runAL(ws, write):
 
 # AR
 def runAR(ws, write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
+  from selenium.webdriver import ActionChains
 
   print("\nAR Hispanic Ethnicity % Deaths")
   url = 'https://adem.maps.arcgis.com/apps/opsdashboard/index.html#/f09960f2948d43d39913400dad1af77c'
@@ -324,6 +329,9 @@ def runCA(ws, write):
 #CO
 
 def runCO(ws, write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
 
   # CO Total Cases, Total Deaths, Percent of Cases by Race, Percent of Cases by Ethnicity
   #url='https://data-cdphe.opendata.arcgis.com/datasets/cdphe-covid19-state-level-expanded-case-data/data'
@@ -772,6 +780,9 @@ def runGU(ws,write):
 # HI ************
 
 def runHI(ws,write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
 
   #Tableau for Race
   src="https://public.tableau.com/views/HawaiiCOVID-19-RaceChart/Overview?:embed=y&:showVizHome=no&:host_url=https%3A%2F%2Fpublic.tableau.com%2F&:embed_code_version=3&:tabs=no&:toolbar=yes&:animate_transition=yes&:display_static_image=no&:display_spinner=no&:display_overlay=yes&:display_count=yes&null&:loadOrderID=11"
@@ -886,6 +897,9 @@ def runHI(ws,write):
 # ID
 #
 def runID(ws, write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
 
   def download_CSV(csv_name):
     wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".tab-icon-download"))).click()
@@ -1012,6 +1026,10 @@ def runID(ws, write):
 
 #MI
 def runMI(ws,write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
+  from selenium.webdriver import ActionChains
 
   def colstr2int(df,col):
     df.loc[:,col] = df.loc[:,col].replace(',','', regex=True)
@@ -1173,6 +1191,9 @@ def runMI(ws,write):
 
 def runIL(ws,write):
 
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
 
   def getvals(html,title):
     cats = []
@@ -1244,6 +1265,10 @@ def runIL(ws,write):
 #import requests
 
 def runIN(ws, write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
+  from selenium.webdriver import ActionChains
 
   url = 'https://hub.mph.in.gov/dataset/62ddcb15-bbe8-477b-bb2e-175ee5af8629/resource/2538d7f1-391b-4733-90b3-9e95cd5f3ea6/download/covid_report_demographics.xlsx'
   df_IN_casesRace = pd.read_excel(url, sheet_name='Race', skiprows=0, engine='openpyxl')
@@ -1282,6 +1307,10 @@ def runIN(ws, write):
 
 # KS
 def runKS(ws, write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
+  from selenium.webdriver import ActionChains 
 
 
   url='https://public.tableau.com/views/COVID-19TableauVersion2/COVID-19Overview?:embed=y&:showVizHome=no&:host_url=https%3A%2F%2Fpublic.tableau.com%2F&:embed_code_version=3&:tabs=no&:toolbar=yes&:animate_transition=yes&:display_static_image=no&:display_spinner=no&:display_overlay=yes&:display_count=yes&:language=en&publish=yes&:loadOrderID=0'
@@ -1713,6 +1742,9 @@ def runKY(ws, write):
 
 # LA
 def runLA(ws,write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
 
   url = 'https://services5.arcgis.com/O5K6bb5dZVZcTo5M/ArcGIS/rest/services/Case_Deaths_Race_Region_new/FeatureServer/0/query?where=1%3D1&outFields=LDH_region%2C+Race%2C+Deaths%2C+Cases&returnGeometry=false&f=json'
 
@@ -1867,6 +1899,10 @@ def runMD(ws,write):
 
 # ME #Race only
 def runME(ws, write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
+  from selenium.webdriver import ActionChains
 
   #URLs
   raceethsrc='https://analytics.maine.gov/t/CDCExternal/views/covid-19-maine-cdc-dashboard/6_COVID-19databyrace?%3Aembed=y&amp%3B%3AshowVizHome=no&amp%3B%3Ahost_url=https%3A%2F%2Fanalytics.maine.gov%2F&amp%3B%3Aembed_code_version=3&amp%3B%3Atabs=no&amp%3B%3Atoolbar=yes&amp%3B%3AshowAppBanner=false&amp%3B%3Adisplay_spinner=no&amp%3B%3AloadOrderID=0'
@@ -1989,6 +2025,10 @@ def runMN(ws, write):
 
 #MO
 def runMO(ws, write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
+  from selenium.webdriver import ActionChains
 
   #Sumary Dashboard
   url="https://showmestrong.mo.gov/data-download/"
@@ -2021,16 +2061,26 @@ def runMO(ws, write):
 
   #define getCSV MO style
   def getCSV(metric_xpath,metric_csv):
-      wait.until(EC.element_to_be_clickable((By.XPATH,metric_xpath))).click()
+
+      retry_wait_click_all(wd,240,'xpath',metric_xpath)
+      #wait.until(EC.element_to_be_clickable((By.XPATH,metric_xpath))).click()
       #print("clicked metric on tableau frame")
       time.sleep(10)
-      wait.until(EC.element_to_be_clickable((By.XPATH,demos_dnld_xpath))).click()
+
+      retry_wait_click_all(wd,240,'xpath',demos_dnld_xpath)
+      #wait.until(EC.element_to_be_clickable((By.XPATH,demos_dnld_xpath))).click()
       #print("clicked download on tableau frame")
-      wait.until(EC.element_to_be_clickable((By.XPATH,crosstab_xpath))).click()
+  
+      retry_wait_click_all(wd,240,'xpath',crosstab_xpath)
+      #wait.until(EC.element_to_be_clickable((By.XPATH,crosstab_xpath))).click()
       #print("clicked crosstab")
-      wait.until(EC.element_to_be_clickable((By.XPATH,csv_xpath))).click()
+
+      retry_wait_click_all(wd,240,'xpath',csv_xpath)
+      #wait.until(EC.element_to_be_clickable((By.XPATH,csv_xpath))).click()
       #print("clicked csv option")
-      wait.until(EC.element_to_be_clickable((By.XPATH,dnld_xpath))).click()
+
+      retry_wait_click_all(wd,240,'xpath',dnld_xpath)
+      #wait.until(EC.element_to_be_clickable((By.XPATH,dnld_xpath))).click()
       #print('clicked download button')
       time.sleep(10)
       #make df
@@ -2360,8 +2410,7 @@ def runNC(ws, write):
   demos_dnld_xpath= '//*[@id="download-ToolbarButton"]'
   crosstab_xpath='//*[@id="DownloadDialog-Dialog-Body-Id"]/div/fieldset/button[3]'
   csv_xpath='//*[@id="export-crosstab-options-dialog-Dialog-BodyWrapper-Dialog-Body-Id"]/div/div[2]/div[2]/div/label[2]'
-  race_xpath='//*[@id="export-crosstab-options-dialog-Dialog-BodyWrapper-Dialog-Body-Id"]/div/div[1]/div[2]/div/div/div[4]/div'
-  #race_xpath='//*[@id="export-crosstab-options-dialog-Dialog-BodyWrapper-Dialog-Body-Id"]/div/div[1]/div[2]/div/div/div[4]/div/div/div/div'
+  race_xpath='//*[@id="export-crosstab-options-dialog-Dialog-BodyWrapper-Dialog-Body-Id"]/div/div[1]/div[2]/div/div/div[4]/div/div/div/div'
   eth_xpath='//*[@id="export-crosstab-options-dialog-Dialog-BodyWrapper-Dialog-Body-Id"]/div/div[1]/div[2]/div/div/div[2]/div/div/div/div'
   dnld_xpath='//*[@id="export-crosstab-options-dialog-Dialog-BodyWrapper-Dialog-Body-Id"]/div/div[3]/button'
 
@@ -2373,24 +2422,31 @@ def runNC(ws, write):
   #Go to url->demos_dnld_xpath->crosstab_xpath->csv_xpath->metric_xpath->dnld_xpath
 
   #define getCSV NC style
-  def getCSV(metric_xpath,metric_csv,eth):
-    wait = WebDriverWait(wd, 20)
-    wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".tab-icon-download"))).click()
-    print('clicked download')
-    wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Crosstab']"))).click()
-    print('clicked crosstab')
-    wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label[data-tb-test-id='crosstab-options-dialog-radio-csv-Label']"))).click()
-    print('clicked csv')
-    if eth:
-      wait.until(EC.element_to_be_clickable((By.XPATH, metric_xpath))).click()
-    print('clicked file')
-    wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Download']"))).click()
-    print('clicked download')
-    time.sleep(5)
+  def getCSV(metric_xpath,metric_csv):
+      demos_dnld_btn=wd.find_element_by_xpath(demos_dnld_xpath)
+      demos_dnld_btn.click()
+      #print("clicked download on tableau frame")
+      time.sleep(5)
+      crosstab_btn=wd.find_element_by_xpath(crosstab_xpath)
+      crosstab_btn.click()
+      #print("clicked crosstab")
+      time.sleep(15)
+      ##select csv option
+      csv_btn=wd.find_element_by_xpath(csv_xpath)
+      csv_btn.click()
+      print("clicked csv option")
+      time.sleep(5)
+      wd.find_element_by_xpath(metric_xpath).click()
+      #print("clicked metric on tableau frame")
+      time.sleep(5)
+      dnld_btn=wd.find_element_by_xpath(dnld_xpath)
+      dnld_btn.click()
+      print('clicked download button')
+      time.sleep(10)
 
-    df=pd.read_csv(metric_csv,sep="\t", encoding="utf-16")
-    df=df.fillna('0')
-    return df
+      df=pd.read_csv(metric_csv,sep="\t", encoding="utf-16")
+      df=df.fillna('0')
+      return df
 
   #inititalize the driver, get the url and take a nap
   wd=init_driver()
@@ -2401,12 +2457,10 @@ def runNC(ws, write):
   time.sleep(5)
 
   #get total counts
-  print("Get Race Table")
-  race = getCSV(race_xpath, race_csv, False)
-
-  print("Get Eth Table")
-  ethnicity = getCSV(eth_xpath,ethnicity_csv, True)
-
+  race = getCSV(race_xpath, race_csv)
+  time.sleep(5)
+  ethnicity = getCSV(eth_xpath,ethnicity_csv)
+  time.sleep(5)
   wd.quit()
 
   #Remove , and convert to int for Race
@@ -2430,6 +2484,10 @@ def runNC(ws, write):
 
 #ND
 def runND(ws,write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
+  from selenium.webdriver import ActionChains
 
   url = 'https://app.powerbigov.us/view?r=eyJrIjoiYTExNDg5YjctOTQxZi00YmU2LWI5Y2YtNWVkMDFmNDUyN2FlIiwidCI6IjJkZWEwNDY0LWRhNTEtNGE4OC1iYWUyLWIzZGI5NGJjMGM1NCJ9'
 
@@ -2556,6 +2614,10 @@ def runNE(ws, write):
 # NH
 def runNH(ws, write):
 
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
+  from selenium.webdriver import ActionChains
 
   #interactive equity dash
   #iframe
@@ -2580,19 +2642,23 @@ def runNH(ws, write):
   def getCSV(demo_xpath, demo_csv):
         #Demographics for Cases
         print("Demographics for Cases/Deaths")
-        wait.until(EC.element_to_be_clickable((By.XPATH, demo_xpath))).click()
+        retry_wait_click_all(wd, 20,'xpath',demo_xpath)
+        #wait.until(EC.element_to_be_clickable((By.XPATH, demo_xpath))).click()
         print("clicked Cases/Deaths")
 
         #choose race or ethnicity vs. Age
-        wait.until(EC.element_to_be_clickable((By.XPATH, raceeth_xpath))).click()
+        retry_wait_click_all(wd, 20,'xpath',raceeth_xpath)
+        #wait.until(EC.element_to_be_clickable((By.XPATH, raceeth_xpath))).click()
         print("clicked race or ethnicity vs age")
 
         #choose sex yes or no view
-        wait.until(EC.element_to_be_clickable((By.XPATH, sex_xpath))).click()
+        retry_wait_click_all(wd, 20,'xpath',sex_xpath)
+        #wait.until(EC.element_to_be_clickable((By.XPATH, sex_xpath))).click()
         print("chose sex=no")
 
         #click data option
-        wait.until(EC.element_to_be_clickable((By.XPATH, data_btn_xpath))).click()
+        retry_wait_click_all(wd, 20,'xpath',data_btn_xpath)
+        #wait.until(EC.element_to_be_clickable((By.XPATH, data_btn_xpath))).click()
         print("clicked download button")   
 
         #download view and convert to df
@@ -2666,7 +2732,8 @@ def runNH(ws, write):
   
   #press summary tab
   print("\nSummary Tab")
-  wait.until(EC.element_to_be_clickable((By.XPATH, summary_xpath))).click()
+  retry_wait_click_all(wd, 20,'xpath',summary_xpath)
+  #wait.until(EC.element_to_be_clickable((By.XPATH, summary_xpath))).click()
 
   print("\nPercents of Known Demographics")
   casepercent=wd.find_element_by_xpath(casepercent_xpath)
@@ -2717,19 +2784,23 @@ def runNH(ws, write):
 
   #press summary tab
   print("Choose Summary Tab")
-  wait.until(EC.element_to_be_clickable((By.XPATH, summary_xpath))).click()
+  retry_wait_click_all(wd, 20,'xpath',summary_xpath)
+  #wait.until(EC.element_to_be_clickable((By.XPATH, summary_xpath))).click()
 
   #press download button
   print("Choose Download Tab")
-  wait.until(EC.element_to_be_clickable((By.XPATH, dnld_xpath))).click()
+  retry_wait_click_all(wd, 20,'xpath',dnld_xpath)
+  #wait.until(EC.element_to_be_clickable((By.XPATH, dnld_xpath))).click()
 
   #Choose pdf
   print("Choose PDF")
-  wait.until(EC.element_to_be_clickable((By.XPATH, sumpdf_xpath))).click()
+  retry_wait_click_all(wd, 20,'xpath',sumpdf_xpath)
+  #wait.until(EC.element_to_be_clickable((By.XPATH, sumpdf_xpath))).click()
 
   #Choose Download
   print("Download PDF")
-  wait.until(EC.element_to_be_clickable((By.XPATH, dnldpdf_xpath))).click()
+  retry_wait_click_all(wd, 20,'xpath',dnldpdf_xpath)
+  #wait.until(EC.element_to_be_clickable((By.XPATH, dnldpdf_xpath))).click()
 
   summaryTable = tabula.read_pdf('Summary.pdf',lattice=True, multiple_tables=True, pages=1)
   #display(summaryTable)
@@ -2818,6 +2889,9 @@ def runNM(ws, write):
 # NV
 def runNV(ws,write):
 
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
 
   def get_df(col2):
     cats = []
@@ -3009,6 +3083,9 @@ def runOK(ws, write):
 
 # OR
 def runOR(ws, write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
 
   def getCSV_OR(csv_file,first=1,contains='',header='infer'):
     wait = WebDriverWait(wd, 20)
@@ -3212,6 +3289,10 @@ def runRI(ws,write):
 
 # SD
 def runSD(ws,write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
+  from selenium.webdriver import ActionChains
 
   url = 'https://app.powerbigov.us/view?r=eyJrIjoiZGJjZWYwZmEtMWVjMy00OTUwLThkMzgtZDhkNzAwOWQ3YzNlIiwidCI6IjcwYWY1NDdjLTY5YWItNDE2ZC1iNGE2LTU0M2I1Y2U1MmI5OSJ9'
 #  url = 'https://app.powerbigov.us/view?r=eyJrIjoiZDUwODIyNGEtODdkZC00MmI4LWFmOTctZWJjOWRkYmIzNzhhIiwidCI6IjcwYWY1NDdjLTY5YWItNDE2ZC1iNGE2LTU0M2I1Y2U1MmI5OSJ9'
@@ -3566,6 +3647,9 @@ def runWA(ws,write):
 #from bs4 import BeautifulSoup
 #import pandas as pd
 def runWI(ws, write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
 
   url = 'https://opendata.arcgis.com/datasets/859602b5d427456f821de3830f89301c_11.csv?outSR=%7B%22latestWkid%22%3A3857%2C%22wkid%22%3A102100%7D'
 
@@ -3757,6 +3841,10 @@ def runWI(ws, write):
 
 # WV
 def runWV(ws, write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
+  from selenium.webdriver import ActionChains
 
   def get_elements():
     elements = []
@@ -3765,13 +3853,10 @@ def runWV(ws, write):
       time.sleep(1)
     return elements
 
-  url = 'https://dhhr.wv.gov/COVID-19/Pages/default.aspx'
+
+  url = 'https://app.powerbigov.us/view?r=eyJrIjoiNDAwZjU3ZTAtMWM3OS00M2NjLWFiMGMtOTYwYjdmYTAwMGZjIiwidCI6IjhhMjZjZjAyLTQzNGEtNDMxZS04Y2FkLTdlYWVmOTdlZjQ4NCJ9'
 
   wd=init_driver()
-  wd.get(url)
-  soup = BeautifulSoup(wd.page_source, "html.parser")
-  url = soup.find("iframe",src=re.compile("app.powerbigov.us"))['src']
-
   wd.get(url)
   wd.maximize_window()
   wait = WebDriverWait(wd, 160)
@@ -3791,7 +3876,7 @@ def runWV(ws, write):
     time.sleep(5)
     elements = get_elements()
     data_row = [cats[i-1],elements[0].text,elements[1].text,elements[3].text]
-#    display(data_row)
+    display(data_row)
     data.append(data_row)
   wd.quit()
 
@@ -3806,6 +3891,9 @@ def runWV(ws, write):
 # WY ************
 
 def runWY(ws,write):
+  from selenium.webdriver.common.by import By
+  from selenium.webdriver.support.ui import WebDriverWait
+  from selenium.webdriver.support import expected_conditions as EC
   #url = 'https://public.tableau.com/vizql/w/EpiCOVIDtest/v/Dashboard/tempfile/sessions/324E4F03F0184305838EC00E7A01CB86-0:0/?key=4098009697&keepfile=yes&attachment=yes'
   srcCases="https://public.tableau.com/views/EpiCOVIDtest/Dashboard?:embed=y&amp;:showVizHome=no&amp;:host_url=https%3A%2F%2Fpublic.tableau.com%2F&amp;:embed_code_version=3&amp;:tabs=no&amp;:toolbar=no&amp;:animate_transition=yes&amp;:display_static_image=no&amp;:display_spinner=no&amp;:display_overlay=yes&amp;:display_count=yes&amp;publish=yes&amp;:loadOrderID=0"
   srcDeaths="https://public.tableau.com/views/EpiCOVIDtest/COVID-19RelatedDeaths?%3Aembed=y&amp%3B%3AshowVizHome=no&amp%3B%3Ahost_url=https%3A%2F%2Fpublic.tableau.com%2F&amp%3B%3Aembed_code_version=3&amp%3B%3Atabs=no&amp%3B%3Atoolbar=no&amp%3B%3Aanimate_transition=yes&amp%3B%3Adisplay_static_image=no&amp%3B%3Adisplay_spinner=no&amp%3B%3Adisplay_overlay=yes&amp%3B%3Adisplay_count=yes&amp%3Bpublish=yes&amp%3B%3AloadOrderID=0"

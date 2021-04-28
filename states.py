@@ -125,8 +125,6 @@ def retry_wait_click_all(wd, interval, type, path):
           display('Exception:',e)
           time.sleep(5)
           attempts+=1
-          display('number of attempts = ',attempts+1)
-
     return result   
   
 

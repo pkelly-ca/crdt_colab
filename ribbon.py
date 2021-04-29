@@ -766,7 +766,7 @@ def runNH(path,date,state,keys):
   for i in range(1,3):
     df[i] = df[i].drop(['Sex', 'Suppression', 'Date'],axis=1)
   df_demo = df[1].merge(df[2],how='outer',on='Demographic')
-  df_demo = df_demo.drop(0)
+  #df_demo = df_demo.drop(0)
   df_demo = df_demo.set_index('Demographic')
   df_demo.index = df_demo.index.str.replace('^ ','', regex=True)
   df_demo.loc['Known']=df_demo.sum()

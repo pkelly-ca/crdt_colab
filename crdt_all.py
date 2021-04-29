@@ -24,8 +24,8 @@ states = []
 states_all = ["AK","AL","AR","CA","CO","CT","DC","DE","FL","GA","GU",
           "HI","ID","IL","IN","KS","KY","LA","MA","MD","ME","MI",
           "MO","MN","MS","MT","NC","ND","NE","NH","NM","NV",
-          "NY","OR","PA","RI","SD","TN","TX","UT","VA","VT",
-          "WA","WI","WY"]
+          "NY","OK","OR","PA","RI","SD","TN","TX","UT","VA","VT",
+          "WA","WI","WV","WY"]
 
 args_list  = sys.argv[1:]
 

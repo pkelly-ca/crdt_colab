@@ -2410,8 +2410,10 @@ def runNC(ws, write):
   demos_dnld_xpath= '//*[@id="download-ToolbarButton"]'
   crosstab_xpath='//*[@id="DownloadDialog-Dialog-Body-Id"]/div/fieldset/button[3]'
   csv_xpath='//*[@id="export-crosstab-options-dialog-Dialog-BodyWrapper-Dialog-Body-Id"]/div/div[2]/div[2]/div/label[2]'
-  race_xpath='//*[@id="export-crosstab-options-dialog-Dialog-BodyWrapper-Dialog-Body-Id"]/div/div[1]/div[2]/div/div/div[4]/div/div/div/div'
-  eth_xpath='//*[@id="export-crosstab-options-dialog-Dialog-BodyWrapper-Dialog-Body-Id"]/div/div[1]/div[2]/div/div/div[2]/div/div/div/div'
+  #race_xpath='//*[@id="export-crosstab-options-dialog-Dialog-BodyWrapper-Dialog-Body-Id"]/div/div[1]/div[2]/div/div/div[4]/div/div/div/div'
+  race_xpath='//*[@id="export-crosstab-options-dialog-Dialog-BodyWrapper-Dialog-Body-Id"]/div/div[1]/div[2]/div/div/div[4]/div/div'
+  #eth_xpath='//*[@id="export-crosstab-options-dialog-Dialog-BodyWrapper-Dialog-Body-Id"]/div/div[1]/div[2]/div/div/div[2]/div/div/div/div'
+  eth_xpath='//*[@id="export-crosstab-options-dialog-Dialog-BodyWrapper-Dialog-Body-Id"]/div/div[1]/div[2]/div/div/div[2]/div/div'
   dnld_xpath='//*[@id="export-crosstab-options-dialog-Dialog-BodyWrapper-Dialog-Body-Id"]/div/div[3]/button'
 
   #csv names
@@ -2423,30 +2425,24 @@ def runNC(ws, write):
 
   #define getCSV NC style
   def getCSV(metric_xpath,metric_csv):
-      demos_dnld_btn=wd.find_element_by_xpath(demos_dnld_xpath)
-      demos_dnld_btn.click()
-      #print("clicked download on tableau frame")
-      time.sleep(5)
-      crosstab_btn=wd.find_element_by_xpath(crosstab_xpath)
-      crosstab_btn.click()
-      #print("clicked crosstab")
-      time.sleep(15)
-      ##select csv option
-      csv_btn=wd.find_element_by_xpath(csv_xpath)
-      csv_btn.click()
-      print("clicked csv option")
-      time.sleep(5)
-      wd.find_element_by_xpath(metric_xpath).click()
-      #print("clicked metric on tableau frame")
-      time.sleep(5)
-      dnld_btn=wd.find_element_by_xpath(dnld_xpath)
-      dnld_btn.click()
-      print('clicked download button')
-      time.sleep(10)
+    wait = WebDriverWait(wd, 20)
+    wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".tab-icon-download"))).click()
+    print('clicked download')
+    wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Crosstab']"))).click()
+    print('clicked crosstab')
+    wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label[data-tb-test-id='crosstab-options-dialog-radio-csv-Label']"))).click()
+    print('clicked csv')
+    metric = wait.until(EC.element_to_be_clickable((By.XPATH, metric_xpath)))
+    if len(metric.find_elements_by_tag_name('div')) == 1:
+      metric.click()
+    print('clicked file')
+    wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Download']"))).click()
+    print('clicked download')
+    time.sleep(5)
 
-      df=pd.read_csv(metric_csv,sep="\t", encoding="utf-16")
-      df=df.fillna('0')
-      return df
+    df=pd.read_csv(metric_csv,sep="\t", encoding="utf-16")
+    df=df.fillna('0')
+    return df
 
   #inititalize the driver, get the url and take a nap
   wd=init_driver()

@@ -3864,9 +3864,13 @@ def runWV(ws, write):
     return elements
 
 
-  url = 'https://app.powerbigov.us/view?r=eyJrIjoiNDAwZjU3ZTAtMWM3OS00M2NjLWFiMGMtOTYwYjdmYTAwMGZjIiwidCI6IjhhMjZjZjAyLTQzNGEtNDMxZS04Y2FkLTdlYWVmOTdlZjQ4NCJ9'
+  #url = 'https://app.powerbigov.us/view?r=eyJrIjoiNDAwZjU3ZTAtMWM3OS00M2NjLWFiMGMtOTYwYjdmYTAwMGZjIiwidCI6IjhhMjZjZjAyLTQzNGEtNDMxZS04Y2FkLTdlYWVmOTdlZjQ4NCJ9'
+  url = 'https://dhhr.wv.gov/COVID-19/Pages/default.aspx'
 
   wd=init_driver()
+  wd.get(url)
+  soup = BeautifulSoup(wd.page_source, "html.parser")
+  url = soup.find("iframe",src=re.compile("app.powerbigov.us"))['src']
   wd.get(url)
   wd.maximize_window()
   wait = WebDriverWait(wd, 160)
@@ -3886,7 +3890,7 @@ def runWV(ws, write):
     time.sleep(5)
     elements = get_elements()
     data_row = [cats[i-1],elements[0].text,elements[1].text,elements[3].text]
-    display(data_row)
+    #display(data_row)
     data.append(data_row)
   wd.quit()
 

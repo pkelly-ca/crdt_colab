@@ -2624,7 +2624,7 @@ def runNH(ws, write):
   url="https://www.nh.gov/t/DHHS/views/COVID19InteractiveEquityDashboard/COVID19InteractiveEquityDashboard?:isGuestRedirectFromVizportal=y&amp;:embed=y"
   #Cases Button xpaths
   cases_xpath='//*[@id="[Parameters].[Parameter 3]_0"]'
-  deaths_xpath='//*[@id="[Parameters].[Parameter 3]_1"]'
+  deaths_xpath='//*[@id="[Parameters].[Parameter 3]_1"]/div[2]/input'
 
   #compare rates by
   raceeth_xpath = "//*[@id='[Parameters].[Parameter 1]_0']"
@@ -2640,10 +2640,14 @@ def runNH(ws, write):
   csv_Deaths = "CrudeCount-Deaths.csv"
 
   def getCSV(demo_xpath, demo_csv):
+        display(demo_xpath, demo_csv)
         #Demographics for Cases
         print("Demographics for Cases/Deaths")
-        retry_wait_click_all(wd, 20,'xpath',demo_xpath)
-        #wait.until(EC.element_to_be_clickable((By.XPATH, demo_xpath))).click()
+        #retry_wait_click_all(wd, 20,'xpath',demo_xpath)
+        demo_element = wait.until(EC.presence_of_element_located((By.XPATH, demo_xpath)))
+        #demo_element = wait.until(EC.element_to_be_clickable((By.XPATH, demo_xpath)))
+        display(demo_element.get_attribute('outerHTML'))
+        demo_element.click()
         print("clicked Cases/Deaths")
 
         #choose race or ethnicity vs. Age
@@ -2661,15 +2665,24 @@ def runNH(ws, write):
         #wait.until(EC.element_to_be_clickable((By.XPATH, data_btn_xpath))).click()
         print("clicked download button")   
 
+        wd.save_screenshot("nc_demo.png");
+        timer = 0
+        display(os.path.exists(demo_csv))
+        while (not os.path.exists(demo_csv)) & (timer < 60):
+          time.sleep(1)
+          timer+=1
+
         #download view and convert to df
         df = pd.read_csv(demo_csv, sep=",", encoding="utf-8", na_values=['']) #dumb tableau encoding
         df = df.fillna('0')
+        os.remove(demo_csv)
 
         return df
 
   #cases
   wd=init_driver()
   wd.get(url)
+  wd.maximize_window()
   wait = WebDriverWait(wd, 20)
   time.sleep(5)
   print("\nTableau URL")
@@ -2693,6 +2706,7 @@ def runNH(ws, write):
   #deaths
   wd=init_driver()
   wd.get(url)
+  wd.maximize_window()
   wait = WebDriverWait(wd, 20)
   time.sleep(5)
   print("\nTableau URL")

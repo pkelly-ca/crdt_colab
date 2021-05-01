@@ -805,17 +805,23 @@ def runHI(ws,write):
   csv_metric = "Table.csv"
 
   def getCSV(metric_xpath,csv_file):
-     wait = WebDriverWait(wd, 20)
-     wait.until(EC.element_to_be_clickable((By.XPATH,metric_xpath))).click()
-     wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".tab-icon-download"))).click()
+     #wait = WebDriverWait(wd, 20)
+     retry_wait_click_all(wd, 20, 'xpath', metric_xpath)
+     #wait.until(EC.element_to_be_clickable((By.XPATH,metric_xpath))).click()
+     retry_wait_click_all(wd, 20, 'css', ".tab-icon-download")
+     #wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".tab-icon-download"))).click()
      print("clicked download on tableau frame")
-     wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Crosstab']"))).click()
+     retry_wait_click_all(wd, 20, 'xpath', "//button[text()='Crosstab']")
+     #wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Crosstab']"))).click()
      print("chose crosstab option")
-     wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label[data-tb-test-id='crosstab-options-dialog-radio-csv-Label']"))).click()
+     retry_wait_click_all(wd, 20, 'css', "label[data-tb-test-id='crosstab-options-dialog-radio-csv-Label']")
+     #wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label[data-tb-test-id='crosstab-options-dialog-radio-csv-Label']"))).click()
      print("Chose CSV option")
-     wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[title='Table']"))).click()
+     retry_wait_click_all(wd, 20, 'css', "div[title='Table']")
+     #wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[title='Table']"))).click()
      print("Chose census file")
-     wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Download']"))).click()
+     retry_wait_click_all(wd, 20, 'xpath', "//button[text()='Download']")
+     #wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Download']"))).click()
      print("Clicked dnld button")
      time.sleep(5)
      return pd.read_csv(csv_file,sep="\t",encoding="utf-16")
@@ -902,15 +908,24 @@ def runID(ws, write):
   from selenium.webdriver.support import expected_conditions as EC
 
   def download_CSV(csv_name):
-    wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".tab-icon-download"))).click()
+    retry_wait_click_all(wd, 60, 'css', ".tab-icon-download")
+    #wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".tab-icon-download"))).click()
     print('clicked download')
-    wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Crosstab']"))).click()
+    
+    retry_wait_click_all(wd, 60, 'xpath', "//button[text()='Crosstab']")
+    #wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Crosstab']"))).click()
     print('clicked crosstab')
+
+    retry_wait_click_all(wd, 60, 'css', "label[data-tb-test-id='crosstab-options-dialog-radio-csv-Label']")
     wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label[data-tb-test-id='crosstab-options-dialog-radio-csv-Label']"))).click()
     print('clicked csv')
-    wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[title='" + csv_name + "']"))).click()
+
+    retry_wait_click_all(wd, 60, 'css', "div[title='" + csv_name + "']")
+    #wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[title='" + csv_name + "']"))).click()
     print('clicked file')
-    wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Download']"))).click()
+
+    retry_wait_click_all(wd, 60, 'xpath', "//button[text()='Download']")
+    #wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Download']"))).click()
     print('clicked download')
     time.sleep(4)
 
@@ -934,7 +949,8 @@ def runID(ws, write):
 
   def get_page(tabZone):
     wait.until(EC.frame_to_be_available_and_switch_to_it((By.CSS_SELECTOR, "iframe[title='Data Visualization']")))
-    wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='" + tabZone + "']/div/div/div/div/div"))).click()
+    retry_wait_click_all(wd, 60, 'xpath', "//*[@id='" + tabZone + "']/div/div/div/div/div")
+    #wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='" + tabZone + "']/div/div/div/div/div"))).click()
     time.sleep(2)
 
   url = 'https://public.tableau.com/profile/idaho.division.of.public.health#!/vizhome/DPHIdahoCOVID-19Dashboard/Home'
@@ -1056,14 +1072,16 @@ def runMI(ws,write):
   wd.get(url)
   wait = WebDriverWait(wd, 20)
 
-  demo_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='pvExplorationHost']/div/div/exploration/div/explore-canvas-modern/div/div[2]/div/div[2]/div[2]/visual-container-repeat/visual-container-group[3]/transform/div/div[2]/visual-container-modern[4]/transform/div/div[3]/div/visual-modern/div/button")))
-  demo_button.click()
+  retry_wait_click_all(wd, 20, 'xpath', "//*[@id='pvExplorationHost']/div/div/exploration/div/explore-canvas-modern/div/div[2]/div/div[2]/div[2]/visual-container-repeat/visual-container-group[3]/transform/div/div[2]/visual-container-modern[4]/transform/div/div[3]/div/visual-modern/div/button")
+  #demo_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='pvExplorationHost']/div/div/exploration/div/explore-canvas-modern/div/div[2]/div/div[2]/div[2]/visual-container-repeat/visual-container-group[3]/transform/div/div[2]/visual-container-modern[4]/transform/div/div[3]/div/visual-modern/div/button")))
+  #demo_button.click()
   print('clicked Demo button')
 
   elements = wait.until(EC.presence_of_all_elements_located((By.XPATH, "//*[@id='pvExplorationHost']/div/div/exploration/div/explore-canvas-modern/div/div[2]/div/div[2]/div[2]/visual-container-repeat/visual-container-modern[3]/transform/div")))
   ActionChains(wd).context_click(elements[0]).perform()
   #  time.sleep(10)
-  wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[title='Show as a table']"))).click()
+  retry_wait_click_all(wd, 20, 'css', "div[title='Show as a table']")
+  #wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[title='Show as a table']"))).click()
   print('clicked Show Table')
 
   cats = []
@@ -1082,18 +1100,22 @@ def runMI(ws,write):
   df_conf_cases.sort_values('Category',ascending=True,inplace=True)
   display(df_conf_cases)
 
-  back_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='pvExplorationHost']/div/div/exploration/div/explore-canvas-modern/div/div[2]/div/div[2]/div[2]/visual-container-repeat/visual-container-modern[3]/transform/div/div[3]/visual-container-pop-out-bar/div/div[1]/button")))
-  back_button.click()
+  retry_wait_click_all(wd, 20, 'xpath', "//*[@id='pvExplorationHost']/div/div/exploration/div/explore-canvas-modern/div/div[2]/div/div[2]/div[2]/visual-container-repeat/visual-container-modern[3]/transform/div/div[3]/visual-container-pop-out-bar/div/div[1]/button")
+  #back_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='pvExplorationHost']/div/div/exploration/div/explore-canvas-modern/div/div[2]/div/div[2]/div[2]/visual-container-repeat/visual-container-modern[3]/transform/div/div[3]/visual-container-pop-out-bar/div/div[1]/button")))
+  #back_button.click()
   print('clicked Back button')
 
-  prob_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='pvExplorationHost']/div/div/exploration/div/explore-canvas-modern/div/div[2]/div/div[2]/div[2]/visual-container-repeat/visual-container-group/transform/div/div[2]/visual-container-modern[3]/transform/div/div[3]/div/visual-modern/div/div/div[2]/div/div[2]/div/div[1]/div/div/div[2]")))
-  prob_button.click()
+  retry_wait_click_all(wd, 20, 'xpath', "//*[@id='pvExplorationHost']/div/div/exploration/div/explore-canvas-modern/div/div[2]/div/div[2]/div[2]/visual-container-repeat/visual-container-group/transform/div/div[2]/visual-container-modern[3]/transform/div/div[3]/div/visual-modern/div/div/div[2]/div/div[2]/div/div[1]/div/div/div[2]")
+
+  #prob_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='pvExplorationHost']/div/div/exploration/div/explore-canvas-modern/div/div[2]/div/div[2]/div[2]/visual-container-repeat/visual-container-group/transform/div/div[2]/visual-container-modern[3]/transform/div/div[3]/div/visual-modern/div/div/div[2]/div/div[2]/div/div[1]/div/div/div[2]")))
+  #prob_button.click()
   print('clicked Probable case status')
 
   elements = wait.until(EC.presence_of_all_elements_located((By.XPATH, "//*[@id='pvExplorationHost']/div/div/exploration/div/explore-canvas-modern/div/div[2]/div/div[2]/div[2]/visual-container-repeat/visual-container-modern[3]/transform/div")))
   ActionChains(wd).context_click(elements[0]).perform()
   #  time.sleep(10)
-  wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[title='Show as a table']"))).click()
+  retry_wait_click_all(wd, 20, 'css', "div[title='Show as a table']")
+  #wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[title='Show as a table']"))).click()
   print('clicked Show Table')
 
   cats = []
@@ -1112,19 +1134,22 @@ def runMI(ws,write):
   df_prob_cases.sort_values('Category',ascending=True,inplace=True)
   display(df_prob_cases)
 
-  back_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='pvExplorationHost']/div/div/exploration/div/explore-canvas-modern/div/div[2]/div/div[2]/div[2]/visual-container-repeat/visual-container-modern[3]/transform/div/div[3]/visual-container-pop-out-bar/div/div[1]/button")))
-  back_button.click()
+  retry_wait_click_all(wd, 20, 'xpath', "//*[@id='pvExplorationHost']/div/div/exploration/div/explore-canvas-modern/div/div[2]/div/div[2]/div[2]/visual-container-repeat/visual-container-modern[3]/transform/div/div[3]/visual-container-pop-out-bar/div/div[1]/button")
+  #back_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='pvExplorationHost']/div/div/exploration/div/explore-canvas-modern/div/div[2]/div/div[2]/div[2]/visual-container-repeat/visual-container-modern[3]/transform/div/div[3]/visual-container-pop-out-bar/div/div[1]/button")))
+  #back_button.click()
   print('clicked Back button')
 
-  deaths_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@aria-label=' Bookmark Button Click to view demographic characteristics of deaths.. Click here to follow link']")))
-  deaths_button.click()
+  retry_wait_click_all(wd, 20, 'xpath', "//*[@aria-label=' Bookmark Button Click to view demographic characteristics of deaths.. Click here to follow link']")
+  #deaths_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@aria-label=' Bookmark Button Click to view demographic characteristics of deaths.. Click here to follow link']")))
+  #deaths_button.click()
   print('clicked Deaths button')
   time.sleep(5)
 
   elements = wait.until(EC.presence_of_all_elements_located((By.XPATH, "//*[@id='pvExplorationHost']/div/div/exploration/div/explore-canvas-modern/div/div[2]/div/div[2]/div[2]/visual-container-repeat/visual-container-modern[3]/transform/div")))
   ActionChains(wd).context_click(elements[0]).perform()
   #  time.sleep(10)
-  wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[title='Show as a table']"))).click()
+  retry_wait_click_all(wd, 20, 'css', "div[title='Show as a table']")
+  #wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[title='Show as a table']"))).click()
   print('clicked Show Table')
 
   cats = []
@@ -1143,18 +1168,21 @@ def runMI(ws,write):
   df_conf_deaths.sort_values('Category',ascending=True,inplace=True)
   display(df_conf_deaths)
 
-  back_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='pvExplorationHost']/div/div/exploration/div/explore-canvas-modern/div/div[2]/div/div[2]/div[2]/visual-container-repeat/visual-container-modern[19]/transform/div/div[3]/visual-container-pop-out-bar/div/div[1]/button")))
-  back_button.click()
+  retry_wait_click_all(wd, 20, 'xpath', "//*[@id='pvExplorationHost']/div/div/exploration/div/explore-canvas-modern/div/div[2]/div/div[2]/div[2]/visual-container-repeat/visual-container-modern[19]/transform/div/div[3]/visual-container-pop-out-bar/div/div[1]/button")
+  #back_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='pvExplorationHost']/div/div/exploration/div/explore-canvas-modern/div/div[2]/div/div[2]/div[2]/visual-container-repeat/visual-container-modern[19]/transform/div/div[3]/visual-container-pop-out-bar/div/div[1]/button")))
+  #back_button.click()
   print('clicked Back button')
 
-  prob_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='pvExplorationHost']/div/div/exploration/div/explore-canvas-modern/div/div[2]/div/div[2]/div[2]/visual-container-repeat/visual-container-group/transform/div/div[2]/visual-container-modern[3]/transform/div/div[3]/div/visual-modern/div/div/div[2]/div/div[2]/div/div[1]/div/div/div[2]")))
-  prob_button.click()
+  retry_wait_click_all(wd, 20, 'xpath', "//*[@id='pvExplorationHost']/div/div/exploration/div/explore-canvas-modern/div/div[2]/div/div[2]/div[2]/visual-container-repeat/visual-container-group/transform/div/div[2]/visual-container-modern[3]/transform/div/div[3]/div/visual-modern/div/div/div[2]/div/div[2]/div/div[1]/div/div/div[2]")
+  #prob_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='pvExplorationHost']/div/div/exploration/div/explore-canvas-modern/div/div[2]/div/div[2]/div[2]/visual-container-repeat/visual-container-group/transform/div/div[2]/visual-container-modern[3]/transform/div/div[3]/div/visual-modern/div/div/div[2]/div/div[2]/div/div[1]/div/div/div[2]")))
+  #prob_button.click()
   print('clicked Probable case status')
 
   elements = wait.until(EC.presence_of_all_elements_located((By.XPATH, "//*[@id='pvExplorationHost']/div/div/exploration/div/explore-canvas-modern/div/div[2]/div/div[2]/div[2]/visual-container-repeat/visual-container-modern[3]/transform/div")))
   ActionChains(wd).context_click(elements[0]).perform()
   #  time.sleep(10)
-  wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[title='Show as a table']"))).click()
+  retry_wait_click_all(wd, 20, 'css', "div[title='Show as a table']")
+  #wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[title='Show as a table']"))).click()
   print('clicked Show Table')
 
   cats = []
@@ -1210,7 +1238,7 @@ def runIL(ws,write):
 
   #Open Webpage
   wd = init_driver()
-  wait = WebDriverWait(wd, 20)
+  #wait = WebDriverWait(wd, 20)
   wd.get(url)
   time.sleep(10)
 
@@ -1222,14 +1250,16 @@ def runIL(ws,write):
   cases_race = div_race.find_all_next('text',{"class": "slicetext"})
 
   # Deaths
-  wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='liRaceChartDeaths']/a"))).click()
+  retry_wait_click_all(wd, 20, 'xpath', "//*[@id='liRaceChartDeaths']/a")
+  #wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='liRaceChartDeaths']/a"))).click()
   time.sleep(10)
   soup = BeautifulSoup(wd.page_source, 'html.parser')
   div_race = soup.find('div',{"id": "pieRace"})
   deaths_race = div_race.find_all_next('text',{"class": "slicetext"})
 
   # Tests
-  wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='racePagination']/li[2]/a"))).click()
+  retry_wait_click_all(wd, 20, 'xpath', "//*[@id='racePagination']/li[2]/a")
+  #wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='racePagination']/li[2]/a"))).click()
   time.sleep(10)
   soup = BeautifulSoup(wd.page_source, 'html.parser')
   div_race = soup.find('div',{"id": "pieRace"})
@@ -1769,12 +1799,15 @@ def runLA(ws,write):
   wd = init_driver()
   wd.get(url)
 
-  wait = WebDriverWait(wd, 20)
-  wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".tab-icon-download"))).click()
+  #wait = WebDriverWait(wd, 20)
+  retry_wait_click_all(wd, 20, 'css', ".tab-icon-download")
+  #wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".tab-icon-download"))).click()
   print('Clicked download')
-  wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='PDF']"))).click()
+  retry_wait_click_all(wd, 20, 'xpath', "//button[text()='PDF']")
+  #wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='PDF']"))).click()
   print('Clicked PDF')
-  wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Download']"))).click()
+  retry_wait_click_all(wd, 20, 'xpath', "//button[text()='Download']")
+  #wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Download']"))).click()
   print('Clicked download')
   time.sleep(5)
 
@@ -2092,7 +2125,7 @@ def runMO(ws, write):
   #initialize the driver, get the url and take a nap
   wd=init_driver()
   wd.get(src)
-  wait = WebDriverWait(wd, 240)
+  #wait = WebDriverWait(wd, 240)
   print("Demographics Tableau")
   print(src)
   time.sleep(15)
@@ -2426,17 +2459,21 @@ def runNC(ws, write):
   #define getCSV NC style
   def getCSV(metric_xpath,metric_csv):
     wait = WebDriverWait(wd, 20)
-    wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".tab-icon-download"))).click()
+    retry_wait_click_all(wd, 20, 'css', ".tab-icon-download")
+    #wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".tab-icon-download"))).click()
     print('clicked download')
-    wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Crosstab']"))).click()
+    retry_wait_click_all(wd, 20, 'xpath', "//button[text()='Crosstab']")
+    #wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Crosstab']"))).click()
     print('clicked crosstab')
-    wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label[data-tb-test-id='crosstab-options-dialog-radio-csv-Label']"))).click()
+    retry_wait_click_all(wd, 20, 'css', "label[data-tb-test-id='crosstab-options-dialog-radio-csv-Label']")
+    #wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label[data-tb-test-id='crosstab-options-dialog-radio-csv-Label']"))).click()
     print('clicked csv')
     metric = wait.until(EC.element_to_be_clickable((By.XPATH, metric_xpath)))
     if len(metric.find_elements_by_tag_name('div')) == 1:
       metric.click()
-    print('clicked file')
-    wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Download']"))).click()
+    print('clicked file'), 
+    retry_wait_click_all(wd, 20, 'xpath', "//button[text()='Download']")
+    #wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Download']"))).click()
     print('clicked download')
     time.sleep(5)
 
@@ -2494,12 +2531,15 @@ def runND(ws,write):
   wd = init_driver()
   wd.get(url)
   wait = WebDriverWait(wd, 20)
+  #retry_wait_click_all(wd, 20, 'css', "i[title='Next Page']")
   wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "i[title='Next Page']"))).click()
   print('clicked Next Page')
   time.sleep(1)
+  #retry_wait_click_all(wd, 20, 'css', "i[title='Next Page']")
   wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "i[title='Next Page']"))).click()
   print('clicked Next Page')
 
+  #retry_wait_click_all(wd, 20, 'xpath', "//*[@id='pvExplorationHost']/div/div/exploration/div/explore-canvas-modern/div/div[2]/div/div[2]/div[2]/visual-container-repeat/visual-container-modern[12]/transform/div/div[3]/div/visual-modern/div/button")
   cum_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='pvExplorationHost']/div/div/exploration/div/explore-canvas-modern/div/div[2]/div/div[2]/div[2]/visual-container-repeat/visual-container-modern[12]/transform/div/div[3]/div/visual-modern/div/button")))
   cum_button.click()
   print('clicked Cumulative')

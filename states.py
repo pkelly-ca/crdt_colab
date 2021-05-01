@@ -2459,6 +2459,7 @@ def runNC(ws, write):
   #define getCSV NC style
   def getCSV(metric_xpath,metric_csv):
     wait = WebDriverWait(wd, 20)
+
     retry_wait_click_all(wd, 20, 'css', ".tab-icon-download")
     #wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".tab-icon-download"))).click()
     print('clicked download')
@@ -2467,10 +2468,12 @@ def runNC(ws, write):
     print('clicked crosstab')
     retry_wait_click_all(wd, 20, 'css', "label[data-tb-test-id='crosstab-options-dialog-radio-csv-Label']")
     #wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label[data-tb-test-id='crosstab-options-dialog-radio-csv-Label']"))).click()
+
     print('clicked csv')
     metric = wait.until(EC.element_to_be_clickable((By.XPATH, metric_xpath)))
     if len(metric.find_elements_by_tag_name('div')) == 1:
       metric.click()
+
     print('clicked file'), 
     retry_wait_click_all(wd, 20, 'xpath', "//button[text()='Download']")
     #wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Download']"))).click()

@@ -3420,9 +3420,9 @@ def runTN(ws, write):
   pdf = BytesIO(req.content)
   first_page = PyPDF2.PdfFileReader(pdf)
 
-  tables = tabula.read_pdf(url,pages=1)
+  tables = tabula.read_pdf(url,pages=1,multiple_tables=True)
 
-  df = pd.DataFrame(tables[0].iloc[18:29,0:4])
+  df = pd.DataFrame(tables[1].iloc[18:29,0:4])
   temp = df.iloc[:,0].str.split(r'^(.*) (\d+,*\d+)$', expand = True)
   temp.columns = ['','Race','Cases','']
   temp = temp.drop(columns='')

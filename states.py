@@ -2907,7 +2907,6 @@ def runNM(ws, write):
   print("NM Out")
   urlAll='https://e7p503ngy5.execute-api.us-west-2.amazonaws.com/prod/GetPublicStatewideData'
   req=requests.get(urlAll)
-  display(req)
   df_cases=pd.json_normalize(req.json()['data'])
   df_cases=df_cases.drop(['created','cvDataId','updated','archived','currentHospitalizations','recovered','male','female','genderNR','0-9','10-19','20-29','30-39','40-49','50-59','60-69','70-79','80-89','90+','ageNR'],1)
   df_casesR=df_cases.transpose().reset_index()
@@ -2920,15 +2919,18 @@ def runNM(ws, write):
   soup = BeautifulSoup(req.text, 'html.parser')
   a = soup.find('a', string=re.compile("Download The Latest COVID-19 Mortality Report"))
   url_mort = a['href']
-  tables = tabula.read_pdf(url_mort,pages=6,multiple_tables=False,stream=True,pandas_options={'header': 1})
+  #tables = tabula.read_pdf(url_mort,pages=6,multiple_tables=False,stream=True,pandas_options={'header': 1})
+  tables = tabula.read_pdf(url_mort,pages=6,multiple_tables=False,stream=True)
   display(tables)
-  death_table=tables[0].iloc[:,[0,-1]]
+  death_table=tables[0].iloc[:,[0,-1]].copy()
+  display("Death table:")
+  i = 0
+  for bool in death_table.loc[:,'Total'].isna():
+    if bool:
+      death_table.loc[i,'Total']=death_table.loc[i+1,'Total']
+    i+=1
+  death_table = death_table.drop(death_table[death_table['Race/Ethnicity'].isna()].index)
   display(death_table)
-  death_table['Total']=death_table['Total'].fillna('0')
-  #slice the split header rows
-  #death_table2=death_table.drop([1,3,5]).reset_index()
-  #death_table2=death_table2.drop(['index'],1)
-  #display(death_table2)
 
   if write == 1:
     # Write Paste Date To Sheet

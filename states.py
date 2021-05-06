@@ -3119,7 +3119,7 @@ def runOK(ws, write):
   pdf_url = 'https://oklahoma.gov' + pdfs[0].get('href')
   display(pdf_url)
   
-  tables = tabula.read_pdf(pdf_url,pages=11,multiple_tables = False)
+  tables = tabula.read_pdf(pdf_url,pages=12,multiple_tables = False)
   df_table = tables[0]
   for i in range(1,9,2):
     df_table = df_table.drop('Unnamed: '+str(i),axis=1)

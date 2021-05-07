@@ -947,11 +947,16 @@ def runSD(path,date,state,keys):
     df[i]=df[i].drop(['Unnamed: 0'],axis=1)
     display(df[i])
   # Pre-processing
-  df[1].columns = ['Category','Cases','Deaths','Hospitalizations']
   df = df[1].set_index('Category')
+  for cat in ['Cases','Deceased Among Cases','Ever Hospitalized']:
+    df[cat]=df['Hispanic_'+cat]+df['Non-Hispanic_'+cat]+df['Unknown_'+cat]
   df.loc['Total']=df.sum()
-  df.loc['NH']=df.loc['Total']-df.loc['Hispanic']-df.loc['Unknown, Non-Hispanic']
-  df = df.reset_index()
+  for cat in ['Cases','Deceased Among Cases','Ever Hospitalized']:
+    df.loc['NH',cat] = df.loc['Total','Non-Hispanic_'+cat]
+    df.loc['Unk Eth',cat] = df.loc['Total','Unknown_'+cat]
+    df=df.drop(['Hispanic_'+cat,'Non-Hispanic_'+cat,'Unknown_'+cat],axis=1)
+  df = df.astype('int').reset_index()
+  df.columns = ['Category','Cases','Deaths','Hospitalizations']
   # Common processing
   df_st = state_common(df,keys,state)
   # Custom Mapping

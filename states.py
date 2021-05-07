@@ -3349,12 +3349,9 @@ def runSD(ws,write):
   from selenium.webdriver.support import expected_conditions as EC
   from selenium.webdriver import ActionChains
 
-  url = 'https://app.powerbigov.us/view?r=eyJrIjoiZGJjZWYwZmEtMWVjMy00OTUwLThkMzgtZDhkNzAwOWQ3YzNlIiwidCI6IjcwYWY1NDdjLTY5YWItNDE2ZC1iNGE2LTU0M2I1Y2U1MmI5OSJ9'
+  url = 'https://app.powerbigov.us/view?r=eyJrIjoiMWJkMzQ2ZmUtNmExNC00MTJiLWIzOTktNDViNDY4MzVhODU1IiwidCI6IjcwYWY1NDdjLTY5YWItNDE2ZC1iNGE2LTU0M2I1Y2U1MmI5OSJ9'
+#  url = 'https://app.powerbigov.us/view?r=eyJrIjoiZGJjZWYwZmEtMWVjMy00OTUwLThkMzgtZDhkNzAwOWQ3YzNlIiwidCI6IjcwYWY1NDdjLTY5YWItNDE2ZC1iNGE2LTU0M2I1Y2U1MmI5OSJ9'
 #  url = 'https://app.powerbigov.us/view?r=eyJrIjoiZDUwODIyNGEtODdkZC00MmI4LWFmOTctZWJjOWRkYmIzNzhhIiwidCI6IjcwYWY1NDdjLTY5YWItNDE2ZC1iNGE2LTU0M2I1Y2U1MmI5OSJ9'
-
-  def colstr2int(df,col):
-    df.loc[:,col] = df.loc[:,col].replace(',','', regex=True)
-    df[col] = df[col].astype('int')
 
   def getdf_SD(category):
     wd = init_driver()
@@ -3388,9 +3385,14 @@ def runSD(ws,write):
     for element in elements:
       vals.append(element.text)
 
-    df = pd.DataFrame([cats[-7:],vals[-7:]]).T
-    df.columns = ['Category', category]
-    colstr2int(df,category)
+    df = pd.DataFrame([cats[-7:],vals[-7*5:-7*4],vals[-7*3:-7*2],vals[-7:]]).T
+    df.columns = ['Category', 'Hispanic_' + category, 'Non-Hispanic_' + category, 'Unknown_' + category]
+    df = df.set_index('Category')
+    df = df.replace(',','', regex=True)
+    df = df.replace(r'^\s*$','0', regex=True)
+    df = df.astype('int').reset_index()
+    display(df)
+    #colstr2int(df,category)
 
     wd.quit()
 

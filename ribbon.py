@@ -164,10 +164,14 @@ def runCO(path,date,state,keys):
   df = {}
   for i in range(1,4):
     df[i] = st_csv(i,path,date,state)
+    display(df[i])
   # Pre-processing
   df_tots = df[1]
   df = df[2].join(df[3]['Death Count']).drop(['value','category','index','Unnamed: 0'],axis=1)
-  df.loc[len(df.index)] = ['Totals',df_tots['value'].loc[0],df_tots['value'].loc[5]]
+  cases = df_tots['value'][df_tots['metric']=='Cases']
+  deaths = df_tots['value'][df_tots['metric']=='Deaths Among Cases']
+  df.loc[len(df.index)] = ['Totals',cases,deaths]
+  #df.loc[len(df.index)] = ['Totals',df_tots['value'].loc[0],df_tots['value'].loc[5]]
   df.columns = ['metric','Cases','Deaths']
   df['Cases']=df['Cases'].astype('int')
   df['Deaths']=df['Deaths'].astype('int')

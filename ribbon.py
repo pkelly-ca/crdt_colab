@@ -527,7 +527,7 @@ def runMD(path,date,state,keys):
   df=df.drop(['Confirmed','Probable'],axis=1)
   df = df.set_index(['Category'],drop=True)
   df.loc['Total'] = df.sum()
-  df.loc['Non Hispanic'] = df.loc['Total']-df.loc['Hispanic']-df.loc['Data not available']
+  df.loc['Non Hispanic'] = df.loc['Total']-df.loc['Hispanic']-df.loc['Race and Ethnicity Data not available']
   df = df.reset_index()
   # Common processing
   df_st = state_common(df,keys,state)

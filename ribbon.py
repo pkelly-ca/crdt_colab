@@ -531,7 +531,7 @@ def runMD(path,date,state,keys):
   df=df.drop(['Confirmed','Probable'],axis=1)
   df = df.set_index(['Category'],drop=True)
   df.loc['Total'] = df.sum()
-  df.loc['Non Hispanic'] = df.loc['Total']-df.loc['Hispanic']-df.loc['Race and Ethnicity Data not available']
+  df.loc['Non Hispanic'] = df.loc['Total']-df.loc['Hispanic']-df.loc['Data not available']
   df = df.reset_index()
   # Common processing
   df_st = state_common(df,keys,state)
@@ -1117,6 +1117,8 @@ def runWI(path,date,state,keys):
   display(df_deaths)
   df = df_cases.merge(df_deaths,how='outer',left_index=True,right_index=True)
   df.columns=['Cases','Deaths']
+  if 'Puerto Rican' in df.index:
+    df = df.drop('Puerto Rican')
   df = df.reset_index()
   # Common processing
   df_st = state_common(df,keys,state)

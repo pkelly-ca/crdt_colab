@@ -1889,18 +1889,23 @@ def runMA(ws, write):
 def runMD(ws,write):
     
   url = 'https://coronavirus.maryland.gov/'
-  req = requests.get(url)
-  soup = BeautifulSoup(req.text, 'html5lib')
-  # Find large text block which contains tables
-  script = soup.find('script',attrs={'id':'site-injection'})
-  win_start = script.text.find('window.__SITE=')
-  # Convert URL codes to characters
-  win_url = unquote(script.text[win_start:-5])
-  race_string = win_url[re.search("By Race and Ethnicity",win_url).start():]
-  race_table = race_string[race_string.find('<table'):race_string.find('</table>')+8]
-  #race_table = race_string[race_string.find('<table'):race_string.find('</table>"')+8]
+  wd = init_driver()
+  wait = WebDriverWait(wd, 20)
+  wd.maximize_window()
+  wd.get(url)
+  time.sleep(5)
+  height = wd.execute_script("return Math.max( document.body.scrollHeight, document.body.offsetHeight, document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight )")
+  wd.set_window_size(1920, height)
+  wd.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+#  time.sleep(5)
+  wait.until(EC.frame_to_be_available_and_switch_to_it((By.CSS_SELECTOR, "iframe[src='https://state-of-maryland.github.io/COVID19_Cases_DashboardBlackBox/CasesBlackboxStats2.html']")))
+  wd.save_screenshot("md_init.png");
+  print('switched')
+  soup = BeautifulSoup(wd.page_source, 'html5lib')
+  for el in soup(text='By Race and Ethnicity'):
+    table = el.parent.parent.findNext('table')
   # Clean data, move first row to column names
-  df = pd.read_html(race_table)[0]
+  df = pd.read_html(str(table))[0]
   df = df.fillna('')
   df.columns = df.iloc[0]
   df_demo = df.drop([0])
@@ -1910,14 +1915,14 @@ def runMD(ws,write):
   df_demo['Cases']=df_demo['Cases'].astype('int')
   display(df_demo)
 
-  totals_string = win_url[re.search("COVID-19 Statistics in Maryland",win_url).start():]
-  totals_table = totals_string[totals_string.find('<p'):]
-  totals_table = totals_table[:totals_table.find('</p>')+4]
-  soup = BeautifulSoup(totals_table,'html5lib')
-  p_text = soup.find('p').text
-  df_totals = pd.read_csv(StringIO(re.sub(r'\\n', '\\n', p_text)), sep=':', header=None)
+  wd.switch_to.default_content()
+  wait.until(EC.frame_to_be_available_and_switch_to_it((By.CSS_SELECTOR, "iframe[src='https://state-of-maryland.github.io/COVID19_Cases_DashboardBlackBox/StatisticsSummary.html']")))
+  soup = BeautifulSoup(wd.page_source, 'html5lib')
+  p_text = soup.find('span',{"id": "NumberofConfirmedCases"}).parent.text
+  df_totals = pd.read_csv(StringIO(p_text), sep=':', header=None)
   df_totals.columns = ["Metric","Value"]
   display(df_totals)
+  wd.quit()
 
 
   #Template for writing to state page

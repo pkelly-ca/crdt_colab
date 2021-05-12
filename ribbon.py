@@ -777,7 +777,10 @@ def runNH(path,date,state,keys):
   df = df_demo.merge(df_hosp,how='outer',on='Demographic').fillna(0).astype('int')
   df = df.append(df_tot)
   df.loc['Unknown (calc)'] = df.loc['Total']-df.loc['Known']+df.loc['Unknown']
-  df.loc['Other'] = df.loc['Other']+df.loc['Other Race']
+  # Insert dummy Other Race row since NH has taken it away
+  orace = pd.DataFrame({'Cases': 0, 'Deaths': 0, 'Hospitalizations': 0}, index=['Other Race'])
+  df = pd.concat([df.iloc[:6], orace, df.iloc[6:]])
+  #df.loc['Other'] = df.loc['Other']+df.loc['Other Race']
   df.loc['NH'] = df.loc['Total']-df.loc['Hispanic/Latino']-df.loc['Unknown (calc)']
   df = df.reset_index()
   # Common processing

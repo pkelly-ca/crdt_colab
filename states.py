@@ -2924,11 +2924,13 @@ def runNM(ws, write):
   soup = BeautifulSoup(req.text, 'html.parser')
   a = soup.find('a', string=re.compile("Download The Latest COVID-19 Mortality Report"))
   url_mort = a['href']
+  print(url_mort)
   #tables = tabula.read_pdf(url_mort,pages=6,multiple_tables=False,stream=True,pandas_options={'header': 1})
   tables = tabula.read_pdf(url_mort,pages=6,multiple_tables=False,stream=True)
   display(tables)
   death_table=tables[0].iloc[:,[0,-1]].copy()
   display("Death table:")
+  death_table.columns = ['Total' if 'Unnamed' in x else x for x in death_table.columns]
   i = 0
   for bool in death_table.loc[:,'Total'].isna():
     if bool:

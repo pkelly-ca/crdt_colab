@@ -186,8 +186,10 @@ def runAL(ws, write):
   wd.get(url)
   wd.maximize_window()
   wait = WebDriverWait(wd, 60)
-  prob_cases = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR,"div:nth-child(36) > margin-container > full-container > div > div.widget-body.flex-fluid.full-width.flex-vertical.justify-content-center.overflow-hidden > div > div > svg > g:nth-child(2) > text"))).text
-  prob_deaths = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR,"div:nth-child(45) > margin-container > full-container > div > div.widget-body.flex-fluid.full-width.flex-vertical.justify-content-center.overflow-hidden > div > div > svg > g.responsive-text-label > text"))).text
+  prob_cases = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR,"body > div > div > div > div.flex-fluid.flex-horizontal.position-relative.overflow-hidden > div > div > div > margin-container > full-container > div:nth-child(35) > margin-container > full-container > div > div.widget-body.flex-fluid.full-width.flex-vertical.justify-content-center.overflow-hidden > div > div > svg > g.responsive-text-label > text"))).text
+#  prob_cases = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR,"div:nth-child(34) > margin-container > full-container > div > div.widget-body.flex-fluid.full-width.flex-vertical.justify-content-center.overflow-hidden > div > div > svg > g:nth-child(2) > text"))).text
+  prob_deaths = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR,"body > div > div > div > div.flex-fluid.flex-horizontal.position-relative.overflow-hidden > div > div > div > margin-container > full-container > div:nth-child(44) > margin-container > full-container > div > div.widget-body.flex-fluid.full-width.flex-vertical.justify-content-center.overflow-hidden > div > div > svg > g.responsive-text-label > text"))).text
+#  prob_deaths = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR,"div:nth-child(45) > margin-container > full-container > div > div.widget-body.flex-fluid.full-width.flex-vertical.justify-content-center.overflow-hidden > div > div > svg > g.responsive-text-label > text"))).text
   wd.quit()
 
   df_prob = pd.DataFrame([['Probable',prob_cases,prob_deaths]],columns=['Category','Cases','Deaths'])
@@ -3430,8 +3432,10 @@ def runTN(ws, write):
   first_page = PyPDF2.PdfFileReader(pdf)
 
   tables = tabula.read_pdf(url,pages=1,multiple_tables=True)
+  display(tables)
 
-  df = pd.DataFrame(tables[len(tables)-1].iloc[18:29,0:4])
+  df = pd.DataFrame(tables[0].iloc[18:29,0:4])
+  display(df)
   temp = df.iloc[:,0].str.split(r'^(.*) (\d+,*\d+)$', expand = True)
   temp.columns = ['','Race','Cases','']
   temp = temp.drop(columns='')

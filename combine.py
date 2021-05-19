@@ -14,7 +14,10 @@ time.tzset()
 
 date_main = "20210307"
 date_start = "20210416"
-date_finish = date.today().strftime('%Y%m%d')
+date_finish = date.today()
+#date_finish = date_finish - timedelta(1)
+date_finish = date_finish.strftime('%Y%m%d')
+
 #date_finish = "20210504"
 
 gd_path = "/Users/User/Google Drive (patkellyatx@gmail.com)/CRDT/ribbon/"
@@ -34,6 +37,14 @@ for d in (d_start + timedelta(n) for n in range(0,d_count+1)):
   df_new.columns = df_new.columns.str.replace('Hospitalizations','Hosp')
   df = df_new.append(df)
 
-display(df)
-df = df.replace(-1,'')
-df.to_csv(gd_path + 'crdt_combined_'+date_finish+'.csv',index=False)
+#df = df.replace(-1,'')
+df.replace(-1,'').to_csv(gd_path + 'crdt_combined_'+date_finish+'.csv',index=False)
+df = df.set_index(['Date','State'])
+df_change = df.pct_change(periods=-45) * 100
+display(df_change)
+df_change.to_csv(gd_path + 'crdt_change_'+date_finish+'.csv')
+df_check = df_change.loc[int(date_finish)].abs()
+df_check[df_check < 1] = ''
+display(df_check)
+df_check.to_csv('check.csv')
+

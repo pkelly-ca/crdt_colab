@@ -192,6 +192,8 @@ def runCT(path,date,state,keys):
   df_tots = df[1]
   df = df[2].drop('Unnamed: 0',axis=1)
   df.columns = ['Category','Cases','Deaths']
+  df.sort_values('Category',inplace=True)
+  df = df.reset_index(drop=True)
   non_h_cases = df['Cases'].sum() - df['Cases'].iloc[0] - df['Cases'].iloc[7]
   non_h_deaths = df['Deaths'].sum() - df['Deaths'].iloc[0] - df['Deaths'].iloc[7]
   df.loc[len(df.index)] = ['Totals',df_tots['Total cases'].loc[0],df_tots['Total deaths'].loc[0]]

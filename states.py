@@ -1089,6 +1089,7 @@ def runMI(ws,write):
   cats = []
   elements = wait.until(EC.presence_of_all_elements_located((By.XPATH, "//*[@class='pivotTableCellWrap cell-interactive ']")))
   for element in elements:
+    print(element.text)
     cats.append(element.text)
 
   vals = []
@@ -3434,7 +3435,7 @@ def runTN(ws, write):
   tables = tabula.read_pdf(url,pages=1,multiple_tables=True)
   display(tables)
 
-  df = pd.DataFrame(tables[0].iloc[18:29,0:4])
+  df = pd.DataFrame(tables[1].iloc[18:29,0:4])
   display(df)
   temp = df.iloc[:,0].str.split(r'^(.*) (\d+,*\d+)$', expand = True)
   temp.columns = ['','Race','Cases','']

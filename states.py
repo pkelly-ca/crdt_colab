@@ -3437,7 +3437,7 @@ def runTN(ws, write):
   tables = tabula.read_pdf(url,pages=1,multiple_tables=True)
   display(tables)
 
-  df = pd.DataFrame(tables[1].iloc[18:29,0:4])
+  df = pd.DataFrame(tables[len(tables)-1].iloc[18:29,0:4])
   display(df)
   temp = df.iloc[:,0].str.split(r'^(.*) (\d+,*\d+)$', expand = True)
   temp.columns = ['','Race','Cases','']

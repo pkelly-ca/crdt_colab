@@ -43,8 +43,19 @@ df = df.set_index(['Date','State'])
 df_change = df.pct_change(periods=-45) * 100
 display(df_change)
 df_change.to_csv(gd_path + 'crdt_change_'+date_finish+'.csv')
+df_neg = df_change.loc[int(date_finish)].copy()
+df_neg[df_neg >= 0] = ''
+df_neg.to_csv('neg.csv')
+display(df_neg)
 df_check = df_change.loc[int(date_finish)].abs()
 df_check[df_check < 1] = ''
 display(df_check)
 df_check.to_csv('check.csv')
+df = df_check.replace(r'^\s*$', np.nan, regex=True)
+s_stack = df.stack()
+s_stack.to_csv('poslist.csv')
+print(s_stack)
+df = df_neg.replace(r'^\s*$', np.nan, regex=True)
+s_stack = df.stack()
+s_stack.to_csv('neglist.csv')
 

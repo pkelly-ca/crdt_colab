@@ -315,9 +315,11 @@ def runGU(path,date,state,keys):
   for i in range(1,num_files+1):
     df[i] = st_csv(i,path,date,state)
     df[i]=df[i].drop('Unnamed: 0',axis=1)
+    df[i]=df[i].set_index('Category')
     display(df[i])
   # Pre-processing
-  df = df[1].merge(df[2],on='Category')
+  df = df[1].join(df[2]).fillna(0).astype('int').reset_index()
+  display(df)
   df.loc[len(df.index)] = ['Totals',df.Cases.sum(),df.Deaths.sum()]
   df.loc[len(df.index)] = ['Asian',df.Cases.loc[[3,5]].sum(),df.Deaths.loc[[3,5]].sum()]
   df.loc[len(df.index)] = ['NHPI',df.Cases.loc[[0,1,6]].sum(),df.Deaths.loc[[0,1,6]].sum()]

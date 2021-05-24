@@ -240,14 +240,23 @@ def runDE(path,date,state,keys):
     display(df[i])
   # Pre-processing
   df[2].columns = ['Category','Cases']
+  df[2] = df[2].set_index('Category')
   df[3].columns = ['Category','Deaths']
-  df[4].columns = ['Category','Tests']
+  df[3] = df[3].set_index('Category')
+  df[4].columns = ['Oldcat','Tests']
+  df[4]['Category']=['White','Black','Hispanic','Other Race','Asian','Unknown Race']
+  df_tests = df[4].drop('Oldcat',axis=1).set_index('Category')
+  df_tests.loc['Non-Hispanic'] = df_tests.sum() - df_tests.loc['Unknown Race'] - df_tests.loc['Hispanic']
+  df_tests.loc['Unknown Eth'] = df_tests.loc['Unknown Race'] 
+  display(df_tests)
   df_tots = df[1]
-  df = df[2].merge(df[3],on='Category').merge(df[4],on='Category')
-  non_h_cases = df['Cases'].sum() - df['Cases'].iloc[2] - df['Cases'].iloc[5]
-  non_h_deaths = df['Deaths'].sum() - df['Deaths'].iloc[2] - df['Deaths'].iloc[5]
-  non_h_tests = df['Tests'].sum() - df['Tests'].iloc[2] - df['Tests'].iloc[5]
-  df.loc[len(df.index)] = ['Non-Hispanic',non_h_cases,non_h_deaths,non_h_tests]
+  df = df[2].join(df[3],on='Category',how='left').fillna(0).astype('int').reset_index().drop([7,11]).reset_index(drop=True)
+  df.loc[[6,7,10,11],'Category'] = ['Declined Race','Not Reported Race','Declined Eth','Not Reported Eth']
+  df = df.set_index('Category')
+  df.loc['Unknown Race']=df.loc['Declined Race']+df.loc['Not Reported Race']
+  df.loc['Unknown Eth']=df.loc['Declined Eth']+df.loc['Not Reported Eth']
+  df = df.join(df_tests,on='Category',how='left').fillna(0).astype('int').reset_index()
+  display(df)
   df.loc[len(df.index)] = ['Total',df_tots.loc[0,'Total'],df_tots.loc[1,'Total'],df_tots.loc[2,'Total']]
   # Common processing
   df_st = state_common(df,keys,state)

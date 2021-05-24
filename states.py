@@ -579,8 +579,12 @@ def runDE(ws,write):
   all_script = soup.find_all('script')
   
   for scr in all_script:
-    if "total_cases_by_race_ethnicity" in scr.text:
-      df_cases = make_table(scr.text,'Cases')
+    if "total_cases_by_race" in scr.text:
+      df_cases_r = make_table(scr.text,'Cases')
+    if "total_cases_by_ethnicity" in scr.text:
+      df_cases_e = make_table(scr.text,'Cases')
+
+  df_cases = df_cases_r.append(df_cases_e).reset_index(drop=True)
   
   url = 'https://myhealthycommunity.dhss.delaware.gov/locations/state/deaths'
   req = requests.get(url)
@@ -604,8 +608,12 @@ def runDE(ws,write):
   all_script = soup.find_all('script')
   
   for scr in all_script:
-    if "total_deaths_by_race_ethnicity" in scr.text:
-      df_deaths = make_table(scr.text,'Deaths')
+    if "total_deaths_by_race" in scr.text:
+      df_deaths_r = make_table(scr.text,'Deaths')
+    if "total_deaths_by_ethnicity" in scr.text:
+      df_deaths_e = make_table(scr.text,'Deaths')
+
+  df_deaths = df_deaths_r.append(df_deaths_e).reset_index(drop=True)
   
   df_totals = pd.DataFrame([["Cases",total_cases, confirmed[0],probable[0]],["Deaths",total_deaths, confirmed[1],probable[1]],["Tests",total_tests,0,0]],
                           columns=['Category','Total','Confirmed','Probable'])

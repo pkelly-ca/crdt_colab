@@ -164,10 +164,13 @@ def runCO(path,date,state,keys):
   df = {}
   for i in range(1,4):
     df[i] = st_csv(i,path,date,state)
+    df[i] = df[i].set_index('metric')
     display(df[i])
   # Pre-processing
-  df_tots = df[1]
-  df = df[2].join(df[3]['Death Count']).drop(['value','category','index','Unnamed: 0'],axis=1)
+  df_tots = df[1].reset_index()
+  df = df[2].join(df[3]['Death Count']).drop(['value','category','index','Unnamed: 0'],axis=1).reset_index()
+  display(df)
+  df = df.sort_values(by='metric')
   cases = df_tots['value'][df_tots['metric']=='Cases']
   deaths = df_tots['value'][df_tots['metric']=='Deaths Among Cases']
   df.loc[len(df.index)] = ['Totals',cases,deaths]
@@ -178,6 +181,7 @@ def runCO(path,date,state,keys):
   non_h_cases = df['Cases'].sum() - df['Cases'].iloc[9] - df['Cases'].iloc[3] - df['Cases'].iloc[7] 
   non_h_deaths = df['Deaths'].sum() - df['Deaths'].iloc[9] - df['Deaths'].iloc[3] - df['Deaths'].iloc[7] 
   df.loc[len(df.index)] = ['Non-Hispanic',non_h_cases,non_h_deaths]
+  df = df.reset_index(drop=True)
   # Common processing
   df_st = state_common(df,keys,state)
   # Custom Mapping
